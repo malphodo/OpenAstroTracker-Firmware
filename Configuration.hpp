@@ -159,8 +159,14 @@
 #ifndef USE_GPS
     #define USE_GPS 0
 #endif
+#ifndef USE_GPS_I2C_ADAFRUIT
+    #define USE_GPS_I2C_ADAFRUIT 0
+#endif
 #ifndef GPS_BAUD_RATE
     #define GPS_BAUD_RATE 9600
+#endif
+#ifndef GPS_I2C_ADDRESS
+    #define GPS_I2C_ADDRESS 0x10
 #endif
 
 /**

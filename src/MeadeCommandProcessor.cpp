@@ -9,6 +9,8 @@
 
 #if USE_GPS == 1
 bool gpsAqcuisitionComplete(int &indicator);  // defined in c72_menuHA_GPS.hpp
+String getGPSDebugSnapshot(unsigned long pollMs = 300);
+String getGPSDebugHexSnapshot(unsigned long pollMs = 300);
 #endif
 /////////////////////////////////////////////////////////////////////////////////////////
 //
@@ -1951,6 +1953,24 @@ String MeadeCommandProcessor::handleMeadeExtraCommands(String inCmd)
 #endif
 
             return "0,#";
+        }
+        else if (inCmd[1] == 'P')  // :XGP#
+        {
+#if USE_GPS == 1
+            // Returns: bytes,sentences,sats,valid,age_ms,last_byte#
+            return getGPSDebugSnapshot();
+#else
+            return "0,0,0,0,0,-1#";
+#endif
+        }
+        else if (inCmd[1] == 'Q')  // :XGQ#
+        {
+#if USE_GPS == 1
+            // Returns: n,HH.HH...# where HH are the most recent raw bytes.
+            return getGPSDebugHexSnapshot();
+#else
+            return "0,#";
+#endif
         }
     }
     else if (inCmd[0] == 'S')

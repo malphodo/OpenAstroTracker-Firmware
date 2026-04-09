@@ -2,8 +2,22 @@
 
 #include "../Configuration.hpp"
 #include "EPROMStore.hpp"
+#if USE_GPS_I2C_ADAFRUIT == 1
+PUSH_NO_WARNINGS
+    #include <Wire.h>
+POP_NO_WARNINGS
+#endif
 
 #if USE_GPS == 1
+
+static unsigned long gpsDiagBytesRead      = 0;
+static unsigned long gpsDiagSentences      = 0;
+static unsigned long gpsDiagLastSentenceMs = 0;
+static int gpsDiagLastByte                 = -1;
+static constexpr int GPS_DIAG_HEX_WINDOW   = 24;
+static uint8_t gpsDiagHexWindow[GPS_DIAG_HEX_WINDOW];
+static int gpsDiagHexWriteIndex = 0;
+static int gpsDiagHexCount      = 0;
 
     #if DEBUG_LEVEL & DEBUG_GPS
 char gpsBuf[256];
@@ -13,9 +27,78 @@ int gpsBufPos = 0;
 long lastGPSUpdate = 0;
 bool gpsAqcuisitionComplete(int &indicator)
 {
+#if USE_GPS_I2C_ADAFRUIT == 1
+    for (int chunk = 0; chunk < 4; chunk++)
+    {
+        const uint8_t toRead = 32;
+        const uint8_t got    = Wire.requestFrom(static_cast<uint8_t>(GPS_I2C_ADDRESS), toRead);
+        if (got == 0)
+        {
+            break;
+        }
+
+        while (Wire.available())
+        {
+            const int gpsChar = Wire.read();
+            gpsDiagBytesRead++;
+            gpsDiagLastByte = gpsChar;
+            gpsDiagHexWindow[gpsDiagHexWriteIndex] = static_cast<uint8_t>(gpsChar & 0xFF);
+            gpsDiagHexWriteIndex                    = (gpsDiagHexWriteIndex + 1) % GPS_DIAG_HEX_WINDOW;
+            if (gpsDiagHexCount < GPS_DIAG_HEX_WINDOW)
+            {
+                gpsDiagHexCount++;
+            }
+
+            if (gpsChar == 36)
+            {
+                if (millis() - lastGPSUpdate > 500)
+                {
+                    indicator     = adjustWrap(indicator, 1, 0, 3);
+                    lastGPSUpdate = millis();
+                }
+            }
+
+            if (gps.encode(gpsChar))
+            {
+                gpsDiagSentences++;
+                gpsDiagLastSentenceMs = millis();
+                LOG(DEBUG_GPS,
+                    "[GPS]: Encoded. %l sats, Location is%svalid, age is %lms",
+                    gps.satellites.value(),
+                    (gps.location.isValid() ? " " : " NOT "),
+                    gps.location.age());
+                if ((gps.location.lng() != 0) && (gps.location.age() < 30000UL))
+                {
+                    LOG(DEBUG_INFO, "[GPS]: Sync'd GPS location. Age is %d secs", gps.location.age() / 1000);
+                    LOG(DEBUG_INFO, "[GPS]: Location: %f  %f", gps.location.lat(), gps.location.lng());
+                    LOG(DEBUG_INFO, "[GPS]: UTC time is %dh%dm%ds", gps.time.hour(), gps.time.minute(), gps.time.second());
+                    lcdMenu.printMenu("GPS sync'd....");
+
+                    DayTime utcNow = DayTime(gps.time.hour(), gps.time.minute(), gps.time.second());
+                    utcNow.addHours(mount.getLocalUtcOffset());
+                    mount.setLocalStartTime(utcNow);
+                    mount.setLocalStartDate(gps.date.year(), gps.date.month(), gps.date.day());
+                    mount.setLatitude(gps.location.lat());
+                    mount.setLongitude(gps.location.lng());
+                    mount.delay(500);
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
+#else
     while (GPS_SERIAL_PORT.available())
     {
         int gpsChar = GPS_SERIAL_PORT.read();
+        gpsDiagBytesRead++;
+        gpsDiagLastByte = gpsChar;
+        gpsDiagHexWindow[gpsDiagHexWriteIndex] = static_cast<uint8_t>(gpsChar & 0xFF);
+        gpsDiagHexWriteIndex                    = (gpsDiagHexWriteIndex + 1) % GPS_DIAG_HEX_WINDOW;
+        if (gpsDiagHexCount < GPS_DIAG_HEX_WINDOW)
+        {
+            gpsDiagHexCount++;
+        }
 
     #if DEBUG_LEVEL & DEBUG_GPS
         if ((gpsBufPos < 254) && (gpsChar > 31))
@@ -34,6 +117,8 @@ bool gpsAqcuisitionComplete(int &indicator)
         }
         if (gps.encode(gpsChar))
         {
+            gpsDiagSentences++;
+            gpsDiagLastSentenceMs = millis();
     #if DEBUG_LEVEL & DEBUG_GPS
             gpsBuf[gpsBufPos++] = 0;
             LOG(DEBUG_GPS, "[GPS]: Sentence: [%s]", gpsBuf);
@@ -67,6 +152,59 @@ bool gpsAqcuisitionComplete(int &indicator)
         }
     }
     return false;
+#endif
+}
+
+String getGPSDebugSnapshot(unsigned long pollMs = 300)
+{
+    const unsigned long until = millis() + pollMs;
+    int indicator             = 0;
+
+    // Drain incoming GPS bytes for a short window and update parser/counters.
+    while (millis() < until)
+    {
+        gpsAqcuisitionComplete(indicator);
+        delay(2);
+    }
+
+    char buf[120];
+    snprintf(buf,
+             sizeof(buf),
+             "%lu,%lu,%u,%u,%lu,%d#",
+             gpsDiagBytesRead,
+             gpsDiagSentences,
+             static_cast<unsigned>(gps.satellites.value()),
+             gps.location.isValid() ? 1u : 0u,
+             static_cast<unsigned long>(gps.location.age()),
+             gpsDiagLastByte);
+    return String(buf);
+}
+
+String getGPSDebugHexSnapshot(unsigned long pollMs = 300)
+{
+    const unsigned long until = millis() + pollMs;
+    int indicator             = 0;
+    while (millis() < until)
+    {
+        gpsAqcuisitionComplete(indicator);
+        delay(2);
+    }
+
+    String out = String(gpsDiagHexCount) + ",";
+    for (int i = 0; i < gpsDiagHexCount; i++)
+    {
+        const int start = (gpsDiagHexWriteIndex - gpsDiagHexCount + GPS_DIAG_HEX_WINDOW) % GPS_DIAG_HEX_WINDOW;
+        const int idx   = (start + i) % GPS_DIAG_HEX_WINDOW;
+        char hex[4];
+        snprintf(hex, sizeof(hex), "%02X", static_cast<unsigned>(gpsDiagHexWindow[idx]));
+        out += hex;
+        if (i + 1 < gpsDiagHexCount)
+        {
+            out += ".";
+        }
+    }
+    out += "#";
+    return out;
 }
 
     #if DISPLAY_TYPE > 0
@@ -93,7 +231,9 @@ bool processHAKeys()
         if (gpsAqcuisitionComplete(indicator))
         {
             LOG(DEBUG_INFO, "[HA]: GPS acquired");
+#if USE_GPS_I2C_ADAFRUIT == 0
             GPS_SERIAL_PORT.end();
+#endif
             haState = SHOWING_HA_SYNC;
         #if SUPPORT_GUIDED_STARTUP == 1
             if (startupState == StartupWaitForHACompletion)
@@ -115,7 +255,9 @@ bool processHAKeys()
             if (key == btnSELECT)
             {
                 haState = STARTING_GPS;
+#if USE_GPS_I2C_ADAFRUIT == 0
                 GPS_SERIAL_PORT.begin(GPS_BAUD_RATE);
+#endif
             }
             else if ((key == btnUP) || (key == btnDOWN))
             {
@@ -180,7 +322,9 @@ bool processHAKeys()
             if (haState == STARTING_GPS)
             {
                 LOG(DEBUG_INFO, "[HA]: In GPS Start mode, switching to manual");
+#if USE_GPS_I2C_ADAFRUIT == 0
                 GPS_SERIAL_PORT.end();
+#endif
                 haState = SHOWING_HA_SYNC;
             }
         #if SUPPORT_GUIDED_STARTUP == 1

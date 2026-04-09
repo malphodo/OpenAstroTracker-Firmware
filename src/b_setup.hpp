@@ -178,7 +178,11 @@ void setup()
     #if (INFO_DISPLAY_TYPE != INFO_DISPLAY_TYPE_NONE)
     int gpsLine = addConsoleText(F("Initialize GPS..."));
     #endif
+    #if USE_GPS_I2C_ADAFRUIT == 1
+    Wire.begin();
+    #else
     GPS_SERIAL_PORT.begin(GPS_BAUD_RATE);
+    #endif
     #if (INFO_DISPLAY_TYPE != INFO_DISPLAY_TYPE_NONE)
     updateConsoleText(gpsLine, F("Initialize GPS... OK"));
     #endif

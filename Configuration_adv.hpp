@@ -669,7 +669,9 @@
 
 // GPS
 #if USE_GPS == 1
-    #define GPS_BAUD_RATE 9600
+    #ifndef GPS_BAUD_RATE
+        #define GPS_BAUD_RATE 9600
+    #endif
 #endif
 
 ////////////////////////////
