@@ -32,8 +32,8 @@ void Gyro::startup()
     // This is a read-only register which should have the value 0x68
     Wire.beginTransmission(MPU6050_I2C_ADDR);
     Wire.write(MPU6050_REG_WHO_AM_I);
-    Wire.endTransmission(true);
-    Wire.requestFrom(MPU6050_I2C_ADDR, 1, 1);
+    Wire.endTransmission();
+    Wire.requestFrom(static_cast<uint8_t>(MPU6050_I2C_ADDR), static_cast<uint8_t>(1));
     byte id   = (Wire.read() >> 1) & 0x3F;
     isPresent = (id == 0x34);
     if (!isPresent)
@@ -46,13 +46,13 @@ void Gyro::startup()
     Wire.beginTransmission(MPU6050_I2C_ADDR);
     Wire.write(MPU6050_REG_PWR_MGMT_1);
     Wire.write(0);  // Disable sleep, 8 MHz clock
-    Wire.endTransmission(true);
+    Wire.endTransmission();
 
     // Execute 1 byte write to MPU6050_REG_PWR_MGMT_1
     Wire.beginTransmission(MPU6050_I2C_ADDR);
     Wire.write(MPU6050_REG_CONFIG);
     Wire.write(6);  // 5Hz bandwidth (lowest) for smoothing
-    Wire.endTransmission(true);
+    Wire.endTransmission();
 
     LOG(DEBUG_INFO, "[GYRO]:: Started");
 }
@@ -84,16 +84,16 @@ angle_t Gyro::getCurrentAngles()
         // Execute 6 byte read from MPU6050_REG_WHO_AM_I
         Wire.beginTransmission(MPU6050_I2C_ADDR);
         Wire.write(MPU6050_REG_ACCEL_XOUT_H);
-        Wire.endTransmission(false);
-        Wire.requestFrom(MPU6050_I2C_ADDR, 6, 1);      // Read 6 registers total, each axis value is stored in 2 registers
+        Wire.endTransmission();
+        Wire.requestFrom(static_cast<uint8_t>(MPU6050_I2C_ADDR), static_cast<uint8_t>(6));  // Read 6 registers total, each axis value is stored in 2 registers
         int16_t AcX = Wire.read() << 8 | Wire.read();  // X-axis value
         int16_t AcY = Wire.read() << 8 | Wire.read();  // Y-axis value
         int16_t AcZ = Wire.read() << 8 | Wire.read();  // Z-axis value
 
         // Calculating the Pitch angle (rotation around Y-axis)
-        result.pitchAngle += ((atanf(-1 * AcX / sqrtf(powf(AcY, 2) + powf(AcZ, 2))) * 180.0f / static_cast<float>(PI)) * 2.0f) / 2.0f;
+        result.pitchAngle += ((atanf(-1 * AcX / sqrtf(powf(AcY, 2) + powf(AcZ, 2))) * 180.0f / 3.14159265f) * 2.0f) / 2.0f;
         // Calculating the Roll angle (rotation around X-axis)
-        result.rollAngle += ((atanf(-1 * AcY / sqrtf(powf(AcX, 2) + powf(AcZ, 2))) * 180.0f / static_cast<float>(PI)) * 2.0f) / 2.0f;
+        result.rollAngle += ((atanf(-1 * AcY / sqrtf(powf(AcX, 2) + powf(AcZ, 2))) * 180.0f / 3.14159265f) * 2.0f) / 2.0f;
 
         delay(10);  // Decorrelate measurements
     }
@@ -119,8 +119,8 @@ float Gyro::getCurrentTemperature()
     // Execute 2 byte read from MPU6050_REG_TEMP_OUT_H
     Wire.beginTransmission(MPU6050_I2C_ADDR);
     Wire.write(MPU6050_REG_TEMP_OUT_H);
-    Wire.endTransmission(false);
-    Wire.requestFrom(MPU6050_I2C_ADDR, 2, 1);            // Read 2 registers total, the temperature value is stored in 2 registers
+    Wire.endTransmission();
+    Wire.requestFrom(static_cast<uint8_t>(MPU6050_I2C_ADDR), static_cast<uint8_t>(2));  // Read 2 registers total, the temperature value is stored in 2 registers
     int16_t tempValue = Wire.read() << 8 | Wire.read();  // Raw Temperature value
 
     // Calculating the actual temperature value

@@ -75,8 +75,12 @@
 #ifndef AZ_DIAG_PIN
     #define AZ_DIAG_PIN P1_27
 #endif
-#ifndef AZ_SERIAL_PORT
-    #define AZ_SERIAL_PORT Serial3
+// Single-wire UART on Z socket PDN/CS.
+#ifndef AZ_SERIAL_PORT_RX
+    #define AZ_SERIAL_PORT_RX P1_08
+#endif
+#ifndef AZ_SERIAL_PORT_TX
+    #define AZ_SERIAL_PORT_TX P1_08
 #endif
 #ifndef AZ_DRIVER_ADDRESS
     #define AZ_DRIVER_ADDRESS 0b00
@@ -95,8 +99,12 @@
 #ifndef ALT_DIAG_PIN
     #define ALT_DIAG_PIN P1_26
 #endif
-#ifndef ALT_SERIAL_PORT
-    #define ALT_SERIAL_PORT Serial1
+// Single-wire UART on E0 socket PDN/CS.
+#ifndef ALT_SERIAL_PORT_RX
+    #define ALT_SERIAL_PORT_RX P1_04
+#endif
+#ifndef ALT_SERIAL_PORT_TX
+    #define ALT_SERIAL_PORT_TX P1_04
 #endif
 #ifndef ALT_DRIVER_ADDRESS
     #define ALT_DRIVER_ADDRESS 0b00
@@ -115,8 +123,12 @@
 #ifndef FOCUS_DIAG_PIN
     #define FOCUS_DIAG_PIN P1_25
 #endif
-#ifndef FOCUS_SERIAL_PORT
-    #define FOCUS_SERIAL_PORT Serial2
+// Single-wire UART on E1 socket PDN/CS.
+#ifndef FOCUS_SERIAL_PORT_RX
+    #define FOCUS_SERIAL_PORT_RX P1_01
+#endif
+#ifndef FOCUS_SERIAL_PORT_TX
+    #define FOCUS_SERIAL_PORT_TX P1_01
 #endif
 #ifndef FOCUS_DRIVER_ADDRESS
     #define FOCUS_DRIVER_ADDRESS 0b00

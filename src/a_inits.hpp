@@ -26,11 +26,15 @@ POP_NO_WARNINGS
 
 #if USE_GPS == 1
 PUSH_NO_WARNINGS
-    //#include <SoftwareSerial.h>
+    #if defined(GPS_USE_SOFTWARE_SERIAL) && (GPS_USE_SOFTWARE_SERIAL == 1)
+        #include <SoftwareSerial.h>
+    #endif
     #include <TinyGPS++.h>
 POP_NO_WARNINGS
 
-//SoftwareSerial SoftSerial(GPS_SERIAL_RX_PIN, GPS_SERIAL_TX_PIN); // RX, TX
+    #if defined(GPS_USE_SOFTWARE_SERIAL) && (GPS_USE_SOFTWARE_SERIAL == 1)
+SoftwareSerial gpsSerial(GPS_SERIAL_RX_PIN, GPS_SERIAL_TX_PIN);  // RX, TX
+    #endif
 TinyGPSPlus gps;
 #endif
 
