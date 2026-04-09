@@ -25,6 +25,13 @@ POP_NO_WARNINGS
 #include "a_inits.hpp"
 #include "LcdMenu.hpp"
 #include "LcdButtons.hpp"
+#if defined(BOARD) && (BOARD == BOARD_LPC1769_SKR_V14_TURBO)
+    #include <CDCSerial.h>
+extern "C"
+{
+    #include <usb/usbhw.h>
+}
+#endif
 #if (INFO_DISPLAY_TYPE == INFO_DISPLAY_TYPE_I2C_SSD1306_128x64)
     #include "SSD1306_128x64_Display.hpp"
 #endif
@@ -125,7 +132,17 @@ void setup()
         #error "Debugging not supported on this platform"
     #endif
 #else
+    #if defined(BOARD) && (BOARD == BOARD_LPC1769_SKR_V14_TURBO)
+    // USB CDC: keep UART0 (Serial.begin) before USB — skipping it prevented COM enumeration on some LPC builds.
+    // PC traffic uses UsbSerial only; command I/O ignores UART0 (see f_serial.hpp).
     Serial.begin(SERIAL_BAUDRATE);
+    USB_Init();
+    USB_Connect(true);
+    UsbSerial.begin(SERIAL_BAUDRATE);
+    delay(150);  // host USB enumeration before first traffic
+    #else
+    Serial.begin(SERIAL_BAUDRATE);
+    #endif
     #if DEBUG_LEVEL > 0 && DEBUG_SEPARATE_SERIAL == 1
     DEBUG_SERIAL_PORT.begin(DEBUG_SERIAL_BAUDRATE);
     #endif

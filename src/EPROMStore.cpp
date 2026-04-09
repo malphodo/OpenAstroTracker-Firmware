@@ -1,11 +1,19 @@
 #include "inc/Globals.hpp"
-PUSH_NO_WARNINGS
-#include <EEPROM.h>
-POP_NO_WARNINGS
-
 #include "../Configuration.hpp"
 #include "Utility.hpp"
 #include "EPROMStore.hpp"
+
+#if USE_DUMMY_EEPROM != true && BOARD != BOARD_LPC1769_SKR_V14_TURBO
+PUSH_NO_WARNINGS
+    #include <EEPROM.h>
+POP_NO_WARNINGS
+#endif
+
+#if BOARD == BOARD_LPC1769_SKR_V14_TURBO
+PUSH_NO_WARNINGS
+    #include <lpc17xx_iap.h>
+POP_NO_WARNINGS
+#endif
 
 // The platform-independant EEPROM class
 
@@ -17,7 +25,7 @@ const float SteppingStorageNormalized = 25600.0;
 
 #if USE_DUMMY_EEPROM == true
 
-static uint8_t dummyEepromStorage[EEPROMStore::STORE_SIZE];
+static uint8_t dummyEepromStorage[74];
 
 // Initialize the EEPROM object for ESP boards, setting aside storage
 void EEPROMStore::initialize()
@@ -47,6 +55,78 @@ uint8_t EEPROMStore::read(uint8_t location)
     uint8_t value;
     value = dummyEepromStorage[location];
     LOG(DEBUG_EEPROM, "[EEPROM]: Dummy: Read %x from %d", value, location);
+    return value;
+}
+
+#elif BOARD == BOARD_LPC1769_SKR_V14_TURBO
+
+// Last 32KB sector is reserved by linker script for EEPROM emulation.
+static constexpr uint32_t LPC_EEPROM_FLASH_BASE = 0x00078000UL;
+static constexpr uint32_t LPC_EEPROM_SECTOR     = 29UL;
+static constexpr uint32_t LPC_EEPROM_WRITE_SIZE = static_cast<uint32_t>(IAP_WRITE_256);
+static_assert(74 <= LPC_EEPROM_WRITE_SIZE, "EEPROM store exceeds LPC emulation page size");
+
+alignas(4) static uint8_t lpcEepromShadow[LPC_EEPROM_WRITE_SIZE];
+
+// Initialize EEPROM emulation from reserved flash page.
+void EEPROMStore::initialize()
+{
+    LOG(DEBUG_EEPROM, "[EEPROM]: LPC1769: Startup with %d bytes", STORE_SIZE);
+
+    const uint8_t *flash = reinterpret_cast<const uint8_t *>(LPC_EEPROM_FLASH_BASE);
+    bool isErased        = true;
+    for (uint32_t i = 0; i < LPC_EEPROM_WRITE_SIZE; i++)
+    {
+        if (flash[i] != 0xFF)
+        {
+            isErased = false;
+            break;
+        }
+    }
+
+    if (isErased)
+    {
+        memset(lpcEepromShadow, 0, sizeof(lpcEepromShadow));
+        // Persist initialized data so next boot reads valid values.
+        commit();
+    }
+    else
+    {
+        memcpy(lpcEepromShadow, flash, sizeof(lpcEepromShadow));
+    }
+
+    displayContents();
+}
+
+// Update in-RAM shadow only; commit() writes to flash.
+void EEPROMStore::update(uint8_t location, uint8_t value)
+{
+    LOG(DEBUG_EEPROM, "[EEPROM]: LPC1769: Writing %x to %d", value, location);
+    lpcEepromShadow[location] = value;
+}
+
+// Erase and rewrite the reserved flash sector page.
+void EEPROMStore::commit()
+{
+    IAP_STATUS_CODE status = EraseSector(LPC_EEPROM_SECTOR, LPC_EEPROM_SECTOR);
+    if (status != CMD_SUCCESS)
+    {
+        LOG(DEBUG_EEPROM, "[EEPROM]: LPC1769: Erase failed (%d)", static_cast<int>(status));
+        return;
+    }
+
+    status = CopyRAM2Flash(reinterpret_cast<uint8_t *>(LPC_EEPROM_FLASH_BASE), lpcEepromShadow, IAP_WRITE_256);
+    if (status != CMD_SUCCESS)
+    {
+        LOG(DEBUG_EEPROM, "[EEPROM]: LPC1769: Program failed (%d)", static_cast<int>(status));
+    }
+}
+
+// Read from shadow buffer to avoid direct flash reads during updates.
+uint8_t EEPROMStore::read(uint8_t location)
+{
+    uint8_t value = lpcEepromShadow[location];
+    LOG(DEBUG_EEPROM, "[EEPROM]: LPC1769: Read %x from %d", value, location);
     return value;
 }
 
@@ -657,8 +737,9 @@ Latitude EEPROMStore::getLatitude()
 
     if (isPresent(LATITUDE_FLAG))
     {
-        latitude = Latitude(1.0f * readInt16(LATITUDE_ADDR) / 100.0f);
-        LOG(DEBUG_EEPROM, "[EEPROM]: Latitude Marker OK! Latitude is %s", latitude.ToString());
+        Latitude storedLatitude(1.0f * readInt16(LATITUDE_ADDR) / 100.0f);
+        LOG(DEBUG_EEPROM, "[EEPROM]: Latitude Marker OK! Latitude is %s", storedLatitude.ToString());
+        return storedLatitude;
     }
     else
     {
@@ -688,8 +769,9 @@ Longitude EEPROMStore::getLongitude()
 
     if (isPresent(LONGITUDE_FLAG))
     {
-        longitude = Longitude(1.0f * readInt16(LONGITUDE_ADDR) / 100.0f);
-        LOG(DEBUG_EEPROM, "[EEPROM]: Longitude Marker OK! Longitude is %s", longitude.ToString());
+        Longitude storedLongitude(1.0f * readInt16(LONGITUDE_ADDR) / 100.0f);
+        LOG(DEBUG_EEPROM, "[EEPROM]: Longitude Marker OK! Longitude is %s", storedLongitude.ToString());
+        return storedLongitude;
     }
     else
     {

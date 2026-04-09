@@ -274,6 +274,8 @@
     #include "boards/AVR_MKS_GEN_L_V2/pins_MKS_GEN_L_V2.h"
 #elif (BOARD == BOARD_AVR_MKS_GEN_L_V21)
     #include "boards/AVR_MKS_GEN_L_V21/pins_MKS_GEN_L_V21.h"
+#elif (BOARD == BOARD_LPC1769_SKR_V14_TURBO)
+    #include "boards/LPC1769_SKR_V14_TURBO/pins_SKR_V14_TURBO.hpp"
 #endif
 
 #include "Configuration_adv.hpp"

@@ -2937,9 +2937,9 @@ void Mount::delay(int ms)
 //
 // interruptLoop()
 //
-// This function is only called on run in an ISR. It needs to be fast and do little work.
+// ISR / ESP32 task / LPC polled from Mount::loop — keep minimal work.
 /////////////////////////////////
-#if defined(ESP32) || !defined(NEW_STEPPER_LIB)
+#if defined(ESP32) || !defined(NEW_STEPPER_LIB) || (defined(BOARD) && (BOARD == BOARD_LPC1769_SKR_V14_TURBO))
 void Mount::interruptLoop()
 {
     // Only process guide pulses if we are tracking.
@@ -3036,6 +3036,11 @@ void Mount::interruptLoop()
 /////////////////////////////////
 void Mount::loop()
 {
+    // SKR LPC1769: no hardware timer calls interruptLoop(); poll here so every path (incl. early return when guiding) steps motors.
+#if defined(BOARD) && (BOARD == BOARD_LPC1769_SKR_V14_TURBO) && defined(NEW_STEPPER_LIB)
+    interruptLoop();
+#endif
+
     bool raStillRunning  = false;
     bool decStillRunning = false;
 

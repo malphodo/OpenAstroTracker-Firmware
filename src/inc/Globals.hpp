@@ -16,5 +16,11 @@ PUSH_NO_WARNINGS
 #include <WString.h>
 POP_NO_WARNINGS
 
+#if !defined(yield)
+inline void yield()
+{
+}
+#endif
+
 extern bool inSerialControl;  // True when the serial port is in control
 extern bool inNorthernHemisphere;

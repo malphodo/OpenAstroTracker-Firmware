@@ -115,7 +115,7 @@ class PerfMeasure
             *p++ = 'm';
             *p++ = 's';
             *p++ = 0;
-            Serial.println(String(buf));
+            Serial.println(buf);
             _printed = true;
         }
         RealTime::resume();

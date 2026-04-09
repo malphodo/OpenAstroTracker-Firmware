@@ -351,8 +351,9 @@ class Mount
     // Process any stepper movement.
     void loop();
 
-// Low-level process any stepper movement on interrupt callback.
-#if defined(ESP32) || !defined(NEW_STEPPER_LIB)
+// Low-level process any stepper movement on interrupt callback (ISR on AVR, task on ESP32).
+// LPC1769 (SKR): no TimerInterrupt port — poll from Mount::loop() when NEW_STEPPER_LIB + AccelStepper.
+#if defined(ESP32) || !defined(NEW_STEPPER_LIB) || (defined(BOARD) && (BOARD == BOARD_LPC1769_SKR_V14_TURBO))
     void interruptLoop();
 #endif
 

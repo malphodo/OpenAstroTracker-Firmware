@@ -411,13 +411,16 @@ void logv(int levelFlags, String input, ...)
         addToLogBuffer(formatArg(input.c_str(), argp));
     #else
         DEBUG_SERIAL_PORT.print("[");
-        DEBUG_SERIAL_PORT.print(String(now));
+        DEBUG_SERIAL_PORT.print(static_cast<unsigned long>(now));
         DEBUG_SERIAL_PORT.print("]{");
-        DEBUG_SERIAL_PORT.print(String(delta));
+        DEBUG_SERIAL_PORT.print(static_cast<unsigned long>(delta));
         DEBUG_SERIAL_PORT.print("}ms:");
-        DEBUG_SERIAL_PORT.print(String(freeMemory()));
+        DEBUG_SERIAL_PORT.print(static_cast<long>(freeMemory()));
         DEBUG_SERIAL_PORT.print("B: ");
-        DEBUG_SERIAL_PORT.println(formatArg(input.c_str(), argp));
+        {
+            const String msg = formatArg(input.c_str(), argp);
+            DEBUG_SERIAL_PORT.println(msg.c_str());
+        }
         DEBUG_SERIAL_PORT.flush();
     #endif
         lastLog = now;

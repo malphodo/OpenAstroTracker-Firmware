@@ -20,6 +20,9 @@
 #define BOARD_ESP32_ESP32DEV 1001
 #define BOARD_OAE_V1         1002
 
+// LPC1769 based boards
+#define BOARD_LPC1769_SKR_V14_TURBO 2001
+
 /**
  * Supported keypad/display types. Use one of these values for DISPLAY_TYPE configuration matching your used display and keypad.
  * 

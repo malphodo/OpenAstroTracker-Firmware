@@ -98,6 +98,9 @@ void loop()
     lcdMenu.setCursor(0, 1);
 
     #if SUPPORT_SERIAL_CONTROL == 1
+    // Always poll serial commands so desktop clients can connect
+    // even when not in the interactive "serial control" menu mode.
+    processSerialData();
     if (inSerialControl)
     {
         if (lcdButtons.keyChanged(&lcd_key))

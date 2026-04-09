@@ -6,6 +6,21 @@
 #endif
 
 #include "b_setup.hpp"
+#if defined(BOARD) && (BOARD == BOARD_LPC1769_SKR_V14_TURBO)
+    #include <CDCSerial.h>
+#endif
+
+#if defined(BOARD) && (BOARD == BOARD_LPC1769_SKR_V14_TURBO)
+inline void ensureUsbSerialReady()
+{
+    // OATControl opens COM with DTR disabled. On LPC176x CDC this can keep
+    // host_connected false and silently drop writes. Force-enable TX path.
+    if (!UsbSerial.host_connected)
+    {
+        UsbSerial.host_connected = true;
+    }
+}
+#endif
 
 #if SUPPORT_SERIAL_CONTROL == 1
     #include "MeadeCommandProcessor.hpp"
@@ -19,7 +34,7 @@ void serialLoop()
     mount.loop();
     mount.displayStepperPositionThrottled();
 
-    #ifdef ESP32
+    #if defined(ESP32) || (defined(BOARD) && (BOARD == BOARD_LPC1769_SKR_V14_TURBO))
     processSerialData();
     #endif
 
@@ -111,51 +126,68 @@ void processSerialData()
 {
     static char buffer[20];
     static unsigned int index = 0;
-    while (Serial.available() > 0)
+    for (;;)
     {
-        if (Serial.readBytes((buffer + index), 1) == 1)
+        bool readOk = false;
+    #if defined(BOARD) && (BOARD == BOARD_LPC1769_SKR_V14_TURBO)
+        // PC control path is USB CDC only on SKR (see setup: UART0 not started in release builds).
+        if (UsbSerial.available() > 0)
         {
-            if (buffer[index] == 0x06)
-            {
-                LOG(DEBUG_SERIAL, "[SERIAL]: Received: ACK request, replying P");
-                    // When not debugging, print the result to the serial port .
-                    // When debugging, only print the result to Serial if we're on seperate ports.
-        #if (DEBUG_LEVEL == DEBUG_NONE) || (DEBUG_SEPARATE_SERIAL == 1)
-                Serial.print('P');
-        #endif
-                index = 0;
-            }
-            else if (buffer[index] == '#')
-            {
-                // Ignoring trailing hash
-                buffer[index]      = '\0';
-                const String inCmd = String(buffer);
-                LOG(DEBUG_SERIAL, "[SERIAL]: ReceivedCommand(%d chars): [%s]", inCmd.length(), inCmd.c_str());
+            readOk = (UsbSerial.readBytes((buffer + index), 1) == 1);
+        }
+    #else
+        if (Serial.available() > 0)
+        {
+            readOk = (Serial.readBytes((buffer + index), 1) == 1);
+        }
+    #endif
 
-                const String retVal = MeadeCommandProcessor::instance()->processCommand(inCmd);
-                if (retVal != "")
-                {
-                    LOG(DEBUG_SERIAL, "[SERIAL]: RepliedWith:  [%s]", retVal.c_str());
-                        // When not debugging, print the result to the serial port .
-                        // When debugging, only print the result to Serial if we're on seperate ports.
-        #if (DEBUG_LEVEL == DEBUG_NONE) || (DEBUG_SEPARATE_SERIAL == 1)
-                    Serial.print(retVal);
-        #endif
-                }
-                // Wait for next command
-                index = 0;
-            }
-            else if (buffer[index] >= ' ')
-            {
-                index++;
-                if (index >= sizeof(buffer))
-                {
-                    LOG(DEBUG_SERIAL, "[SERIAL]: Command buffer overflow! Ignoring received data.");
-                    index = 0;
-                }
-            }
+        if (!readOk)
+        {
+            break;
         }
 
+        if (buffer[index] == 0x06)
+        {
+            LOG(DEBUG_SERIAL, "[SERIAL]: Received: ACK request, replying P");
+            #if defined(BOARD) && (BOARD == BOARD_LPC1769_SKR_V14_TURBO)
+            ensureUsbSerialReady();
+            UsbSerial.print('P');
+            #else
+            Serial.print('P');
+            #endif
+            index = 0;
+        }
+        else if (buffer[index] == '#')
+        {
+            // Ignoring trailing hash
+            buffer[index]      = '\0';
+            const String inCmd = String(buffer);
+            LOG(DEBUG_SERIAL, "[SERIAL]: ReceivedCommand(%d chars): [%s]", inCmd.length(), inCmd.c_str());
+
+            const String retVal = MeadeCommandProcessor::instance()->processCommand(inCmd);
+            if (retVal != "")
+            {
+                LOG(DEBUG_SERIAL, "[SERIAL]: RepliedWith:  [%s]", retVal.c_str());
+                #if defined(BOARD) && (BOARD == BOARD_LPC1769_SKR_V14_TURBO)
+                ensureUsbSerialReady();
+                UsbSerial.print(retVal.c_str());
+                #else
+                Serial.print(retVal.c_str());
+                #endif
+            }
+            // Wait for next command
+            index = 0;
+        }
+        else if (buffer[index] >= ' ')
+        {
+            index++;
+            if (index >= sizeof(buffer))
+            {
+                LOG(DEBUG_SERIAL, "[SERIAL]: Command buffer overflow! Ignoring received data.");
+                index = 0;
+            }
+        }
         mount.loop();
     }
 }

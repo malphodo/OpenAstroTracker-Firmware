@@ -17,7 +17,7 @@
 #endif
 
 // Platform
-#if defined(ESP32) || defined(__AVR_ATmega2560__)
+#if defined(ESP32) || defined(__AVR_ATmega2560__) || (BOARD == BOARD_LPC1769_SKR_V14_TURBO)
 // Valid platform
 #else
     #error Unsupported platform configuration. Use at own risk.
@@ -26,6 +26,8 @@
 // Display & keypad configurations
 #if defined(ESP32) && ((DISPLAY_TYPE == DISPLAY_TYPE_NONE) || (DISPLAY_TYPE == DISPLAY_TYPE_LCD_JOY_I2C_SSD1306))
 // Valid display for ESP32
+#elif (BOARD == BOARD_LPC1769_SKR_V14_TURBO) && ((DISPLAY_TYPE == DISPLAY_TYPE_NONE) || (DISPLAY_TYPE == DISPLAY_TYPE_LCD_JOY_I2C_SSD1306))
+// Valid display for SKR 1.4 Turbo
 #elif defined(__AVR_ATmega2560__)                                                                                                          \
     && ((DISPLAY_TYPE == DISPLAY_TYPE_NONE) || (DISPLAY_TYPE == DISPLAY_TYPE_LCD_KEYPAD) || (DISPLAY_TYPE_LCD_KEYPAD_I2C_MCP23008)         \
         || (DISPLAY_TYPE_LCD_KEYPAD_I2C_MCP23017))
@@ -81,7 +83,7 @@
     #else
         #error Defined an AZ driver, but no AZ stepper.
     #endif
-#elif defined(__AVR_ATmega2560__)
+#elif defined(__AVR_ATmega2560__) || (BOARD == BOARD_LPC1769_SKR_V14_TURBO)
     // Azimuth configuration
     #if (AZ_DRIVER_TYPE == DRIVER_TYPE_TMC2209_UART)
         #ifndef AZ_DRIVER_ADDRESS
@@ -102,7 +104,7 @@
     #else
         #error Defined an ALT driver, but no ALT stepper.
     #endif
-#elif defined(__AVR_ATmega2560__)
+#elif defined(__AVR_ATmega2560__) || (BOARD == BOARD_LPC1769_SKR_V14_TURBO)
     // Altitude configuration
     #if (ALT_DRIVER_TYPE == DRIVER_TYPE_TMC2209_UART)
         #ifndef ALT_DRIVER_ADDRESS
@@ -125,7 +127,7 @@
     #else
         #error Defined an Focus driver, but no Focus stepper.
     #endif
-#elif defined(__AVR_ATmega2560__)
+#elif defined(__AVR_ATmega2560__) || (BOARD == BOARD_LPC1769_SKR_V14_TURBO)
     // Focus configuration
     #if (FOCUS_STEPPER_TYPE == DRIVER_TYPE_TMC2209_UART)
         #ifndef FOCUS_DRIVER_ADDRESS
@@ -166,7 +168,7 @@
 // External sensors
 #if (USE_GPS == 0)
 // Baseline configuration without GPS is valid
-#elif defined(ESP32) || defined(__AVR_ATmega2560__)
+#elif defined(ESP32) || defined(__AVR_ATmega2560__) || (BOARD == BOARD_LPC1769_SKR_V14_TURBO)
 // GPS is supported on ESP32 and ATmega
 #else
     #error Unsupported GPS configuration. Use at own risk.
@@ -174,7 +176,7 @@
 
 #if (USE_GYRO_LEVEL == 0)
 // Baseline configuration without gyro is valid
-#elif defined(ESP32) || defined(__AVR_ATmega2560__)
+#elif defined(ESP32) || defined(__AVR_ATmega2560__) || (BOARD == BOARD_LPC1769_SKR_V14_TURBO)
 // Gyro is supported on ESP32 and ATmega
 #else
     #error Unsupported gyro configuration. Use at own risk.

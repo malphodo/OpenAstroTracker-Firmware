@@ -18,6 +18,8 @@
     #include "Configuration_local_esp32dev.hpp"
 #elif BOARD == BOARD_OAE_V1 && __has_include("Configuration_local_oae.hpp")
     #include "Configuration_local_oae.hpp"
+#elif BOARD == BOARD_LPC1769_SKR_V14_TURBO && __has_include("Configuration_local_skr14turbo.hpp")
+    #include "Configuration_local_skr14turbo.hpp"
 #elif __has_include("Configuration_local.hpp")
     #include "Configuration_local.hpp"
 #endif
