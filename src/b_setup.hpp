@@ -323,16 +323,15 @@ void setup()
 #endif
     // end microstepping -------------------
 
-#if USE_HALL_SENSOR_RA_AUTOHOME == 1 || USE_HALL_SENSOR_DEC_AUTOHOME == 1
-    int homingLine = addConsoleText(F("Init homing sensors..."));
-    #if USE_HALL_SENSOR_RA_AUTOHOME == 1
-    pinMode(RA_HOMING_SENSOR_PIN, INPUT);
+#if defined(RA_HOMING_SENSOR_PIN) || defined(DEC_HOMING_SENSOR_PIN)
+    int homingLine = addConsoleText(F("Init Hall homing pins..."));
+    #if defined(RA_HOMING_SENSOR_PIN)
+    pinMode(RA_HOMING_SENSOR_PIN, RA_HOMING_SENSOR_INPUT_MODE);
     #endif
-
-    #if USE_HALL_SENSOR_DEC_AUTOHOME == 1
-    pinMode(DEC_HOMING_SENSOR_PIN, INPUT);
+    #if defined(DEC_HOMING_SENSOR_PIN)
+    pinMode(DEC_HOMING_SENSOR_PIN, DEC_HOMING_SENSOR_INPUT_MODE);
     #endif
-    updateConsoleText(homingLine, F("Init homing sensors... OK"));
+    updateConsoleText(homingLine, F("Init Hall homing pins... OK"));
 #endif
 
     LOG(DEBUG_ANY, "[SYSTEM]: Initializing EEPROM store...");

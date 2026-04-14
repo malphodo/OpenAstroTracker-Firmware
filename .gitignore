@@ -11,3 +11,8 @@ build_cache
 
 Configuration_local*
 MeadeToWikiOutput.txt
+
+# PyInstaller (OAT test harness)
+tools/oat_test_harness/build/
+tools/oat_test_harness/dist/
+tools/oat_test_harness/*.spec

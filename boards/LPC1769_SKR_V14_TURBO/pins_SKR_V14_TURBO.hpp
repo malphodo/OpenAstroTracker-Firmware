@@ -134,12 +134,22 @@
     #define FOCUS_DRIVER_ADDRESS 0b00
 #endif
 
-// Homing sensors
+// Homing sensors (connect to endstop SIG + GND; 3.3 V logic)
+// Do NOT use P1_27 for RA Hall: it is AZ_DIAG_PIN (TMC2209 DIAG output on Z socket) and will fight your sensor.
 #ifndef RA_HOMING_SENSOR_PIN
     #define RA_HOMING_SENSOR_PIN P1_24
 #endif
 #ifndef DEC_HOMING_SENSOR_PIN
     #define DEC_HOMING_SENSOR_PIN P1_23
+#endif
+
+// Hall / endstop inputs: keep MCU pull-up enabled for a defined idle HIGH level.
+// Power KY-003 at 3.3 V if possible so its output stays in 3.3 V logic range.
+#ifndef RA_HOMING_SENSOR_INPUT_MODE
+    #define RA_HOMING_SENSOR_INPUT_MODE INPUT_PULLUP
+#endif
+#ifndef DEC_HOMING_SENSOR_INPUT_MODE
+    #define DEC_HOMING_SENSOR_INPUT_MODE INPUT_PULLUP
 #endif
 
 // End switch sensors (optional)

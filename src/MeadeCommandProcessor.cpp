@@ -6,12 +6,14 @@
 #include "MeadeCommandProcessor.hpp"
 #include "WifiControl.hpp"
 #include "Gyro.hpp"
+#include <Wire.h>
 
 #if USE_GPS == 1
 bool gpsAqcuisitionComplete(int &indicator);  // defined in c72_menuHA_GPS.hpp
 String getGPSDebugSnapshot(unsigned long pollMs = 300);
 String getGPSDebugHexSnapshot(unsigned long pollMs = 300);
 #endif
+
 /////////////////////////////////////////////////////////////////////////////////////////
 //
 // Serial support
@@ -899,6 +901,38 @@ String getGPSDebugHexSnapshot(unsigned long pollMs = 300);
 //        where the actual center position is located.
 //      Returns:
 //        "n#" - the number of steps
+//
+// :XGHL#
+//      Description:
+//        Read live Hall sensor GPIO levels (RA and DEC homing pins)
+//      Information:
+//        Raw pin level: 0=LOW, 1=HIGH. On SKR, endstop nets are usually pulled up on the PCB — open-collector KY-003 idle reads 1 (HIGH); active (magnet) pulls to 0.
+//      Returns:
+//        "ra,dec#" - e.g. "1,0#"
+//
+// :XGHT#
+//      Description:
+//        Hall "triggered" (logical active), not raw voltage
+//      Information:
+//        1 = pin matches RA_HOMING_SENSOR_ACTIVE_STATE / DEC_... (default LOW = KY-003 with pull-up). 0 = not triggered.
+//      Returns:
+//        "ra,dec#" - e.g. "0,0#" at rest, "1,0#" when RA Hall active
+//
+// :XGI2#
+//      Description:
+//        Scan I2C bus and report detected addresses
+//      Information:
+//        Scans standard 7-bit range 0x08..0x77 and returns comma-delimited hex addresses.
+//      Returns:
+//        "0x10,0x68#" (example) or "NONE#"
+//
+// :XGHU#
+//      Description:
+//        Hall / endstop debug — five consecutive samples per pin
+//      Information:
+//        Use when :XGHL# never changes: if all five digits are identical, the line is stuck (KY-003 at 5 V, wrong pin, bad GND).
+//      Returns:
+//        "r0,r1,r2,r3,r4|d0,d1,d2,d3,d4#"
 //
 // :XGHS#
 //      Description:
@@ -1864,6 +1898,10 @@ String MeadeCommandProcessor::handleMeadeExtraCommands(String inCmd)
         {
             return String(_mount->getStepsPerDegree(ALTITUDE_STEPS), 1) + "#";
         }
+        else if ((inCmd[1] == 'Z') && (inCmd.length() > 2) && (inCmd[2] == 'Z'))  // :XGZZ#
+        {
+            return "ZOK#";
+        }
         else if ((inCmd[1] == 'Z') && (inCmd.length() == 2))  // :XGZ#
         {
             return String(_mount->getStepsPerDegree(AZIMUTH_STEPS), 1) + "#";
@@ -1879,6 +1917,12 @@ String MeadeCommandProcessor::handleMeadeExtraCommands(String inCmd)
             char scratchBuffer[20];
             sprintf(scratchBuffer, "%ld|%ld#", azPos, altPos);
             return String(scratchBuffer);
+        }
+        else if ((inCmd[1] == 'I') && (inCmd.length() > 2) && (inCmd[2] == '2'))  // :XGI2#
+        {
+            // Full-bus I2C scan can lock up the LPC176x Wire implementation on some bus faults.
+            // Keep this command non-blocking to avoid freezing the firmware.
+            return "I2C:SCAN_DISABLED#";
         }
         else if (inCmd[1] == 'C')  // :XGCn.nn*m.mm#
         {
@@ -1926,6 +1970,46 @@ String MeadeCommandProcessor::handleMeadeExtraCommands(String inCmd)
                 {
                     LOG(DEBUG_MEADE, "[MEADE]: XGHS  -> %s", inCmd.c_str());
                     return String(inNorthernHemisphere ? "N#" : "S#");
+                }
+                else if (inCmd[2] == 'L')  // :XGHL#
+                {
+                    // Single digitalRead per pin (same instant semantics as a multimeter logic probe).
+                    int raState  = digitalRead(RA_HOMING_SENSOR_PIN);
+                    int decState = digitalRead(DEC_HOMING_SENSOR_PIN);
+                    char scratchBuffer[12];
+                    sprintf(scratchBuffer, "%d,%d#", raState, decState);
+                    return String(scratchBuffer);
+                }
+                else if (inCmd[2] == 'U')  // :XGHU#
+                {
+                    // Five quick samples per pin — if digits never change, the GPIO line is stuck (wiring / level / wrong pin).
+                    int r0, r1, r2, r3, r4, d0, d1, d2, d3, d4;
+                    r0 = digitalRead(RA_HOMING_SENSOR_PIN);
+                    d0 = digitalRead(DEC_HOMING_SENSOR_PIN);
+                    delayMicroseconds(80);
+                    r1 = digitalRead(RA_HOMING_SENSOR_PIN);
+                    d1 = digitalRead(DEC_HOMING_SENSOR_PIN);
+                    delayMicroseconds(80);
+                    r2 = digitalRead(RA_HOMING_SENSOR_PIN);
+                    d2 = digitalRead(DEC_HOMING_SENSOR_PIN);
+                    delayMicroseconds(80);
+                    r3 = digitalRead(RA_HOMING_SENSOR_PIN);
+                    d3 = digitalRead(DEC_HOMING_SENSOR_PIN);
+                    delayMicroseconds(80);
+                    r4 = digitalRead(RA_HOMING_SENSOR_PIN);
+                    d4 = digitalRead(DEC_HOMING_SENSOR_PIN);
+                    char scratchBuffer[48];
+                    sprintf(scratchBuffer, "%d,%d,%d,%d,%d|%d,%d,%d,%d,%d#", r0, r1, r2, r3, r4, d0, d1, d2, d3, d4);
+                    return String(scratchBuffer);
+                }
+                else if (inCmd[2] == 'T')  // :XGHT#
+                {
+                    // 1 = sensor logically active (matches *_ACTIVE_STATE); easier for KY-003 than raw :XGHL#.
+                    int ra = (digitalRead(RA_HOMING_SENSOR_PIN) == RA_HOMING_SENSOR_ACTIVE_STATE) ? 1 : 0;
+                    int dec = (digitalRead(DEC_HOMING_SENSOR_PIN) == DEC_HOMING_SENSOR_ACTIVE_STATE) ? 1 : 0;
+                    char scratchBuffer[12];
+                    sprintf(scratchBuffer, "%d,%d#", ra, dec);
+                    return String(scratchBuffer);
                 }
                 LOG(DEBUG_MEADE, "[MEADE]: XGH?  -> %s", inCmd.c_str());
 

@@ -16,6 +16,7 @@ POP_NO_WARNINGS
  * */
 
 bool Gyro::isPresent(false);
+static uint8_t s_mpuAddr = 0x68;
 
 void Gyro::startup()
 /* Starts up the MPU-6050 device.
@@ -28,33 +29,56 @@ void Gyro::startup()
     LOG(DEBUG_INFO, "[GYRO]:: Starting");
     Wire.begin();
 
-    // Execute 1 byte read from MPU6050_REG_WHO_AM_I
-    // This is a read-only register which should have the value 0x68
-    Wire.beginTransmission(MPU6050_I2C_ADDR);
-    Wire.write(MPU6050_REG_WHO_AM_I);
-    Wire.endTransmission();
-    Wire.requestFrom(static_cast<uint8_t>(MPU6050_I2C_ADDR), static_cast<uint8_t>(1));
-    byte id   = (Wire.read() >> 1) & 0x3F;
-    isPresent = (id == 0x34);
+    // Read WHO_AM_I and accept both MPU6050 addresses:
+    // 0x68 (AD0 low, most common) and 0x69 (AD0 high).
+    byte id       = 0;
+    bool idReadOk = false;
+    isPresent     = false;
+    for (uint8_t addr : {static_cast<uint8_t>(0x68), static_cast<uint8_t>(0x69)})
+    {
+        Wire.beginTransmission(addr);
+        Wire.write(MPU6050_REG_WHO_AM_I);
+        if (Wire.endTransmission() != 0)
+        {
+            continue;
+        }
+
+        Wire.requestFrom(addr, static_cast<uint8_t>(1));
+        if (Wire.available() < 1)
+        {
+            continue;
+        }
+
+        id       = Wire.read();
+        idReadOk = true;
+        // Valid WHO_AM_I for MPU-6050 has lower 6 bits = 0x34.
+        if ((id & 0x7E) == 0x68)
+        {
+            s_mpuAddr = addr;
+            isPresent = true;
+            break;
+        }
+    }
+
     if (!isPresent)
     {
-        LOG(DEBUG_INFO, "[GYRO]:: Not found!");
+        LOG(DEBUG_INFO, "[GYRO]:: Not found! WHO_AM_I ok=%d val=0x%02X", idReadOk ? 1 : 0, id);
         return;
     }
 
     // Execute 1 byte write to MPU6050_REG_PWR_MGMT_1
-    Wire.beginTransmission(MPU6050_I2C_ADDR);
+    Wire.beginTransmission(s_mpuAddr);
     Wire.write(MPU6050_REG_PWR_MGMT_1);
     Wire.write(0);  // Disable sleep, 8 MHz clock
     Wire.endTransmission();
 
     // Execute 1 byte write to MPU6050_REG_PWR_MGMT_1
-    Wire.beginTransmission(MPU6050_I2C_ADDR);
+    Wire.beginTransmission(s_mpuAddr);
     Wire.write(MPU6050_REG_CONFIG);
     Wire.write(6);  // 5Hz bandwidth (lowest) for smoothing
     Wire.endTransmission();
 
-    LOG(DEBUG_INFO, "[GYRO]:: Started");
+    LOG(DEBUG_INFO, "[GYRO]:: Started on I2C 0x%02X", s_mpuAddr);
 }
 
 void Gyro::shutdown()
@@ -82,10 +106,14 @@ angle_t Gyro::getCurrentAngles()
     for (int i = 0; i < windowSize; i++)
     {
         // Execute 6 byte read from MPU6050_REG_WHO_AM_I
-        Wire.beginTransmission(MPU6050_I2C_ADDR);
+        Wire.beginTransmission(s_mpuAddr);
         Wire.write(MPU6050_REG_ACCEL_XOUT_H);
         Wire.endTransmission();
-        Wire.requestFrom(static_cast<uint8_t>(MPU6050_I2C_ADDR), static_cast<uint8_t>(6));  // Read 6 registers total, each axis value is stored in 2 registers
+        Wire.requestFrom(s_mpuAddr, static_cast<uint8_t>(6));  // Read 6 registers total, each axis value is stored in 2 registers
+        if (Wire.available() < 6)
+        {
+            continue;
+        }
         int16_t AcX = Wire.read() << 8 | Wire.read();  // X-axis value
         int16_t AcY = Wire.read() << 8 | Wire.read();  // Y-axis value
         int16_t AcZ = Wire.read() << 8 | Wire.read();  // Z-axis value
@@ -117,10 +145,12 @@ float Gyro::getCurrentTemperature()
         return 99.0f;  // Gyro is not available
 
     // Execute 2 byte read from MPU6050_REG_TEMP_OUT_H
-    Wire.beginTransmission(MPU6050_I2C_ADDR);
+    Wire.beginTransmission(s_mpuAddr);
     Wire.write(MPU6050_REG_TEMP_OUT_H);
     Wire.endTransmission();
-    Wire.requestFrom(static_cast<uint8_t>(MPU6050_I2C_ADDR), static_cast<uint8_t>(2));  // Read 2 registers total, the temperature value is stored in 2 registers
+    Wire.requestFrom(s_mpuAddr, static_cast<uint8_t>(2));  // Read 2 registers total, the temperature value is stored in 2 registers
+    if (Wire.available() < 2)
+        return 99.0f;
     int16_t tempValue = Wire.read() << 8 | Wire.read();  // Raw Temperature value
 
     // Calculating the actual temperature value

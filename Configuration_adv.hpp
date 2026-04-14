@@ -535,6 +535,9 @@
         #define RA_HOMING_SENSOR_SEARCH_DEGREES 30
     #endif
 #endif
+#ifndef RA_HOMING_SENSOR_ACTIVE_STATE
+    #define RA_HOMING_SENSOR_ACTIVE_STATE LOW  // KY-003: open-collector, line idle HIGH via pull-up
+#endif
 
 //////////////////////////////////////////
 // DEC Homing support
@@ -549,6 +552,18 @@
     #ifndef DEC_HOMING_SENSOR_SEARCH_DEGREES
         #define DEC_HOMING_SENSOR_SEARCH_DEGREES 30
     #endif
+#endif
+#ifndef DEC_HOMING_SENSOR_ACTIVE_STATE
+    #define DEC_HOMING_SENSOR_ACTIVE_STATE LOW
+#endif
+
+// Hall GPIO mode (weak pull-up helps open-collector Hall modules; same idea as EndSwitches).
+// Override in Configuration_local.hpp with INPUT if your board already has strong external pull-ups only.
+#ifndef RA_HOMING_SENSOR_INPUT_MODE
+    #define RA_HOMING_SENSOR_INPUT_MODE INPUT_PULLUP
+#endif
+#ifndef DEC_HOMING_SENSOR_INPUT_MODE
+    #define DEC_HOMING_SENSOR_INPUT_MODE INPUT_PULLUP
 #endif
 
 // RA EndSwitch support
