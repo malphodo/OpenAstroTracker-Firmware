@@ -56,9 +56,16 @@
  * @brief Display & keypad configuration.
  * See Constants.hpp for supported DISPLAY_TYPE options.
  * Pin assignments vary based on display & keypad selection.
+ * For SKR EXP graphic displays, typical options are:
+ *  - DISPLAY_TYPE_MINI12864_V2_EXP
+ *  - DISPLAY_TYPE_12864_ST7920_EXP
  */
 #ifndef DISPLAY_TYPE
     #define DISPLAY_TYPE DISPLAY_TYPE_NONE
+#endif
+#ifndef DISPLAY_FLIP_180
+    // Set to 1 to rotate the main display by 180 degrees.
+    #define DISPLAY_FLIP_180 0
 #endif
 
 #ifndef INFO_DISPLAY_TYPE

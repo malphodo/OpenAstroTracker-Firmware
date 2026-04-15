@@ -45,7 +45,8 @@ LcdButtons lcdButtons(LCD_KEY_SENSE_PIN, &lcdMenu);
 #endif
 
 #if DISPLAY_TYPE == DISPLAY_TYPE_LCD_KEYPAD_I2C_MCP23017 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_KEYPAD_I2C_MCP23008                           \
-    || DISPLAY_TYPE == DISPLAY_TYPE_LCD_JOY_I2C_SSD1306
+    || DISPLAY_TYPE == DISPLAY_TYPE_LCD_JOY_I2C_SSD1306 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567                             \
+    || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920
 LcdButtons lcdButtons(&lcdMenu);
 #endif
 
@@ -119,6 +120,26 @@ void updateConsoleText(int line, String newText)
     mount.getInfoDisplay()->updateConsoleText(line, newText);
 #endif
 }
+
+#if DISPLAY_TYPE == DISPLAY_TYPE_NONE
+static constexpr const char *displayTypeName = "NONE";
+#elif DISPLAY_TYPE == DISPLAY_TYPE_LCD_KEYPAD
+static constexpr const char *displayTypeName = "LCD_KEYPAD";
+#elif DISPLAY_TYPE == DISPLAY_TYPE_LCD_KEYPAD_I2C_MCP23008
+static constexpr const char *displayTypeName = "LCD_KEYPAD_I2C_MCP23008";
+#elif DISPLAY_TYPE == DISPLAY_TYPE_LCD_KEYPAD_I2C_MCP23017
+static constexpr const char *displayTypeName = "LCD_KEYPAD_I2C_MCP23017";
+#elif DISPLAY_TYPE == DISPLAY_TYPE_LCD_JOY_I2C_SSD1306
+static constexpr const char *displayTypeName = "LCD_JOY_I2C_SSD1306";
+#elif DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567
+static constexpr const char *displayTypeName = "LCD_GRAPHIC_U8G2_ST7567";
+#elif DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701
+static constexpr const char *displayTypeName = "LCD_GRAPHIC_U8G2_UC1701";
+#elif DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920
+static constexpr const char *displayTypeName = "LCD_GRAPHIC_U8G2_ST7920";
+#else
+static constexpr const char *displayTypeName = "UNKNOWN";
+#endif
 
 #if defined(USE_MINI12864_BOOT_SPLASH) && (USE_MINI12864_BOOT_SPLASH == 1) && defined(BOARD) && (BOARD == BOARD_LPC1769_SKR_V14_TURBO)
 // Boot-only mini12864 splash for SKR EXP headers; independent from DISPLAY_TYPE.
@@ -200,6 +221,7 @@ void setup()
     #else
     LOG(DEBUG_ANY, "[SYSTEM]: Hello, universe, this is OAT Firmware %s!", VERSION);
     #endif
+    LOG(DEBUG_ANY, "[SYSTEM]: DISPLAY_TYPE=%s (%d)", displayTypeName, DISPLAY_TYPE);
 #endif
 
 #if (INFO_DISPLAY_TYPE != INFO_DISPLAY_TYPE_NONE)
@@ -382,7 +404,20 @@ void setup()
 #if DISPLAY_TYPE != DISPLAY_TYPE_NONE
     LOG(DEBUG_ANY, "[SYSTEM]: Get LCD ready...");
     int lcdLine = addConsoleText(F("Init LCD..."));
+    #if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                          \
+        || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920
+    LOG(DEBUG_ANY, "[SYSTEM]: EXP display pins SCK=%d MOSI=%d CS=%d BTN_A=%d BTN_B=%d BTN_BTN=%d FLIP=%d", LCD12864_SCK_PIN,
+        LCD12864_MOSI_PIN, LCD12864_CS_PIN, LCD12864_ENCODER_A_PIN, LCD12864_ENCODER_B_PIN, LCD12864_ENCODER_BTN_PIN, DISPLAY_FLIP_180);
+        #if defined(LCD12864_DC_PIN)
+    LOG(DEBUG_ANY, "[SYSTEM]: EXP display DC=%d", LCD12864_DC_PIN);
+        #endif
+        #if defined(LCD12864_RST_PIN)
+    LOG(DEBUG_ANY, "[SYSTEM]: EXP display RST=%d", LCD12864_RST_PIN);
+        #endif
+    #endif
+    LOG(DEBUG_ANY, "[SYSTEM]: Initializing runtime LCD backend via lcdMenu.startup()");
     lcdMenu.startup();
+    LOG(DEBUG_ANY, "[SYSTEM]: Runtime LCD backend initialized");
 
     // Show a splash screen
     lcdMenu.setCursor(0, 0);
@@ -457,6 +492,7 @@ void setup()
 #endif  // DISPLAY_TYPE > 0
 
 #if defined(USE_MINI12864_BOOT_SPLASH) && (USE_MINI12864_BOOT_SPLASH == 1) && defined(BOARD) && (BOARD == BOARD_LPC1769_SKR_V14_TURBO)
+    LOG(DEBUG_ANY, "[SYSTEM]: Running optional EXP display diagnostic splash");
     showMini12864BootSplash();
 #endif
 

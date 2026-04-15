@@ -166,6 +166,68 @@
     #define DEC_ENDSWITCH_DOWN_SENSOR_PIN P1_19
 #endif
 
+// EXP1/EXP2 display and encoder mapping (SKR 1.4 Turbo headers)
+// All pins are overrideable from Configuration_local.hpp via #define before inclusion.
+// Note: CS/DC/RST share EXP1 lines that can also be used by endstops/homing defaults.
+// If those features are enabled, defaults below intentionally avoid defining colliding pins.
+#ifndef LCD12864_SCK_PIN
+    #define LCD12864_SCK_PIN P0_15  // EXP2_2
+#endif
+#ifndef LCD12864_MOSI_PIN
+    #define LCD12864_MOSI_PIN P0_18  // EXP2_6
+#endif
+
+#ifndef LCD12864_CS_PIN
+    #if !defined(USE_RA_END_SWITCH) || (USE_RA_END_SWITCH == 0)
+        #define LCD12864_CS_PIN P1_21  // EXP1_6
+    #endif
+#endif
+#ifndef LCD12864_DC_PIN
+    #if !defined(USE_RA_END_SWITCH) || (USE_RA_END_SWITCH == 0)
+        #define LCD12864_DC_PIN P1_22  // EXP1_7
+    #endif
+#endif
+#ifndef LCD12864_RST_PIN
+    #if !defined(USE_HALL_SENSOR_DEC_AUTOHOME) || (USE_HALL_SENSOR_DEC_AUTOHOME == 0)
+        #define LCD12864_RST_PIN P1_23  // EXP1_8
+    #endif
+#endif
+
+#ifndef LCD12864_ENCODER_A_PIN
+    #define LCD12864_ENCODER_A_PIN P3_26  // EXP2_3
+#endif
+#ifndef LCD12864_ENCODER_B_PIN
+    #define LCD12864_ENCODER_B_PIN P3_25  // EXP2_5
+#endif
+#ifndef LCD12864_ENCODER_BTN_PIN
+    #define LCD12864_ENCODER_BTN_PIN P0_28  // EXP1_2
+#endif
+#ifndef LCD12864_BEEPER_PIN
+    #define LCD12864_BEEPER_PIN P1_30  // EXP1_1
+#endif
+
+// Reprap "full graphic" signal aliases on EXP1 (used by many ST7920/12864 modules)
+#ifndef LCD12864_EXP_RS_PIN
+    #define LCD12864_EXP_RS_PIN P1_19  // EXP1_4
+#endif
+#ifndef LCD12864_EXP_EN_PIN
+    #define LCD12864_EXP_EN_PIN P1_18  // EXP1_3
+#endif
+#ifndef LCD12864_EXP_D4_PIN
+    #define LCD12864_EXP_D4_PIN P1_20  // EXP1_5
+#endif
+
+// ST7920 serial mode defaults (U8g2 SW SPI constructor order: SCK, MOSI, CS [, RST]).
+#ifndef LCD12864_ST7920_SCK_PIN
+    #define LCD12864_ST7920_SCK_PIN LCD12864_EXP_D4_PIN
+#endif
+#ifndef LCD12864_ST7920_MOSI_PIN
+    #define LCD12864_ST7920_MOSI_PIN LCD12864_EXP_EN_PIN
+#endif
+#ifndef LCD12864_ST7920_CS_PIN
+    #define LCD12864_ST7920_CS_PIN LCD12864_EXP_RS_PIN
+#endif
+
 // GPS uses dedicated serial by default.
 #ifndef GPS_SERIAL_PORT
     #define GPS_SERIAL_PORT Serial3

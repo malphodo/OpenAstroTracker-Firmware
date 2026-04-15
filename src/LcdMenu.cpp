@@ -7,6 +7,24 @@
 
 #if DISPLAY_TYPE != DISPLAY_TYPE_NONE
 
+    #if DISPLAY_FLIP_180 == 1
+        #define LCD_U8G2_ROT U8G2_R2
+    #else
+        #define LCD_U8G2_ROT U8G2_R0
+    #endif
+    #ifndef LCD12864_RST_PIN
+        #define LCD12864_RST_PIN U8X8_PIN_NONE
+    #endif
+    #ifndef LCD12864_ST7920_SCK_PIN
+        #define LCD12864_ST7920_SCK_PIN LCD12864_SCK_PIN
+    #endif
+    #ifndef LCD12864_ST7920_MOSI_PIN
+        #define LCD12864_ST7920_MOSI_PIN LCD12864_MOSI_PIN
+    #endif
+    #ifndef LCD12864_ST7920_CS_PIN
+        #define LCD12864_ST7920_CS_PIN LCD12864_CS_PIN
+    #endif
+
     // Class that drives the LCD screen with a menu
     // You add a string and an id item and this class handles the display and navigation
     // Create a new menu, using the given number of LCD display columns and rows
@@ -31,6 +49,24 @@ LcdMenu::LcdMenu(byte cols, byte rows, int maxItems)
     : _cols(cols), _rows(rows), _maxItems(maxItems), _charHeightRows(2)  // For 7x14 font 1 character = 2 rows (2x8 pixels)
 {
 }
+    #elif DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567
+LcdMenu::LcdMenu(byte cols, byte rows, int maxItems)
+    : _lcd(LCD_U8G2_ROT, LCD12864_SCK_PIN, LCD12864_MOSI_PIN, LCD12864_CS_PIN, LCD12864_DC_PIN, LCD12864_RST_PIN),
+      _cols(cols), _rows(rows), _maxItems(maxItems), _charHeightRows(1)
+{
+}
+    #elif DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701
+LcdMenu::LcdMenu(byte cols, byte rows, int maxItems)
+    : _lcd(LCD_U8G2_ROT, LCD12864_SCK_PIN, LCD12864_MOSI_PIN, LCD12864_CS_PIN, LCD12864_DC_PIN, LCD12864_RST_PIN),
+      _cols(cols), _rows(rows), _maxItems(maxItems), _charHeightRows(1)
+{
+}
+    #elif DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920
+LcdMenu::LcdMenu(byte cols, byte rows, int maxItems)
+    : _lcd(LCD_U8G2_ROT, LCD12864_ST7920_SCK_PIN, LCD12864_ST7920_MOSI_PIN, LCD12864_ST7920_CS_PIN, LCD12864_RST_PIN),
+      _cols(cols), _rows(rows), _maxItems(maxItems), _charHeightRows(1)
+{
+}
     #endif
 
 void LcdMenu::startup()
@@ -52,6 +88,14 @@ void LcdMenu::startup()
     _lcd.clear();
     _lcd.setFont(u8x8_font_7x14_1x2_f);  // Each 7x14 character takes up 2 8-pixel rows
     _lcdBadHw = false;
+    #elif DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                       \
+        || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920
+    _lcd.begin();
+    _lcd.setPowerSave(0);
+    _lcd.setFont(u8g2_font_6x12_tf);
+    _lcd.clearBuffer();
+    _lcd.sendBuffer();
+    _lcdBadHw = false;
     #endif
 
     _brightness = EEPROMStore::getBrightness();
@@ -64,11 +108,14 @@ void LcdMenu::startup()
     _columns         = _cols;
     _activeRow       = -1;
     _activeCol       = -1;
-    _lastDisplay[0]  = "";
-    _lastDisplay[1]  = "";
+    for (byte i = 0; i < MAX_DISPLAY_ROWS; i++)
+    {
+        _lastDisplay[i] = "";
+    }
     _menuItems       = new MenuItem *[_maxItems];
 
-    #if DISPLAY_TYPE != DISPLAY_TYPE_LCD_JOY_I2C_SSD1306
+    #if DISPLAY_TYPE != DISPLAY_TYPE_LCD_JOY_I2C_SSD1306 && DISPLAY_TYPE != DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567                             \
+        && DISPLAY_TYPE != DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701 && DISPLAY_TYPE != DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920
     // Create special characters for degrees and arrows
     _lcd.createChar(_degrees, DegreesBitmap);
     _lcd.createChar(_minutes, MinutesBitmap);
@@ -183,7 +230,13 @@ void LcdMenu::setCursor(byte col, byte row)
 // Pass thru utility function
 void LcdMenu::clear()
 {
+    #if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                         \
+        || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920
+    _lcd.clearBuffer();
+    _lcd.sendBuffer();
+    #else
     _lcd.clear();
+    #endif
 }
 
 // Set the brightness of the backlight
@@ -212,6 +265,9 @@ void LcdMenu::setBacklightBrightness(int level, bool persist)
     #elif DISPLAY_TYPE == DISPLAY_TYPE_LCD_KEYPAD_I2C_MCP23008 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_KEYPAD_I2C_MCP23017
         // Nothing to do?
     #elif DISPLAY_TYPE == DISPLAY_TYPE_LCD_JOY_I2C_SSD1306
+    _lcd.setContrast(_brightness);
+    #elif DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                       \
+        || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920
     _lcd.setContrast(_brightness);
     #endif
 
@@ -255,11 +311,17 @@ void LcdMenu::setNextActive()
     updateDisplay();
 
     // Clear submenu line, in case new menu doesn't print anything.
+    #if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                         \
+        || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920
+    setCursor(0, 1);
+    printMenu("");
+    #else
     _lcd.setCursor(0, 1 * _charHeightRows);
     for (byte i = 0; i < _columns; i++)
     {
         _lcd.print(" ");
     }
+    #endif
 }
 
 // Update the display of the LCD with the current menu settings
@@ -268,7 +330,7 @@ void LcdMenu::setNextActive()
 // It then sends the string to the LCD, keeping the selector arrows centered in the same place.
 void LcdMenu::updateDisplay()
 {
-    char bufMenu[17];
+    char bufMenu[64];
     char *pBufMenu      = &bufMenu[0];
     String menuString   = "";
     byte offsetToActive = 0;
@@ -311,7 +373,8 @@ void LcdMenu::updateDisplay()
     }
 
     // Pad the end with spaces so the display is cleared when getting to the last item(s).
-    while (pBufMenu < bufMenu + _columns)
+    int columnsToRender = min((int) _columns, 63);
+    while (pBufMenu < bufMenu + columnsToRender)
     {
         *(pBufMenu++) = ' ';
     }
@@ -355,6 +418,21 @@ void LcdMenu::printChar(char ch)
     }
 
     _lcd.tx += 1;
+    #elif DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                       \
+        || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920
+    uint16_t x = (uint16_t) (_activeCol * 6);
+    uint16_t y = (uint16_t) (_activeRow * 12 + 10);
+    uint16_t codepoint = (uint8_t) ch;
+    switch (ch)
+    {
+        case '@': codepoint = 176; break;  // degree symbol
+        case '&': codepoint = '*'; break;  // tracking marker fallback
+        case '`': codepoint = 'x'; break;  // no-tracking marker fallback
+        case '~': codepoint = 'v'; break;  // down arrow fallback
+        default: break;
+    }
+    _lcd.drawGlyph(x, y, codepoint);
+    _activeCol++;
     #else
     MappedDict<char, specialChar_t>::DictEntry_t lookupTable[] = {
         {'>', _rightArrow},
@@ -383,8 +461,17 @@ void LcdMenu::printChar(char ch)
 // Print a character at a specific position
 void LcdMenu::printAt(int col, int row, char ch)
 {
+    #if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                         \
+        || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920
+    setCursor(col, row);
+    #else
     _lcd.setCursor(col, _charHeightRows * row);
+    #endif
     printChar(ch);
+    #if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                         \
+        || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920
+    _lcd.sendBuffer();
+    #endif
 }
 
     #if DISPLAY_TYPE == DISPLAY_TYPE_LCD_KEYPAD_I2C_MCP23008 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_KEYPAD_I2C_MCP23017
@@ -397,12 +484,34 @@ uint8_t LcdMenu::readButtons()
 // Print a string to the LCD at the current cursor position, substituting the special arrows and padding with spaces to the end
 void LcdMenu::printMenu(String line)
 {
+    if (_activeRow >= MAX_DISPLAY_ROWS)
+    {
+        return;
+    }
+
     if ((_lastDisplay[_activeRow] != line) || (_activeCol != 0))
     {
         _lastDisplay[_activeRow] = line;
 
-        _lcd.setCursor(_activeCol, _charHeightRows * _activeRow);
         int spaces = _columns - line.length();
+        #if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                     \
+            || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920
+        int pixelY = _activeRow * 12;
+        _lcd.setDrawColor(0);
+        _lcd.drawBox(0, pixelY, _columns * 6, 12);
+        _lcd.setDrawColor(1);
+        for (char i : line)
+        {
+            printChar(i);
+        }
+        while (spaces > 0)
+        {
+            printChar(' ');
+            spaces--;
+        }
+        _lcd.sendBuffer();
+        #else
+        _lcd.setCursor(_activeCol, _charHeightRows * _activeRow);
         for (char i : line)
         {
             printChar(i);
@@ -414,10 +523,12 @@ void LcdMenu::printMenu(String line)
             _lcd.print(" ");
             spaces--;
         }
+        #endif
     }
 }
 
-    #if DISPLAY_TYPE != DISPLAY_TYPE_LCD_JOY_I2C_SSD1306
+    #if DISPLAY_TYPE != DISPLAY_TYPE_LCD_JOY_I2C_SSD1306 && DISPLAY_TYPE != DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567                             \
+        && DISPLAY_TYPE != DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701 && DISPLAY_TYPE != DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920
 
 // The right arrow bitmap
 byte LcdMenu::RightArrowBitmap[8] = {B00000, B01000, B01100, B01110, B01100, B01000, B00000, B00000};

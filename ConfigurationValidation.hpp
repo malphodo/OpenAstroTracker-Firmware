@@ -26,7 +26,10 @@
 // Display & keypad configurations
 #if defined(ESP32) && ((DISPLAY_TYPE == DISPLAY_TYPE_NONE) || (DISPLAY_TYPE == DISPLAY_TYPE_LCD_JOY_I2C_SSD1306))
 // Valid display for ESP32
-#elif (BOARD == BOARD_LPC1769_SKR_V14_TURBO) && ((DISPLAY_TYPE == DISPLAY_TYPE_NONE) || (DISPLAY_TYPE == DISPLAY_TYPE_LCD_JOY_I2C_SSD1306))
+#elif (BOARD == BOARD_LPC1769_SKR_V14_TURBO)                                                                                                  \
+    && ((DISPLAY_TYPE == DISPLAY_TYPE_NONE) || (DISPLAY_TYPE == DISPLAY_TYPE_LCD_JOY_I2C_SSD1306)                                           \
+        || (DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567) || (DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701)                \
+        || (DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920))
 // Valid display for SKR 1.4 Turbo
 #elif defined(__AVR_ATmega2560__)                                                                                                          \
     && ((DISPLAY_TYPE == DISPLAY_TYPE_NONE) || (DISPLAY_TYPE == DISPLAY_TYPE_LCD_KEYPAD) || (DISPLAY_TYPE_LCD_KEYPAD_I2C_MCP23008)         \
@@ -294,6 +297,14 @@
     #endif
 #elif (DISPLAY_TYPE == DISPLAY_TYPE_LCD_JOY_I2C_SSD1306)
 // No dedicated pins required apart from I2C for display
+#elif (DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567) || (DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701)
+    #if !defined(LCD12864_SCK_PIN) || !defined(LCD12864_MOSI_PIN) || !defined(LCD12864_CS_PIN) || !defined(LCD12864_DC_PIN)
+        #error Missing SPI pin assignments for configured DISPLAY_TYPE_LCD_GRAPHIC_U8G2_* display
+    #endif
+#elif (DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920)
+    #if !defined(LCD12864_SCK_PIN) || !defined(LCD12864_MOSI_PIN) || !defined(LCD12864_CS_PIN)
+        #error Missing SPI pin assignments for configured DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 display
+    #endif
 #endif
 
 // Keypad
@@ -309,6 +320,11 @@
     #if !defined(LCD_KEY_SENSE_X_PIN) || !defined(LCD_KEY_SENSE_Y_PIN) || !defined(LCD_KEY_SENSE_PUSH_PIN)
         // Required pin assignments missing
         #error Missing sense pin assignments for configured DISPLAY_TYPE_LCD_JOY_I2C_SSD1306 joystick
+    #endif
+#elif (DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567) || (DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701)                      \
+    || (DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920)
+    #if !defined(LCD12864_ENCODER_A_PIN) || !defined(LCD12864_ENCODER_B_PIN) || !defined(LCD12864_ENCODER_BTN_PIN)
+        #error Missing encoder pin assignments for configured DISPLAY_TYPE_LCD_GRAPHIC_U8G2_* keypad
     #endif
 #endif
 

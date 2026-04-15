@@ -5,8 +5,14 @@
     #include <LiquidCrystal.h>
 #elif DISPLAY_TYPE == DISPLAY_TYPE_LCD_KEYPAD_I2C_MCP23008 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_KEYPAD_I2C_MCP23017
     #include <LiquidTWI2.h>
-#elif DISPLAY_TYPE == DISPLAY_TYPE_LCD_JOY_I2C_SSD1306
+#elif DISPLAY_TYPE == DISPLAY_TYPE_LCD_JOY_I2C_SSD1306 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567                              \
+    || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920
     #include <U8x8lib.h>  // https://github.com/olikraus/u8g2
+#endif
+
+#if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                            \
+    || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920
+    #include <U8g2lib.h>
 #endif
 
 // A single menu item (like RA, HEAT, POL, etc.)
@@ -104,6 +110,12 @@ class LcdMenu
     LiquidTWI2 _lcd;  // The LCD screen that we'll display the menu on
     #elif DISPLAY_TYPE == DISPLAY_TYPE_LCD_JOY_I2C_SSD1306
     U8X8_SSD1306_128X32_UNIVISION_HW_I2C _lcd;
+    #elif DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567
+    U8G2_ST7567_ENH_DG128064I_F_4W_SW_SPI _lcd;
+    #elif DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701
+    U8G2_UC1701_MINI12864_F_4W_SW_SPI _lcd;
+    #elif DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920
+    U8G2_ST7920_128X64_F_SW_SPI _lcd;
     #endif
 
     byte const _cols;
@@ -119,10 +131,12 @@ class LcdMenu
     byte _columns;           // The number of columns in the LCD display
     byte _activeRow;         // The row that the LCD cursor is on
     byte _activeCol;         // The column that the LCD cursor is on
-    String _lastDisplay[2];  // The last string that was displayed on each row
+    static constexpr byte MAX_DISPLAY_ROWS = 8;
+    String _lastDisplay[MAX_DISPLAY_ROWS];  // The last string that was displayed on each row
     byte _brightness;
 
-    #if DISPLAY_TYPE != DISPLAY_TYPE_LCD_JOY_I2C_SSD1306
+    #if DISPLAY_TYPE != DISPLAY_TYPE_LCD_JOY_I2C_SSD1306 && DISPLAY_TYPE != DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567                             \
+        && DISPLAY_TYPE != DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701 && DISPLAY_TYPE != DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920
     enum specialChar_t : byte
     {
         _degrees,

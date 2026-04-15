@@ -45,7 +45,17 @@ class LcdButtons
 
   private:
     unsigned long _lastKeyChange;
+    unsigned long _encoderEdgeMs;
+    unsigned long _encoderBtnChangeMs;
     byte _analogPin;
+    uint8_t _encoderPrevAB;
+    int8_t _encoderAcc;
+    bool _encoderRawA;
+    bool _encoderRawB;
+    bool _encoderStableA;
+    bool _encoderStableB;
+    bool _encoderBtnRaw;
+    bool _encoderBtnStable;
     lcdButton_t _lastKey;
     lcdButton_t _newKey;
     lcdButton_t _lastNewKey;
