@@ -67,6 +67,12 @@ LcdMenu::LcdMenu(byte cols, byte rows, int maxItems)
       _cols(cols), _rows(rows), _maxItems(maxItems), _charHeightRows(1)
 {
 }
+    #elif DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
+LcdMenu::LcdMenu(byte cols, byte rows, int maxItems)
+    : _lcd(LCD_U8G2_ROT, LCD12864_EXP_D4_PIN, LCD12864_EXP_EN_PIN, LCD12864_EXP_RS_PIN, U8X8_PIN_NONE),
+      _cols(cols), _rows(rows), _maxItems(maxItems), _charHeightRows(1)
+{
+}
     #endif
 
 void LcdMenu::startup()
@@ -89,11 +95,14 @@ void LcdMenu::startup()
     _lcd.setFont(u8x8_font_7x14_1x2_f);  // Each 7x14 character takes up 2 8-pixel rows
     _lcdBadHw = false;
     #elif DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                       \
-        || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920
+        || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
     _lcd.begin();
     _lcd.setPowerSave(0);
     _lcd.setFont(u8g2_font_6x12_tf);
     _lcd.clearBuffer();
+    #if DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
+    _lcd.drawStr(0, 14, "OpenAstroTracker");
+    #endif
     _lcd.sendBuffer();
     _lcdBadHw = false;
     #endif
@@ -115,7 +124,8 @@ void LcdMenu::startup()
     _menuItems       = new MenuItem *[_maxItems];
 
     #if DISPLAY_TYPE != DISPLAY_TYPE_LCD_JOY_I2C_SSD1306 && DISPLAY_TYPE != DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567                             \
-        && DISPLAY_TYPE != DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701 && DISPLAY_TYPE != DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920
+        && DISPLAY_TYPE != DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701 && DISPLAY_TYPE != DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920                      \
+        && DISPLAY_TYPE != DISPLAY_TYPE_MINI12864_V2
     // Create special characters for degrees and arrows
     _lcd.createChar(_degrees, DegreesBitmap);
     _lcd.createChar(_minutes, MinutesBitmap);
@@ -231,7 +241,7 @@ void LcdMenu::setCursor(byte col, byte row)
 void LcdMenu::clear()
 {
     #if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                         \
-        || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920
+        || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
     _lcd.clearBuffer();
     _lcd.sendBuffer();
     #else
@@ -267,7 +277,7 @@ void LcdMenu::setBacklightBrightness(int level, bool persist)
     #elif DISPLAY_TYPE == DISPLAY_TYPE_LCD_JOY_I2C_SSD1306
     _lcd.setContrast(_brightness);
     #elif DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                       \
-        || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920
+        || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
     _lcd.setContrast(_brightness);
     #endif
 
@@ -312,7 +322,7 @@ void LcdMenu::setNextActive()
 
     // Clear submenu line, in case new menu doesn't print anything.
     #if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                         \
-        || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920
+        || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
     setCursor(0, 1);
     printMenu("");
     #else
@@ -419,7 +429,7 @@ void LcdMenu::printChar(char ch)
 
     _lcd.tx += 1;
     #elif DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                       \
-        || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920
+        || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
     uint16_t x = (uint16_t) (_activeCol * 6);
     uint16_t y = (uint16_t) (_activeRow * 12 + 10);
     uint16_t codepoint = (uint8_t) ch;
@@ -462,14 +472,14 @@ void LcdMenu::printChar(char ch)
 void LcdMenu::printAt(int col, int row, char ch)
 {
     #if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                         \
-        || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920
+        || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
     setCursor(col, row);
     #else
     _lcd.setCursor(col, _charHeightRows * row);
     #endif
     printChar(ch);
     #if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                         \
-        || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920
+        || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
     _lcd.sendBuffer();
     #endif
 }
@@ -495,7 +505,7 @@ void LcdMenu::printMenu(String line)
 
         int spaces = _columns - line.length();
         #if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                     \
-            || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920
+            || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
         int pixelY = _activeRow * 12;
         _lcd.setDrawColor(0);
         _lcd.drawBox(0, pixelY, _columns * 6, 12);
@@ -528,7 +538,8 @@ void LcdMenu::printMenu(String line)
 }
 
     #if DISPLAY_TYPE != DISPLAY_TYPE_LCD_JOY_I2C_SSD1306 && DISPLAY_TYPE != DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567                             \
-        && DISPLAY_TYPE != DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701 && DISPLAY_TYPE != DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920
+        && DISPLAY_TYPE != DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701 && DISPLAY_TYPE != DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920                      \
+        && DISPLAY_TYPE != DISPLAY_TYPE_MINI12864_V2
 
 // The right arrow bitmap
 byte LcdMenu::RightArrowBitmap[8] = {B00000, B01000, B01100, B01110, B01100, B01000, B00000, B00000};

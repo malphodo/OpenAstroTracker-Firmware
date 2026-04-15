@@ -36,7 +36,8 @@
  * DISPLAY_TYPE_LCD_JOY_I2C_SSD1306:        I2C 32x128 OLED display module with SSD1306 controller, plus mini joystick
  *                                          Display: https://www.banggood.com/Geekcreit-0_91-Inch-128x32-IIC-I2C-Blue-OLED-LCD-Display-DIY-Module-SSD1306-Driver-IC-DC-3_3V-5V-p-1140506.html
  *                                          Joystick: https://www.banggood.com/3pcs-JoyStick-Module-Shield-2_54mm-5-pin-Biaxial-Buttons-Rocker-for-PS2-Joystick-Game-Controller-Sensor-p-1586026.html
- * DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567:    Graphic 12864 display over SPI using U8g2 (ST7567 family), typically Mini12864 V2/V3 variants.
+ * DISPLAY_TYPE_MINI12864_V2:               Mini12864 V2 on SKR EXP1/EXP2 using U8g2 ST7920 in software SPI mode.
+ * DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567:    Graphic 12864 display over SPI using U8g2 (ST7567 family), typically Mini12864 V3 variants.
  * DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701:    Graphic 12864 display over SPI using U8g2 UC1701 controller (some Mini12864 variants).
  * DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920:    Graphic 12864 display over SPI using U8g2 ST7920 controller (classic 12864 modules).
  **/
@@ -48,8 +49,9 @@
 #define DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 5
 #define DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701 6
 #define DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 7
+#define DISPLAY_TYPE_MINI12864_V2            8
 // Friendly aliases for SKR EXP display configurations
-#define DISPLAY_TYPE_MINI12864_V2_EXP         DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567
+#define DISPLAY_TYPE_MINI12864_V2_EXP         DISPLAY_TYPE_MINI12864_V2
 #define DISPLAY_TYPE_MINI12864_UC1701_EXP     DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701
 #define DISPLAY_TYPE_12864_ST7920_EXP         DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920
 

@@ -28,8 +28,8 @@
 // Valid display for ESP32
 #elif (BOARD == BOARD_LPC1769_SKR_V14_TURBO)                                                                                                  \
     && ((DISPLAY_TYPE == DISPLAY_TYPE_NONE) || (DISPLAY_TYPE == DISPLAY_TYPE_LCD_JOY_I2C_SSD1306)                                           \
-        || (DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567) || (DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701)                \
-        || (DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920))
+        || (DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567) || (DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701)                 \
+        || (DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920) || (DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2))
 // Valid display for SKR 1.4 Turbo
 #elif defined(__AVR_ATmega2560__)                                                                                                          \
     && ((DISPLAY_TYPE == DISPLAY_TYPE_NONE) || (DISPLAY_TYPE == DISPLAY_TYPE_LCD_KEYPAD) || (DISPLAY_TYPE_LCD_KEYPAD_I2C_MCP23008)         \
@@ -301,7 +301,7 @@
     #if !defined(LCD12864_SCK_PIN) || !defined(LCD12864_MOSI_PIN) || !defined(LCD12864_CS_PIN) || !defined(LCD12864_DC_PIN)
         #error Missing SPI pin assignments for configured DISPLAY_TYPE_LCD_GRAPHIC_U8G2_* display
     #endif
-#elif (DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920)
+#elif (DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920) || (DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2)
     #if !defined(LCD12864_SCK_PIN) || !defined(LCD12864_MOSI_PIN) || !defined(LCD12864_CS_PIN)
         #error Missing SPI pin assignments for configured DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 display
     #endif
@@ -322,7 +322,7 @@
         #error Missing sense pin assignments for configured DISPLAY_TYPE_LCD_JOY_I2C_SSD1306 joystick
     #endif
 #elif (DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567) || (DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701)                      \
-    || (DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920)
+    || (DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920) || (DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2)
     #if !defined(LCD12864_ENCODER_A_PIN) || !defined(LCD12864_ENCODER_B_PIN) || !defined(LCD12864_ENCODER_BTN_PIN)
         #error Missing encoder pin assignments for configured DISPLAY_TYPE_LCD_GRAPHIC_U8G2_* keypad
     #endif
