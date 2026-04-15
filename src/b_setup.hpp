@@ -35,6 +35,9 @@ extern "C"
 #if (INFO_DISPLAY_TYPE == INFO_DISPLAY_TYPE_I2C_SSD1306_128x64)
     #include "SSD1306_128x64_Display.hpp"
 #endif
+#if defined(USE_MINI12864_BOOT_SPLASH) && (USE_MINI12864_BOOT_SPLASH == 1) && defined(BOARD) && (BOARD == BOARD_LPC1769_SKR_V14_TURBO)
+    #include <U8g2lib.h>
+#endif
 
 LcdMenu lcdMenu(16, 2, MAXMENUITEMS);
 #if DISPLAY_TYPE == DISPLAY_TYPE_LCD_KEYPAD
@@ -116,6 +119,39 @@ void updateConsoleText(int line, String newText)
     mount.getInfoDisplay()->updateConsoleText(line, newText);
 #endif
 }
+
+#if defined(USE_MINI12864_BOOT_SPLASH) && (USE_MINI12864_BOOT_SPLASH == 1) && defined(BOARD) && (BOARD == BOARD_LPC1769_SKR_V14_TURBO)
+// Boot-only mini12864 splash for SKR EXP headers; independent from DISPLAY_TYPE.
+static void showMini12864BootSplash()
+{
+    auto drawSplash = [](uint8_t dataPin, uint8_t csPin, uint8_t dcPin, uint8_t rstPin, const char *mapTag) {
+        U8G2_ST7567_ENH_DG128064I_F_4W_SW_SPI d(U8G2_R0, P0_15, dataPin, csPin, dcPin, rstPin);
+        d.begin();
+        d.setPowerSave(0);
+        d.setContrast(230);
+        d.clearBuffer();
+        d.drawBox(0, 0, 128, 64);
+        d.sendBuffer();
+        delay(250);
+        d.clearBuffer();
+        d.sendBuffer();
+        delay(150);
+        d.clearBuffer();
+        d.setFont(u8g2_font_6x12_tf);
+        d.drawStr(0, 12, mapTag);
+        d.drawStr(8, 30, "OpenAstroTracker");
+        d.drawStr(34, 50, VERSION);
+        d.sendBuffer();
+        delay(1200);
+    };
+
+    // Diagnostic sweep for common SKR 1.4 EXP wirings.
+    drawSplash(P0_18, P1_21, P1_22, P1_23, "MAP A");
+    drawSplash(P0_16, P1_21, P1_22, P1_23, "MAP B");
+    drawSplash(P0_18, P1_22, P1_21, P1_23, "MAP C");
+    drawSplash(P0_18, P1_21, P1_22, U8X8_PIN_NONE, "MAP D");
+}
+#endif
 
 /////////////////////////////////
 //
@@ -418,6 +454,10 @@ void setup()
     updateConsoleText(lcdLine, F("Init LCD... OK"));
 
 #endif  // DISPLAY_TYPE > 0
+
+#if defined(USE_MINI12864_BOOT_SPLASH) && (USE_MINI12864_BOOT_SPLASH == 1) && defined(BOARD) && (BOARD == BOARD_LPC1769_SKR_V14_TURBO)
+    showMini12864BootSplash();
+#endif
 
     LOG(DEBUG_ANY, "[SYSTEM]: Hardware: %s", mount.getMountHardwareInfo().c_str());
 
