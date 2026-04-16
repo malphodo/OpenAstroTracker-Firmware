@@ -130,7 +130,8 @@ The firmware supports runtime menu rendering on SPI EXP displays with digital ro
 
 In `Configuration_local.hpp`, set one of:
 
-- `#define DISPLAY_TYPE DISPLAY_TYPE_MINI12864_V2_EXP` (ST7567 path)
+- `#define DISPLAY_TYPE DISPLAY_TYPE_MINI12864_V2_EXP` (Mini12864 V2/ST7920 over U8g2 **software SPI**; improved compatibility vs parallel-mode init)
+- `#define DISPLAY_TYPE DISPLAY_TYPE_MINI12864_ST7567_EXP` (Mini12864 ST7567 path)
 - `#define DISPLAY_TYPE DISPLAY_TYPE_12864_ST7920_EXP` (classic 12864 ST7920 path)
 
 Optional:
