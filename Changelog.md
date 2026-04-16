@@ -1,3 +1,9 @@
+**V1.13.20 - Updates**
+- Added robust Mini12864 V2/V3 support on SKR 1.4 Turbo with controller selection (ST7565/ST7567/UC1701), dedicated EXP pin mapping, and improved validation.
+- Added runtime LCD diagnostics and controls, including display polarity toggle and visibility test command.
+- Added Mini12864 V3 per-LED RGB controls and preset backlight modes for night/day/confort usage via Meade serial commands.
+- Fixed Mini12864 RGB byte-order and command sequencing issues to ensure reliable color application.
+
 **V1.13.19 - Updates**
 - Support inverting and mirroring InfoDisplays.
 

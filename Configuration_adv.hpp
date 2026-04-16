@@ -19,7 +19,11 @@
     #define USE_DUMMY_EEPROM false
 #endif
 #if !defined(BUFFER_LOGS)
-    #define BUFFER_LOGS false
+#define BUFFER_LOGS false
+#endif
+
+#if !defined(BUFFER_LOG_SIZE)
+#define BUFFER_LOG_SIZE 512
 #endif
 
 #ifndef OAM

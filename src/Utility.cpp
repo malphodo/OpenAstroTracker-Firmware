@@ -14,14 +14,13 @@ int RealTime::_suspended              = 0;
 #endif
 
 #if BUFFER_LOGS == true
-    #define LOG_BUFFER_SIZE 512
-char logBuffer[LOG_BUFFER_SIZE];
+char logBuffer[BUFFER_LOG_SIZE];
 int bufferWritePos = 0;
 int bufferStartPos = 0;
 
 int scanForNextNewLine(int bufPos)
 {
-    for (int i = bufPos; i < LOG_BUFFER_SIZE; i++)
+    for (int i = bufPos; i < BUFFER_LOG_SIZE; i++)
     {
         if (logBuffer[i] == '\n')
         {
@@ -29,7 +28,7 @@ int scanForNextNewLine(int bufPos)
         }
     }
 
-    for (int i = 0; i < LOG_BUFFER_SIZE; i++)
+    for (int i = 0; i < BUFFER_LOG_SIZE; i++)
     {
         if (logBuffer[i] == '\n')
         {
@@ -44,9 +43,9 @@ void addToLogBuffer(String s)
 {
     s += '\n';
     int charsToWrite = s.length();
-    if (bufferWritePos + charsToWrite > LOG_BUFFER_SIZE)
+    if (bufferWritePos + charsToWrite > BUFFER_LOG_SIZE)
     {
-        int charsToWriteAtEndOfBuffer = LOG_BUFFER_SIZE - bufferWritePos;
+        int charsToWriteAtEndOfBuffer = BUFFER_LOG_SIZE - bufferWritePos;
         memcpy(logBuffer + bufferWritePos, s.c_str(), charsToWriteAtEndOfBuffer);
         charsToWrite -= charsToWriteAtEndOfBuffer;
         memcpy(logBuffer, s.c_str() + charsToWriteAtEndOfBuffer, charsToWrite);
@@ -81,14 +80,14 @@ class MyString : public String
 String getLogBuffer()
 {
     MyString result;
-    unsigned int len = (bufferStartPos > bufferWritePos) ? LOG_BUFFER_SIZE - bufferStartPos : 0;
+    unsigned int len = (bufferStartPos > bufferWritePos) ? BUFFER_LOG_SIZE - bufferStartPos : 0;
     len += bufferWritePos;
     result.reserve(len + 2);
     char *buffer = result.begin();
 
     if (bufferStartPos > bufferWritePos)
     {
-        for (int i = bufferStartPos; i < LOG_BUFFER_SIZE; i++)
+        for (int i = bufferStartPos; i < BUFFER_LOG_SIZE; i++)
         {
             *buffer++ = (logBuffer[i] == '#') ? '%' : logBuffer[i];
         }

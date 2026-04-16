@@ -228,6 +228,32 @@
     #define LCD12864_ST7920_CS_PIN LCD12864_EXP_RS_PIN
 #endif
 
+// Mini12864 V2/V3 (ST7567/UC1701 compatible) software SPI defaults on SKR 1.4 Turbo EXP headers.
+// Matches the standard Marlin/BTT/FYSETC Mini12864 V2/V3 wiring:
+//   SCK  = EXP2_2 (P0_15)
+//   MOSI = EXP2_6 (P0_18)
+//   CS   = EXP1_3 (P1_18)
+//   DC   = EXP1_4 (P1_19)
+//   RST  = EXP1_5 (P1_20)
+// EXP1_6 (P1_21) must remain free for the Mini12864 V3 NeoPixel data line.
+#ifndef LCD12864_MINI_SCK_PIN
+    #define LCD12864_MINI_SCK_PIN P0_15  // EXP2_2
+#endif
+#ifndef LCD12864_MINI_MOSI_PIN
+    #define LCD12864_MINI_MOSI_PIN P0_18  // EXP2_6
+#endif
+#ifndef LCD12864_MINI_CS_PIN
+    #define LCD12864_MINI_CS_PIN P1_18  // EXP1_3
+#endif
+#ifndef LCD12864_MINI_DC_PIN
+    #define LCD12864_MINI_DC_PIN P1_19  // EXP1_4
+#endif
+// BTT Mini12864 V3 does NOT route the LCD reset line to EXP1. Leaving the default as
+// U8X8_PIN_NONE (=255) avoids driving an unconnected pin and matches Marlin's BTT_MINI_12864 map.
+#ifndef LCD12864_MINI_RST_PIN
+    #define LCD12864_MINI_RST_PIN 255  // U8X8_PIN_NONE
+#endif
+
 // GPS uses dedicated serial by default.
 #ifndef GPS_SERIAL_PORT
     #define GPS_SERIAL_PORT Serial3

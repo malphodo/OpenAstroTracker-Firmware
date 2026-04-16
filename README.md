@@ -106,6 +106,28 @@ Interpretation hints:
 - If `sentences` stays at `0` while `bytes` increases, transport data is present but not parsed as valid NMEA.
 - If both `bytes` and `sentences` stay near `0`, check I2C wiring/address/power.
 
+#### Runtime display commands (Meade extensions)
+
+Backlight/contrast:
+
+- `:XGLC#` -> read LCD contrast value (`0..255` on graphic displays)
+- `:XSCnnn#` -> set LCD contrast (value is clamped to supported range)
+
+Note: on ST7920-based displays (including Mini12864 V2 in this firmware profile), software contrast control is not reliable and these commands return `0#`.
+
+Mini12864 V3 RGB (`MINI12864_VARIANT_V3` only):
+
+- `:XGUE#` -> RGB enabled state (`0#` or `1#`)
+- `:XGUC#` -> RGB color as `R,G,B#`
+- `:XGUR#` -> RGB state and color as `enabled,R,G,B#`
+- `:XSUE0#` / `:XSUE1#` -> disable/enable RGB output
+- `:XSUCr,g,b#` -> set RGB color in one command (each channel `0..255`)
+- `:XSURnnn#` -> set red channel (`0..255`)
+- `:XSUGnnn#` -> set green channel (`0..255`)
+- `:XSUBnnn#` -> set blue channel (`0..255`)
+
+If RGB is not supported by the active display profile, RGB commands return `0#`.
+
 ### SKR EXP 12864 boot diagnostics
 
 For `skr14turbo`, a boot-only EXP display diagnostic can be enabled with:

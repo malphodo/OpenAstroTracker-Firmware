@@ -55,6 +55,26 @@
 #define DISPLAY_TYPE_MINI12864_UC1701_EXP     DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701
 #define DISPLAY_TYPE_12864_ST7920_EXP         DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920
 
+// Display family/model abstraction (used by Configuration_local.hpp)
+#define DISPLAY_FAMILY_1602_6BUTTONS 1
+#define DISPLAY_FAMILY_12864_ROTARY  2
+
+#define DISPLAY_12864_MODEL_MINI12864 1
+#define DISPLAY_12864_MODEL_ST7567    2
+#define DISPLAY_12864_MODEL_UC1701    3
+#define DISPLAY_12864_MODEL_ST7920    4
+
+#define MINI12864_VARIANT_V2 2
+#define MINI12864_VARIANT_V3 3
+
+// LCD controller options for DISPLAY_TYPE_MINI12864_V2 (Mini12864 V2/V3 panels).
+// BTT Mini12864 V2 ships with ST7567. BTT Mini12864 V3 ships with ST7565R.
+// Some FYSETC/clone panels use a UC1701. Pick the one that matches your panel
+// via #define MINI12864_CONTROLLER in Configuration_local.hpp.
+#define MINI12864_CONTROLLER_ST7567 1
+#define MINI12864_CONTROLLER_UC1701 2
+#define MINI12864_CONTROLLER_ST7565 3
+
 /**
  * Supported info display types. Use one of these values for INF_DISPLAY_TYPE configuration matching your used display.
  * 

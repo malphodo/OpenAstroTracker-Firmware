@@ -12,6 +12,7 @@
 #include "c76_menuCAL.hpp"
 #include "c77_menuFOC.hpp"
 #include "c78_menuINFO.hpp"
+#include "c79_menuCFG.hpp"
 
 #if SUPPORT_SERIAL_CONTROL == 1
     #include "f_serial.hpp"
@@ -176,6 +177,9 @@ void loop()
                     waitForButtonRelease = processStatusKeys();
                     break;
     #endif
+                case Config_Menu:
+                    waitForButtonRelease = processConfigKeys();
+                    break;
             }
         }
 
@@ -264,6 +268,10 @@ void loop()
                     printStatusSubmenu();
                 }
     #endif
+                else if (activeMenu == Config_Menu)
+                {
+                    printConfigSubmenu();
+                }
             }
         }
     }

@@ -5,10 +5,157 @@
     #include "Utility.hpp"
 
     #if SUPPORT_INFO_DISPLAY == 1
-byte infoIndex               = 0;
-byte maxInfoIndex            = 15;
-byte subIndex                = 0;
-unsigned long lastInfoUpdate = 0;
+
+static byte infoIndex               = 0;
+static byte infoScrollTop           = 0;
+static unsigned long lastInfoUpdate = 0;
+
+static void playExitBeepInfo()
+{
+#if defined(LCD12864_BEEPER_PIN) && (LCD12864_BEEPER_PIN != U8X8_PIN_NONE)
+    pinMode(LCD12864_BEEPER_PIN, OUTPUT);
+    for (int i = 0; i < 60; i++)
+    {
+        digitalWrite(LCD12864_BEEPER_PIN, HIGH);
+        delayMicroseconds(260);
+        digitalWrite(LCD12864_BEEPER_PIN, LOW);
+        delayMicroseconds(260);
+    }
+#endif
+}
+
+static byte getInfoLineCount()
+{
+    byte count = 21;
+#if USE_GYRO_LEVEL == 0
+    count--;
+#endif
+    return count;
+}
+
+static void formatInfoLine(byte index, char *out, size_t outLen)
+{
+    char scratchBuffer[24];
+    scratchBuffer[0] = '\0';
+
+    byte normalized = index;
+#if USE_GYRO_LEVEL == 0
+    if (normalized >= 9)
+    {
+        normalized++;
+    }
+#endif
+
+    switch (normalized)
+    {
+        case 0:
+            snprintf(out, outLen, "RA St:%ld", mount.getCurrentStepperPosition(WEST));
+            break;
+        case 1:
+            snprintf(out, outLen, "RA Tg:%s", mount.RAString(LCD_STRING | TARGET_STRING).c_str());
+            break;
+        case 2:
+            snprintf(out, outLen, "RA Cu:%s", mount.RAString(LCD_STRING | CURRENT_STRING).c_str());
+            break;
+        case 3:
+            snprintf(out, outLen, "DE St:%ld", mount.getCurrentStepperPosition(NORTH));
+            break;
+        case 4:
+            snprintf(out, outLen, "DE Tg:%s", mount.DECString(LCD_STRING | TARGET_STRING).c_str());
+            break;
+        case 5:
+            snprintf(out, outLen, "DE Cu:%s", mount.DECString(LCD_STRING | CURRENT_STRING).c_str());
+            break;
+        case 6:
+            snprintf(out, outLen, "TRK St:%ld", mount.getCurrentStepperPosition(TRACKING));
+            break;
+        case 7:
+            snprintf(scratchBuffer, sizeof(scratchBuffer), "TRK:");
+            dtostrf(mount.getSpeed(TRACKING), 8, 6, &scratchBuffer[4]);
+            snprintf(out, outLen, "%s", scratchBuffer);
+            break;
+        case 8:
+        {
+            float lat          = fabsf(mount.latitude().getTotalHours());
+            float lng          = fabsf(mount.longitude().getTotalHours());
+            const char dirLat  = (mount.latitude().getTotalHours() < 0) ? 'S' : 'N';
+            const char dirLong = (mount.longitude().getTotalHours() < 0) ? 'W' : 'E';
+            snprintf(out, outLen, "Loc %s%c %s%c", String(lat, 1).c_str(), dirLat, String(lng, 1).c_str(), dirLong);
+            break;
+        }
+#if USE_GYRO_LEVEL == 1
+        case 9:
+        {
+            int celsius = static_cast<int>(roundf(Gyro::getCurrentTemperature()));
+            snprintf(out, outLen, "Temp:%d@C", celsius);
+            break;
+        }
+#endif
+        case 10:
+        {
+            float lowerLimit, upperLimit;
+            mount.getDecLimitPositions(lowerLimit, upperLimit);
+            snprintf(out, outLen, "DEC Lo:%s", String(lowerLimit, 1).c_str());
+            break;
+        }
+        case 11:
+        {
+            float lowerLimit, upperLimit;
+            mount.getDecLimitPositions(lowerLimit, upperLimit);
+            snprintf(out, outLen, "DEC Up:%s", String(upperLimit, 1).c_str());
+            break;
+        }
+        case 12:
+            snprintf(out, outLen, "Mem:%d", freeMemory());
+            break;
+        case 13:
+        {
+            long now      = millis();
+            long msPerDay = 60L * 60 * 24 * 1000;
+            int days      = (int) (now / msPerDay);
+            now -= days * msPerDay;
+            DayTime elapsed(1.0 * now / (1000.0 * 3600.0));
+            snprintf(out, outLen, "Up:%dd %02d:%02d", days, elapsed.getHours(), elapsed.getMinutes());
+            break;
+        }
+        case 14:
+        {
+            LocalDate date = mount.getLocalDate();
+            snprintf(out, outLen, "Date:%04d-%02d-%02d", date.year, date.month, date.day);
+            break;
+        }
+        case 15:
+        {
+            DayTime drvUtc = mount.getUtcTime();
+            snprintf(out, outLen, "UTC:%02d:%02d:%02d", drvUtc.getHours(), drvUtc.getMinutes(), drvUtc.getSeconds());
+            break;
+        }
+        case 16:
+        {
+            DayTime local = mount.getLocalTime();
+            snprintf(out, outLen, "Time:%02d:%02d:%02d", local.getHours(), local.getMinutes(), local.getSeconds());
+            break;
+        }
+        case 17:
+            snprintf(out, outLen, "TZ:%d", mount.getLocalUtcOffset());
+            break;
+        case 18:
+        {
+            DayTime lst = mount.calculateLst();
+            snprintf(out, outLen, "LST:%02d:%02d:%02d", lst.getHours(), lst.getMinutes(), lst.getSeconds());
+            break;
+        }
+        case 19:
+        {
+            DayTime ha = mount.calculateHa();
+            snprintf(out, outLen, "HA:%02d:%02d:%02d", ha.getHours(), ha.getMinutes(), ha.getSeconds());
+            break;
+        }
+        default:
+            snprintf(out, outLen, "Exit");
+            break;
+    }
+}
 
 bool processStatusKeys()
 {
@@ -17,37 +164,61 @@ bool processStatusKeys()
     if (lcdButtons.keyChanged(&key))
     {
         waitForRelease = true;
-        lastInfoUpdate = 0;  // Force immediate display
-        switch (key)
+        lastInfoUpdate = 0;
+
+        const byte maxIndex = static_cast<byte>(getInfoLineCount() - 1);
+
+#if DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
+        if (key == btnLEFT)
         {
-            case btnDOWN:
-                {
-                    infoIndex = adjustWrap(infoIndex, 1, 0, maxInfoIndex);
-                }
-                break;
-
-            case btnUP:
-                {
-                    infoIndex = adjustWrap(infoIndex, -1, 0, maxInfoIndex);
-                }
-                break;
-
-            case btnSELECT:
-            case btnLEFT:
-                {
-                    subIndex = adjustWrap(subIndex, 1, 0, 1 + (infoIndex < 2 ? 1 : 0));
-                }
-                break;
-
-            case btnRIGHT:
-                {
-                    lcdMenu.setNextActive();
-                }
-                break;
-
-            default:
-                break;
+            infoIndex = adjustWrap(infoIndex, -1, 0, maxIndex);
         }
+        else if (key == btnRIGHT)
+        {
+            infoIndex = adjustWrap(infoIndex, 1, 0, maxIndex);
+        }
+        else if (key == btnSELECT)
+        {
+            if (infoIndex == maxIndex)
+            {
+                playExitBeepInfo();
+                lcdMenu.setNextActive();
+                waitForRelease = false;
+            }
+        }
+
+        const byte visibleRows = 4;
+        if (infoIndex < infoScrollTop)
+        {
+            infoScrollTop = infoIndex;
+        }
+        else if (infoIndex >= static_cast<byte>(infoScrollTop + visibleRows))
+        {
+            infoScrollTop = static_cast<byte>(infoIndex - visibleRows + 1);
+        }
+#else
+        if (key == btnDOWN)
+        {
+            infoIndex = adjustWrap(infoIndex, 1, 0, maxIndex);
+        }
+        else if (key == btnUP)
+        {
+            infoIndex = adjustWrap(infoIndex, -1, 0, maxIndex);
+        }
+        else if (key == btnSELECT)
+        {
+            if (infoIndex == maxIndex)
+            {
+                playExitBeepInfo();
+                lcdMenu.setNextActive();
+                waitForRelease = false;
+            }
+        }
+        else if (key == btnRIGHT)
+        {
+            lcdMenu.setNextActive();
+        }
+#endif
     }
 
     return waitForRelease;
@@ -55,176 +226,41 @@ bool processStatusKeys()
 
 void printStatusSubmenu()
 {
-    if (millis() - lastInfoUpdate > DISPLAY_UPDATE_TIME)
+    if (millis() - lastInfoUpdate < DISPLAY_UPDATE_TIME)
     {
-        char scratchBuffer[20];
-        switch (infoIndex)
-        {
-            case 0:
-                {
-                    if (subIndex == 0)
-                    {
-                        lcdMenu.printMenu("RA Stpr: " + String(mount.getCurrentStepperPosition(WEST)));
-                    }
-                    else if (subIndex == 1)
-                    {
-                        lcdMenu.printMenu("RTrg: " + mount.RAString(LCD_STRING | TARGET_STRING));
-                    }
-                    else
-                    {
-                        lcdMenu.printMenu("RCur: " + mount.RAString(LCD_STRING | CURRENT_STRING));
-                    }
-                }
-                break;
-
-            case 1:
-                {
-                    if (subIndex == 0)
-                    {
-                        lcdMenu.printMenu("DEC Stpr:" + String(mount.getCurrentStepperPosition(NORTH)));
-                    }
-                    else if (subIndex == 1)
-                    {
-                        lcdMenu.printMenu("DTrg: " + mount.DECString(LCD_STRING | TARGET_STRING));
-                    }
-                    else
-                    {
-                        lcdMenu.printMenu("DCur: " + mount.DECString(LCD_STRING | CURRENT_STRING));
-                    }
-                }
-                break;
-
-            case 2:
-                {
-                    if (subIndex == 0)
-                    {
-                        lcdMenu.printMenu("TRK Stpr:" + String(mount.getCurrentStepperPosition(TRACKING)));
-                    }
-                    else
-                    {
-                        sprintf(scratchBuffer, "TRK Spd:");
-                        dtostrf(mount.getSpeed(TRACKING), 8, 6, &scratchBuffer[8]);
-                        lcdMenu.printMenu(scratchBuffer);
-                    }
-                }
-                break;
-
-            case 3:
-                {
-                    float lat          = fabsf(mount.latitude().getTotalHours());
-                    float lng          = fabsf(mount.longitude().getTotalHours());
-                    const char dirLat  = (mount.latitude().getTotalHours() < 0) ? 'S' : 'N';
-                    const char dirLong = (mount.longitude().getTotalHours() < 0) ? 'W' : 'E';
-                    sprintf(scratchBuffer, "Loc %s%c %s%c", String(lat, 1).c_str(), dirLat, String(lng, 1).c_str(), dirLong);
-                    lcdMenu.printMenu(scratchBuffer);
-                }
-                break;
-
-            case 4:
-                {
-        #if USE_GYRO_LEVEL == 1
-                    int celsius    = static_cast<int>(roundf(Gyro::getCurrentTemperature()));
-                    int fahrenheit = static_cast<int>(roundf(32.0f + 9.0f * Gyro::getCurrentTemperature() / 5.0f));
-
-                    sprintf(scratchBuffer, "Temp: %d@C %d@F", celsius, fahrenheit);
-                    lcdMenu.printMenu(scratchBuffer);
-        #else
-                    infoIndex++;
-        #endif
-                }
-                break;
-
-            case 5:
-                {
-                    float lowerLimit, upperLimit;
-                    mount.getDecLimitPositions(lowerLimit, upperLimit);
-                    lcdMenu.printMenu("DEC Lo: " + String(lowerLimit, 1));
-                }
-                break;
-
-            case 6:
-                {
-                    float lowerLimit, upperLimit;
-                    mount.getDecLimitPositions(lowerLimit, upperLimit);
-                    lcdMenu.printMenu("DEC Up: " + String(upperLimit, 1));
-                }
-                break;
-
-            case 7:
-                {
-                    sprintf(scratchBuffer, "MemAvail: %d", freeMemory());
-                    lcdMenu.printMenu(scratchBuffer);
-                }
-                break;
-
-            case 8:
-                {
-                    long now      = millis();
-                    long msPerDay = 60L * 60 * 24 * 1000;
-                    int days      = (int) (now / msPerDay);
-                    now -= days * msPerDay;
-                    DayTime elapsed(1.0 * now / (1000.0 * 3600.0));
-                    sprintf(scratchBuffer, "Up: %dd %02d:%02d:%02d", days, elapsed.getHours(), elapsed.getMinutes(), elapsed.getSeconds());
-                    lcdMenu.printMenu(scratchBuffer);
-                }
-                break;
-
-            case 9:
-                {
-                    LocalDate date = mount.getLocalDate();
-                    sprintf(scratchBuffer, "Date: %04d-%02d-%02d", date.year, date.month, date.day);
-                    lcdMenu.printMenu(scratchBuffer);
-                }
-                break;
-
-            case 10:
-                {
-                    DayTime drvUtc = mount.getUtcTime();
-                    sprintf(scratchBuffer, "UTC: %02d:%02d:%02d", drvUtc.getHours(), drvUtc.getMinutes(), drvUtc.getSeconds());
-                    lcdMenu.printMenu(scratchBuffer);
-                }
-                break;
-
-            case 11:
-                {
-                    DayTime drvUtc = mount.getLocalTime();
-                    sprintf(scratchBuffer, "Time: %02d:%02d:%02d", drvUtc.getHours(), drvUtc.getMinutes(), drvUtc.getSeconds());
-                    lcdMenu.printMenu(scratchBuffer);
-                }
-                break;
-
-            case 12:
-                {
-                    int offset = mount.getLocalUtcOffset();
-                    sprintf(scratchBuffer, "Timezone: %d", offset);
-                    lcdMenu.printMenu(scratchBuffer);
-                }
-                break;
-
-            case 13:
-                {
-                    DayTime lst = mount.calculateLst();
-                    sprintf(scratchBuffer, "LST: %02d:%02d:%02d", lst.getHours(), lst.getMinutes(), lst.getSeconds());
-                    lcdMenu.printMenu(scratchBuffer);
-                }
-                break;
-
-            case 14:
-                {
-                    DayTime ha = mount.calculateHa();
-                    sprintf(scratchBuffer, "HA: %02d:%02d:%02d", ha.getHours(), ha.getMinutes(), ha.getSeconds());
-                    lcdMenu.printMenu(scratchBuffer);
-                }
-                break;
-
-            case 15:
-                {
-                    lcdMenu.printMenu("Firmw.: " + String(VERSION));
-                }
-                break;
-        }
-        lastInfoUpdate = millis();
+        return;
     }
+
+#if DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
+    const byte visibleRows = 4;
+    for (byte row = 0; row < visibleRows; row++)
+    {
+        const byte lineIndex = static_cast<byte>(infoScrollTop + row);
+        char payload[24];
+        if (lineIndex < getInfoLineCount())
+        {
+            formatInfoLine(lineIndex, payload, sizeof(payload));
+        }
+        else
+        {
+            payload[0] = '\0';
+        }
+
+        String line = String((lineIndex == infoIndex) ? ">" : " ") + String(payload);
+        if (line.length() > 16)
+        {
+            line = line.substring(0, 16);
+        }
+        lcdMenu.setCursor(0, static_cast<byte>(1 + row));
+        lcdMenu.printMenu(line);
+    }
+#else
+    char payload[24];
+    formatInfoLine(infoIndex, payload, sizeof(payload));
+    lcdMenu.printMenu(String(payload));
+#endif
+
+    lastInfoUpdate = millis();
 }
 
     #endif

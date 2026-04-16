@@ -61,11 +61,67 @@
  *  - DISPLAY_TYPE_12864_ST7920_EXP
  */
 #ifndef DISPLAY_TYPE
-    #define DISPLAY_TYPE DISPLAY_TYPE_NONE
+    #ifndef DISPLAY_FAMILY
+        #define DISPLAY_FAMILY DISPLAY_FAMILY_1602_6BUTTONS
+    #endif
+    #ifndef DISPLAY_12864_MODEL
+        #define DISPLAY_12864_MODEL DISPLAY_12864_MODEL_MINI12864
+    #endif
+    #ifndef MINI12864_VARIANT
+        #define MINI12864_VARIANT MINI12864_VARIANT_V2
+    #endif
+
+    #if DISPLAY_FAMILY == DISPLAY_FAMILY_1602_6BUTTONS
+        #define DISPLAY_TYPE DISPLAY_TYPE_LCD_KEYPAD
+    #elif DISPLAY_FAMILY == DISPLAY_FAMILY_12864_ROTARY
+        #if DISPLAY_12864_MODEL == DISPLAY_12864_MODEL_MINI12864
+            #define DISPLAY_TYPE DISPLAY_TYPE_MINI12864_V2
+        #elif DISPLAY_12864_MODEL == DISPLAY_12864_MODEL_ST7567
+            #define DISPLAY_TYPE DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567
+        #elif DISPLAY_12864_MODEL == DISPLAY_12864_MODEL_UC1701
+            #define DISPLAY_TYPE DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701
+        #elif DISPLAY_12864_MODEL == DISPLAY_12864_MODEL_ST7920
+            #define DISPLAY_TYPE DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920
+        #else
+            #define DISPLAY_TYPE DISPLAY_TYPE_NONE
+        #endif
+    #else
+        #define DISPLAY_TYPE DISPLAY_TYPE_NONE
+    #endif
 #endif
 #ifndef DISPLAY_FLIP_180
     // Set to 1 to rotate the main display by 180 degrees.
     #define DISPLAY_FLIP_180 0
+#endif
+#ifndef MINI12864_VARIANT
+    #define MINI12864_VARIANT MINI12864_VARIANT_V2
+#endif
+#ifndef MINI12864_CONTROLLER
+    // ST7567 matches genuine BTT Mini12864 V2/V3 panels. Switch to MINI12864_CONTROLLER_UC1701
+    // from Configuration_local.hpp if your panel is a FYSETC/clone using a UC1701 controller.
+    #define MINI12864_CONTROLLER MINI12864_CONTROLLER_ST7567
+#endif
+#ifndef MINI12864_CONTRAST
+    // Reasonable starting value. Set between ~120 and ~220 from Configuration_local.hpp if needed.
+    #define MINI12864_CONTRAST 180
+#endif
+#ifndef MINI12864_INVERT_DISPLAY
+    // Set to 1 to flip the pixel polarity at the controller level. Negative LCDs (default on
+    // BTT Mini12864 V3 with blue backlight) render white-on-dark with the default (0). Enable
+    // inversion to obtain dark-on-light instead. Runtime toggle: Meade commands :XSI1# / :XSI0#.
+    #define MINI12864_INVERT_DISPLAY 0
+#endif
+#ifndef MINI12864_V3_RGB_ENABLED
+    #define MINI12864_V3_RGB_ENABLED 1
+#endif
+#ifndef MINI12864_V3_RGB_R
+    #define MINI12864_V3_RGB_R 255
+#endif
+#ifndef MINI12864_V3_RGB_G
+    #define MINI12864_V3_RGB_G 255
+#endif
+#ifndef MINI12864_V3_RGB_B
+    #define MINI12864_V3_RGB_B 255
 #endif
 
 #ifndef INFO_DISPLAY_TYPE

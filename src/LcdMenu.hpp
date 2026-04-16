@@ -73,8 +73,41 @@ class LcdMenu
 
     // Set and get the brightness of the backlight
     void setBacklightBrightness(int level, bool persist = true);
+    void setBacklightEnabled(bool enabled, bool persist = true);
     int getBacklightBrightness() const;
+    bool isBacklightEnabled() const;
     void getBacklightBrightnessRange(int *minPtr, int *maxPtr) const;
+    bool isMini12864RgbSupported() const;
+    bool isMini12864RgbEnabled() const;
+    void setMini12864RgbEnabled(bool enabled);
+    void getMini12864Rgb(uint8_t *r, uint8_t *g, uint8_t *b) const;
+    void setMini12864Rgb(uint8_t r, uint8_t g, uint8_t b);
+    // Per-LED control (1-based index, 1..MINI12864_V3_LED_COUNT).
+    // Returns true if the LED index is valid and the color was applied.
+    bool setMini12864RgbLed(uint8_t ledIndex1Based, uint8_t r, uint8_t g, uint8_t b);
+    uint8_t getMini12864LedCount() const;
+
+    // Preset backlight modes for the Mini12864 V3 WS2812 chain. Selectable at runtime via
+    // the Meade extension command :XSMn#. Presets are volatile (not persisted to EEPROM).
+    enum Mini12864BacklightMode : uint8_t
+    {
+        MINI12864_MODE_OFF         = 0,  // All LEDs off
+        MINI12864_MODE_NIGHT_ASTRO = 1,  // Red LCD + dim red encoder (night vision)
+        MINI12864_MODE_COMFORT     = 2,  // Golden-orange LCD, encoder off
+        MINI12864_MODE_DAY         = 3,  // White LCD, soft blue encoder
+        MINI12864_MODE_DEFAULT     = 4,  // White on every LED (boot default)
+        MINI12864_MODE_COUNT       = 5
+    };
+    bool applyMini12864BacklightMode(uint8_t mode);
+    uint8_t getMini12864BacklightMode() const;
+
+    // Visibility self-test pattern (graphic displays only). Cycles buffer clear,
+    // full black fill and invert a few times so a working Mini12864 panel produces
+    // clearly visible transitions. Useful to confirm SPI/controller wiring.
+    void runVisibilityTestPattern();
+
+    // Toggle controller-level pixel polarity (ST7565/ST7567/UC1701 A6h/A7h).
+    void setDisplayInverted(bool inverted);
 
     // Pass thru utility function
     void clear();
@@ -118,7 +151,13 @@ class LcdMenu
     #elif DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920
     U8G2_ST7920_128X64_F_SW_SPI _lcd;
     #elif DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
-    U8G2_ST7920_128X64_F_SW_SPI _lcd;
+        #if MINI12864_CONTROLLER == MINI12864_CONTROLLER_UC1701
+    U8G2_UC1701_MINI12864_F_4W_SW_SPI _lcd;
+        #elif MINI12864_CONTROLLER == MINI12864_CONTROLLER_ST7565
+    U8G2_ST7565_ERC12864_F_4W_SW_SPI _lcd;
+        #else
+    U8G2_ST7567_ENH_DG128064I_F_4W_SW_SPI _lcd;
+        #endif
     #endif
 
     byte const _cols;
@@ -137,6 +176,16 @@ class LcdMenu
     static constexpr byte MAX_DISPLAY_ROWS = 8;
     String _lastDisplay[MAX_DISPLAY_ROWS];  // The last string that was displayed on each row
     byte _brightness;
+    bool _backlightEnabled;
+    byte _lastNonZeroBrightness;
+    bool _mini12864RgbEnabled;
+    uint8_t _mini12864RgbR;
+    uint8_t _mini12864RgbG;
+    uint8_t _mini12864RgbB;
+    // Per-LED color buffer for the WS2812 chain (R,G,B x N LEDs).
+    // Sized for the BTT Mini12864 V3 hardware (3 LEDs). Indices are 0-based here.
+    uint8_t _mini12864LedRgb[9];
+    uint8_t _mini12864BacklightMode;
 
     #if DISPLAY_TYPE != DISPLAY_TYPE_LCD_JOY_I2C_SSD1306 && DISPLAY_TYPE != DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567                             \
         && DISPLAY_TYPE != DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701 && DISPLAY_TYPE != DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920                      \

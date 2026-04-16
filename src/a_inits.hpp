@@ -95,9 +95,10 @@ TinyGPSPlus gps;
 #define Home_Menu        8
 #define POI_Menu         9
 #define Status_Menu      10
+#define Config_Menu      11
 
 // How many menu items at most?
-#define MAXMENUITEMS 11
+#define MAXMENUITEMS 12
 
 #if SUPPORT_GUIDED_STARTUP == 1
 bool inStartup = true;  // Start with a guided startup
@@ -108,6 +109,7 @@ bool inStartup = false;  // Start with a guided startup
 // Serial control variables
 bool okToUpdateMenu                = true;   // Can be used to supress rendering the first line of the menu.
 bool quitSerialOnNextButtonRelease = false;  // Used to detect SELECT button to quit Serial mode.
+uint8_t rotaryMolSens              = 4;      // Encoder sensitivity (quadrature steps per event), 1..8.
 
 // RA variables
 int RAselect;

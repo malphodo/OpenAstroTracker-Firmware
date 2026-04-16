@@ -301,9 +301,16 @@
     #if !defined(LCD12864_SCK_PIN) || !defined(LCD12864_MOSI_PIN) || !defined(LCD12864_CS_PIN) || !defined(LCD12864_DC_PIN)
         #error Missing SPI pin assignments for configured DISPLAY_TYPE_LCD_GRAPHIC_U8G2_* display
     #endif
-#elif (DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920) || (DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2)
+#elif (DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920)
     #if !defined(LCD12864_SCK_PIN) || !defined(LCD12864_MOSI_PIN) || !defined(LCD12864_CS_PIN)
         #error Missing SPI pin assignments for configured DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 display
+    #endif
+#elif (DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2)
+    // Mini12864 V2/V3 uses ST7567/UC1701 in 4-wire SW SPI and requires SCK/MOSI/CS/DC.
+    // A dedicated pin set (LCD12864_MINI_*) is preferred; fall back to the generic LCD12864_* set.
+    #if !(defined(LCD12864_MINI_SCK_PIN) && defined(LCD12864_MINI_MOSI_PIN) && defined(LCD12864_MINI_CS_PIN) && defined(LCD12864_MINI_DC_PIN))   \
+        && !(defined(LCD12864_SCK_PIN) && defined(LCD12864_MOSI_PIN) && defined(LCD12864_CS_PIN) && defined(LCD12864_DC_PIN))
+        #error Missing SPI pin assignments for configured DISPLAY_TYPE_MINI12864_V2 display (need SCK/MOSI/CS/DC)
     #endif
 #endif
 

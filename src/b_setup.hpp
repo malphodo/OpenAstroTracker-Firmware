@@ -139,7 +139,13 @@ static constexpr const char *displayTypeName = "LCD_GRAPHIC_U8G2_UC1701";
 #elif DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920
 static constexpr const char *displayTypeName = "LCD_GRAPHIC_U8G2_ST7920";
 #elif DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
-static constexpr const char *displayTypeName = "MINI12864_V2_ST7920_SW_SPI";
+    #if MINI12864_CONTROLLER == MINI12864_CONTROLLER_UC1701
+static constexpr const char *displayTypeName = "MINI12864_V2_UC1701_SW_SPI";
+    #elif MINI12864_CONTROLLER == MINI12864_CONTROLLER_ST7565
+static constexpr const char *displayTypeName = "MINI12864_V2_ST7565_SW_SPI";
+    #else
+static constexpr const char *displayTypeName = "MINI12864_V2_ST7567_SW_SPI";
+    #endif
 #else
 static constexpr const char *displayTypeName = "UNKNOWN";
 #endif
@@ -176,6 +182,27 @@ static void showMini12864BootSplash()
     drawSplash(P0_18, P1_21, P1_22, U8X8_PIN_NONE, "MAP D");
 }
 #endif
+
+static void playBootBeep()
+{
+#if defined(LCD12864_BEEPER_PIN) && (LCD12864_BEEPER_PIN != U8X8_PIN_NONE)
+    pinMode(LCD12864_BEEPER_PIN, OUTPUT);
+    // Short ascending 2-note beep at boot.
+    const uint16_t halfPeriodUs[] = {320, 240};
+    const uint16_t cycles[] = {70, 90};
+    for (uint8_t n = 0; n < 2; n++)
+    {
+        for (uint16_t i = 0; i < cycles[n]; i++)
+        {
+            digitalWrite(LCD12864_BEEPER_PIN, HIGH);
+            delayMicroseconds(halfPeriodUs[n]);
+            digitalWrite(LCD12864_BEEPER_PIN, LOW);
+            delayMicroseconds(halfPeriodUs[n]);
+        }
+        delay(12);
+    }
+#endif
+}
 
 /////////////////////////////////
 //
@@ -487,9 +514,10 @@ void setup()
     lcdMenu.addItem("FOC", Focuser_Menu);
     #endif
 
-    #if SUPPORT_INFO_DISPLAY == 1
+#if SUPPORT_INFO_DISPLAY == 1
     lcdMenu.addItem("INFO", Status_Menu);
-    #endif
+#endif
+    lcdMenu.addItem("Configuration", Config_Menu);
     updateConsoleText(lcdLine, F("Init LCD... OK"));
 
 #endif  // DISPLAY_TYPE > 0
@@ -706,6 +734,7 @@ void setup()
     mount.startSlewing(TRACKING);
 #endif
 
+    playBootBeep();
     mount.bootComplete();
     LOG(DEBUG_ANY, "[SYSTEM]: Boot complete!");
     addConsoleText(F("BOOT COMPLETE!"));

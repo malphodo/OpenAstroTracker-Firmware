@@ -1801,6 +1801,92 @@ String MeadeCommandProcessor::handleMeadeDistance(String inCmd)
 /////////////////////////////
 String MeadeCommandProcessor::handleMeadeExtraCommands(String inCmd)
 {
+    // :XLT#  => LCD visibility test pattern (helps diagnose SPI/controller issues).
+    //          Runs clear -> full-screen black box -> invert sweep so a working
+    //          Mini12864 panel shows clearly visible transitions.
+    if (inCmd[0] == 'L' && inCmd.length() >= 2 && inCmd[1] == 'T')
+    {
+        if (_lcdMenu != nullptr)
+        {
+            _lcdMenu->runVisibilityTestPattern();
+            return "LCDTEST_OK#";
+        }
+        return "LCDTEST_NOMENU#";
+    }
+
+    // :XSI0# / :XSI1# => set display inversion polarity at runtime.
+    if (inCmd[0] == 'S' && inCmd.length() >= 3 && inCmd[1] == 'I')
+    {
+        if (_lcdMenu != nullptr)
+        {
+            bool invert = (inCmd[2] == '1');
+            _lcdMenu->setDisplayInverted(invert);
+            return "1#";
+        }
+        return "0#";
+    }
+
+    // :XSRrrrgggbbb# => set Mini12864 V3 NeoPixel RGB backlight (3 decimal triplets, 000-255).
+    if (inCmd[0] == 'S' && inCmd.length() >= 11 && inCmd[1] == 'R')
+    {
+        if (_lcdMenu == nullptr || !_lcdMenu->isMini12864RgbSupported())
+        {
+            return "0#";
+        }
+        int r = inCmd.substring(2, 5).toInt();
+        int g = inCmd.substring(5, 8).toInt();
+        int b = inCmd.substring(8, 11).toInt();
+        if (r < 0) r = 0; if (r > 255) r = 255;
+        if (g < 0) g = 0; if (g > 255) g = 255;
+        if (b < 0) b = 0; if (b > 255) b = 255;
+        // Update the stored color BEFORE flipping the enable flag so that the subsequent
+        // hardware write uses the newly parsed values (otherwise setMini12864RgbEnabled
+        // latches stale R/G/B and can blank the chain between the two calls).
+        _lcdMenu->setMini12864Rgb((uint8_t) r, (uint8_t) g, (uint8_t) b);
+        _lcdMenu->setMini12864RgbEnabled(r != 0 || g != 0 || b != 0);
+        return "1#";
+    }
+
+    // :XSMn# => select a Mini12864 V3 backlight preset mode. n is 0..4 (1 digit).
+    //   0 = OFF, 1 = NIGHT_ASTRO, 2 = COMFORT, 3 = DAY, 4 = DEFAULT
+    if (inCmd[0] == 'S' && inCmd.length() >= 3 && inCmd[1] == 'M')
+    {
+        if (_lcdMenu == nullptr || !_lcdMenu->isMini12864RgbSupported())
+        {
+            return "0#";
+        }
+        int mode = inCmd[2] - '0';
+        if (mode < 0 || mode >= (int) LcdMenu::MINI12864_MODE_COUNT)
+        {
+            return "0#";
+        }
+        bool ok = _lcdMenu->applyMini12864BacklightMode((uint8_t) mode);
+        return ok ? "1#" : "0#";
+    }
+
+    // :XSLNrrrgggbbb# => set a single Mini12864 V3 NeoPixel LED. N is 1..3 (1 char),
+    //                    followed by three decimal triplets rrr ggg bbb (000-255 each).
+    //                    Total payload after ':XS' = L + N + 9 digits = 11 chars.
+    if (inCmd[0] == 'S' && inCmd.length() >= 12 && inCmd[1] == 'L')
+    {
+        if (_lcdMenu == nullptr || !_lcdMenu->isMini12864RgbSupported())
+        {
+            return "0#";
+        }
+        int n = inCmd[2] - '0';
+        if (n < 1 || n > (int) _lcdMenu->getMini12864LedCount())
+        {
+            return "0#";
+        }
+        int r = inCmd.substring(3, 6).toInt();
+        int g = inCmd.substring(6, 9).toInt();
+        int b = inCmd.substring(9, 12).toInt();
+        if (r < 0) r = 0; if (r > 255) r = 255;
+        if (g < 0) g = 0; if (g > 255) g = 255;
+        if (b < 0) b = 0; if (b > 255) b = 255;
+        bool ok = _lcdMenu->setMini12864RgbLed((uint8_t) n, (uint8_t) r, (uint8_t) g, (uint8_t) b);
+        return ok ? "1#" : "0#";
+    }
 #if SUPPORT_DRIFT_ALIGNMENT == 1
     // :XDmmm
     if (inCmd[0] == 'D')  // :XD
@@ -2025,10 +2111,56 @@ String MeadeCommandProcessor::handleMeadeExtraCommands(String inCmd)
         }
         else if (inCmd[1] == 'L')  // :XGL#
         {
+            if ((inCmd.length() > 2) && (inCmd[2] == 'C'))  // :XGLC#
+            {
+                return String(_lcdMenu->getBacklightBrightness()) + "#";
+            }
+            if ((inCmd.length() > 2) && (inCmd[2] == 'E'))  // :XGLE#
+            {
+                return String(_lcdMenu->isBacklightEnabled() ? 1 : 0) + "#";
+            }
+            if ((inCmd.length() > 2) && (inCmd[2] == 'M'))  // :XGLM# => current preset mode
+            {
+                if (!_lcdMenu->isMini12864RgbSupported())
+                {
+                    return "0#";
+                }
+                return String((int) _lcdMenu->getMini12864BacklightMode()) + "#";
+            }
             char scratchBuffer[10];
             DayTime lst = _mount->calculateLst();
             sprintf(scratchBuffer, "%02d%02d%02d#", lst.getHours(), lst.getMinutes(), lst.getSeconds());
             return String(scratchBuffer);
+        }
+        else if (inCmd[1] == 'U')  // :XGUx# (Mini12864 RGB)
+        {
+            if (!_lcdMenu->isMini12864RgbSupported())
+            {
+                return "0#";
+            }
+            if ((inCmd.length() > 2) && (inCmd[2] == 'E'))  // :XGUE#
+            {
+                return String(_lcdMenu->isMini12864RgbEnabled() ? 1 : 0) + "#";
+            }
+            if ((inCmd.length() > 2) && (inCmd[2] == 'C'))  // :XGUC#
+            {
+                uint8_t r, g, b;
+                _lcdMenu->getMini12864Rgb(&r, &g, &b);
+                char scratchBuffer[20];
+                snprintf(scratchBuffer, sizeof(scratchBuffer), "%u,%u,%u#", static_cast<unsigned>(r), static_cast<unsigned>(g),
+                    static_cast<unsigned>(b));
+                return String(scratchBuffer);
+            }
+            if ((inCmd.length() > 2) && (inCmd[2] == 'R'))  // :XGUR#
+            {
+                uint8_t r, g, b;
+                _lcdMenu->getMini12864Rgb(&r, &g, &b);
+                char scratchBuffer[24];
+                snprintf(scratchBuffer, sizeof(scratchBuffer), "%u,%u,%u,%u#", _lcdMenu->isMini12864RgbEnabled() ? 1 : 0,
+                    static_cast<unsigned>(r), static_cast<unsigned>(g), static_cast<unsigned>(b));
+                return String(scratchBuffer);
+            }
+            return "0#";
         }
         else if (inCmd[1] == 'N')  // :XGN#
         {
@@ -2069,6 +2201,11 @@ String MeadeCommandProcessor::handleMeadeExtraCommands(String inCmd)
         }
         else if (inCmd[1] == 'L')  // :XSL#
         {
+            if ((inCmd.length() > 3) && (inCmd[2] == 'E'))  // :XSLE0# / :XSLE1#
+            {
+                _lcdMenu->setBacklightEnabled(inCmd[3] == '1');
+                return "1#";
+            }
             _mount->setStepsPerDegree(ALTITUDE_STEPS, inCmd.substring(2).toFloat());
         }
         else if (inCmd[1] == 'D')  // :XSD
@@ -2145,6 +2282,22 @@ String MeadeCommandProcessor::handleMeadeExtraCommands(String inCmd)
         {
             _mount->setBacklashCorrection(inCmd.substring(2).toInt());
         }
+        else if (inCmd[1] == 'C')  // :XSCnnn#
+        {
+            int minBrightness, maxBrightness;
+            _lcdMenu->getBacklightBrightnessRange(&minBrightness, &maxBrightness);
+            int newLevel = inCmd.substring(2).toInt();
+            if (newLevel < minBrightness)
+            {
+                newLevel = minBrightness;
+            }
+            if (newLevel > maxBrightness)
+            {
+                newLevel = maxBrightness;
+            }
+            _lcdMenu->setBacklightBrightness(newLevel);
+            return "1#";
+        }
         else if (inCmd[1] == 'H')  // :XSH
         {
             if (inCmd.length() > 2)
@@ -2158,6 +2311,61 @@ String MeadeCommandProcessor::handleMeadeExtraCommands(String inCmd)
                     _mount->setHomingOffset(StepperAxis::DEC_STEPS, inCmd.substring(3).toInt());
                 }
             }
+        }
+        else if (inCmd[1] == 'U')  // :XSUx (Mini12864 RGB)
+        {
+            if (!_lcdMenu->isMini12864RgbSupported())
+            {
+                return "0#";
+            }
+            if ((inCmd.length() > 3) && (inCmd[2] == 'E'))  // :XSUE0# / :XSUE1#
+            {
+                _lcdMenu->setMini12864RgbEnabled(inCmd[3] == '1');
+                return "1#";
+            }
+            if ((inCmd.length() > 3) && (inCmd[2] == 'C'))  // :XSUCr,g,b#
+            {
+                String payload = inCmd.substring(3);
+                int c1 = payload.indexOf(',');
+                int c2 = payload.indexOf(',', c1 + 1);
+                if ((c1 > 0) && (c2 > c1))
+                {
+                    int r = payload.substring(0, c1).toInt();
+                    int g = payload.substring(c1 + 1, c2).toInt();
+                    int b = payload.substring(c2 + 1).toInt();
+                    r = constrain(r, 0, 255);
+                    g = constrain(g, 0, 255);
+                    b = constrain(b, 0, 255);
+                    _lcdMenu->setMini12864Rgb(static_cast<uint8_t>(r), static_cast<uint8_t>(g), static_cast<uint8_t>(b));
+                    return "1#";
+                }
+                return "0#";
+            }
+            if ((inCmd.length() > 3) && (inCmd[2] == 'R'))  // :XSURnnn#
+            {
+                uint8_t r, g, b;
+                _lcdMenu->getMini12864Rgb(&r, &g, &b);
+                int newR = constrain(inCmd.substring(3).toInt(), 0, 255);
+                _lcdMenu->setMini12864Rgb(static_cast<uint8_t>(newR), g, b);
+                return "1#";
+            }
+            if ((inCmd.length() > 3) && (inCmd[2] == 'G'))  // :XSUGnnn#
+            {
+                uint8_t r, g, b;
+                _lcdMenu->getMini12864Rgb(&r, &g, &b);
+                int newG = constrain(inCmd.substring(3).toInt(), 0, 255);
+                _lcdMenu->setMini12864Rgb(r, static_cast<uint8_t>(newG), b);
+                return "1#";
+            }
+            if ((inCmd.length() > 3) && (inCmd[2] == 'B'))  // :XSUBnnn#
+            {
+                uint8_t r, g, b;
+                _lcdMenu->getMini12864Rgb(&r, &g, &b);
+                int newB = constrain(inCmd.substring(3).toInt(), 0, 255);
+                _lcdMenu->setMini12864Rgb(r, g, static_cast<uint8_t>(newB));
+                return "1#";
+            }
+            return "0#";
         }
     }
     else if (inCmd[0] == 'L')

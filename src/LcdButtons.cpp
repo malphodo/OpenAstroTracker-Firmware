@@ -168,18 +168,22 @@ void LcdButtons::checkKey()
     }
 
     lcdButton_t encoderEvent = btnNONE;
+    int steps = static_cast<int>(rotaryMolSens);
+    if (steps < 1) steps = 1;
+    if (steps > 8) steps = 8;
+    const int8_t stepsPerEvent = static_cast<int8_t>(steps);
     const uint8_t ab = ((_encoderStableA ? 1 : 0) << 1) | (_encoderStableB ? 1 : 0);
     const uint8_t transition = (_encoderPrevAB << 2) | ab;
     const int8_t step = QUADRATURE_TABLE[transition];
     if (step != 0)
     {
         _encoderAcc += step;
-        if (_encoderAcc >= 4)
+        if (_encoderAcc >= stepsPerEvent)
         {
             encoderEvent = btnRIGHT;
             _encoderAcc = 0;
         }
-        else if (_encoderAcc <= -4)
+        else if (_encoderAcc <= -stepsPerEvent)
         {
             encoderEvent = btnLEFT;
             _encoderAcc = 0;
