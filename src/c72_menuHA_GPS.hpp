@@ -214,12 +214,14 @@ enum haMenuState_t
 {
     SHOWING_HA_SYNC = 1,
     SHOWING_HA_SET,
+    SHOWING_HA_EXIT,
     ENTER_HA_MANUALLY,
     STARTING_GPS,
 };
 
 int indicator         = 0;
 haMenuState_t haState = STARTING_GPS;
+bool haGpsEditing     = false;
 
 bool processHAKeys()
 {
@@ -259,24 +261,102 @@ bool processHAKeys()
                 GPS_SERIAL_PORT.begin(GPS_BAUD_RATE);
 #endif
             }
+#if USES_ROTARY_ENCODER == 1
+            else if (key == btnLEFT)
+            {
+                haState = SHOWING_HA_EXIT;
+            }
+            else if (key == btnRIGHT)
+            {
+                haState = SHOWING_HA_SET;
+            }
+#else
             else if ((key == btnUP) || (key == btnDOWN))
             {
                 haState = SHOWING_HA_SET;
             }
+#endif
         }
         else if (haState == SHOWING_HA_SET)
         {
             if (key == btnSELECT)
             {
                 haState = ENTER_HA_MANUALLY;
+                haGpsEditing = false;
             }
+#if USES_ROTARY_ENCODER == 1
+            else if (key == btnLEFT)
+            {
+                haState = SHOWING_HA_SYNC;
+            }
+            else if (key == btnRIGHT)
+            {
+                haState = SHOWING_HA_EXIT;
+            }
+#else
             else if ((key == btnUP) || (key == btnDOWN))
+            {
+                haState = SHOWING_HA_SYNC;
+            }
+#endif
+        }
+        else if (haState == SHOWING_HA_EXIT)
+        {
+            if (key == btnSELECT)
+            {
+                requestBackToTop = true;
+            }
+            else if (key == btnLEFT)
+            {
+                haState = SHOWING_HA_SET;
+            }
+            else if (key == btnRIGHT)
             {
                 haState = SHOWING_HA_SYNC;
             }
         }
         else if (haState == ENTER_HA_MANUALLY)
         {
+#if USES_ROTARY_ENCODER == 1
+            if (key == btnSELECT)
+            {
+                if (!haGpsEditing)
+                {
+                    haGpsEditing = true;
+                }
+                else
+                {
+                    DayTime ha(mount.HA());
+                    EEPROMStore::storeHATime(mount.HA());
+                    lcdMenu.printMenu("Stored.");
+                    mount.delay(500);
+                    haState       = SHOWING_HA_SET;
+                    haGpsEditing  = false;
+        #if SUPPORT_GUIDED_STARTUP == 1
+                    if (startupState == StartupWaitForHACompletion)
+                    {
+                        startupState = StartupHAConfirmed;
+                        inStartup    = true;
+                    }
+        #endif
+                }
+            }
+            else if (!haGpsEditing && ((key == btnLEFT) || (key == btnRIGHT)))
+            {
+                int delta = (key == btnRIGHT) ? 1 : -1;
+                HAselect  = adjustWrap(HAselect, delta, 0, 1);
+            }
+            else if (haGpsEditing && ((key == btnLEFT) || (key == btnRIGHT)))
+            {
+                DayTime ha(mount.HA());
+                int delta = (key == btnRIGHT) ? 1 : -1;
+                if (HAselect == 0)
+                    ha.addHours(delta);
+                if (HAselect == 1)
+                    ha.addMinutes(delta);
+                mount.setHA(ha);
+            }
+#else
             if (key == btnSELECT)
             {
                 DayTime ha(mount.HA());
@@ -314,6 +394,7 @@ bool processHAKeys()
             {
                 HAselect = adjustWrap(HAselect, 1, 0, 1);
             }
+#endif
         }
 
         if (key == btnRIGHT)
@@ -327,6 +408,7 @@ bool processHAKeys()
 #endif
                 haState = SHOWING_HA_SYNC;
             }
+#if USES_ROTARY_ENCODER == 0
         #if SUPPORT_GUIDED_STARTUP == 1
             else if (startupState == StartupWaitForHACompletion)
             {
@@ -340,6 +422,7 @@ bool processHAKeys()
                 LOG(DEBUG_INFO, "[HA]: leaving HA");
                 lcdMenu.setNextActive();
             }
+#endif
         }
     }
 
@@ -358,6 +441,10 @@ void printHASubmenu()
     {
         sprintf(satBuffer, "%02dh %02dm >Set", mount.HA().getHours(), mount.HA().getMinutes());
     }
+    else if (haState == SHOWING_HA_EXIT)
+    {
+        sprintf(satBuffer, "          >Exit");
+    }
     else if (haState == STARTING_GPS)
     {
         sprintf(satBuffer, "  Found %u sats", static_cast<unsigned>(gps.satellites.value()));
@@ -365,7 +452,7 @@ void printHASubmenu()
     }
     else if (haState == ENTER_HA_MANUALLY)
     {
-        sprintf(satBuffer, " %02dh %02dm", mount.HA().getHours(), mount.HA().getMinutes());
+        sprintf(satBuffer, " %02dh %02dm%c", mount.HA().getHours(), mount.HA().getMinutes(), haGpsEditing ? '*' : ' ');
         satBuffer[HAselect * 4] = '>';
     }
     lcdMenu.printMenu(satBuffer);

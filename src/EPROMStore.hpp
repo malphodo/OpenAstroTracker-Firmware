@@ -23,6 +23,10 @@ class EEPROMStore
     static byte getBrightness();
     static void storeBrightness(byte brightness);
 
+    // Rotary encoder / jog sensitivity (Config → JogSens), 1..8; lower = more sensitive.
+    static uint8_t getJogSens();
+    static void storeJogSens(uint8_t jogSens);
+
     static float getRAStepsPerDegree();
     static void storeRAStepsPerDegree(float raStepsPerDegree);
 
@@ -147,6 +151,7 @@ class EEPROMStore
         ALT_POSITION_MARKER_FLAG   = 0x0200,
         AZ_NORM_STEPS_MARKER_FLAG  = 0x0400,
         ALT_NORM_STEPS_MARKER_FLAG = 0x0800,
+        JOG_SENS_MARKER_FLAG       = 0x1000,
     };
 
     // These are the offsets to each item stored in the EEPROM
@@ -227,7 +232,8 @@ class EEPROMStore
         _ALT_NORM_STEPS_DEGREE_ADDR_1,
         _ALT_NORM_STEPS_DEGREE_ADDR_2,
         _ALT_NORM_STEPS_DEGREE_ADDR_3,  // Int32
-        STORE_SIZE = 74
+        JOG_SENS_ADDR = 74,  // Uint8, 1..8
+        STORE_SIZE      = 75
     };
 
     // Helper functions

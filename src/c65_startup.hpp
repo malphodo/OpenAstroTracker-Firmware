@@ -35,6 +35,7 @@ enum startupState_t
 
 startupState_t startupState = StartupIsInHomePosition;
 int isInHomePosition        = NO;
+unsigned long startupNavRepeatMs = 0;
 
 void startupIsCompleted()
 {
@@ -53,6 +54,16 @@ void startupIsCompleted()
     // Start on the RA menu
     lcdMenu.setActive(RA_Menu);
     lcdMenu.updateDisplay();
+
+        #if USES_ROTARY_ENCODER == 1
+    // Hand control back to the top-level carousel. Without this reset, a previous
+    // step that set topLevelMenuNav=false (e.g. the "No" branch entering Control menu)
+    // would leave the wheel routed to the RA sub-menu instead of the top menu bar.
+    topLevelMenuNav  = true;
+    requestBackToTop = false;
+    lcdMenu.setCursor(0, 1);
+    lcdMenu.printMenu("");
+        #endif
     LOG(DEBUG_ANY, "[STARTUP]: Completed!");
 }
 
@@ -64,14 +75,33 @@ bool processStartupKeys()
     {
         case StartupIsInHomePosition:
             {
+                const unsigned long now = millis();
+                const lcdButton_t heldKey = lcdButtons.currentState();
+                // Robust rotary handling for Mini12864: consume held directional states as
+                // navigation events with repeat limiting (keyChanged() can miss short pulses).
+                // RIGHT/DOWN  => +1 (vers Cancel)
+                // LEFT/UP     => -1 (vers Yes)
+                int step = 0;
+                if ((heldKey == btnRIGHT) || (heldKey == btnDOWN))
+                {
+                    step = 1;
+                }
+                else if ((heldKey == btnLEFT) || (heldKey == btnUP))
+                {
+                    step = -1;
+                }
+                if (step != 0)
+                {
+                    if ((now - startupNavRepeatMs) >= 75)
+                    {
+                        isInHomePosition = adjustWrap(isInHomePosition, step, YES, CANCEL);
+                        startupNavRepeatMs = now;
+                    }
+                }
                 if (lcdButtons.keyChanged(&key))
                 {
                     waitForRelease = true;
-                    if (key == btnLEFT)
-                    {
-                        isInHomePosition = adjustWrap(isInHomePosition, 1, YES, CANCEL);
-                    }
-                    else if (key == btnSELECT)
+                    if (key == btnSELECT)
                     {
                         if (isInHomePosition == YES)
                         {
@@ -90,6 +120,9 @@ bool processStartupKeys()
                             lcdMenu.setCursor(0, 0);
                             lcdMenu.printMenu("Home with ^~<>");
                             lcdMenu.setActive(Control_Menu);
+        #if USES_ROTARY_ENCODER == 1
+                            topLevelMenuNav = false;
+        #endif
 
                             // Skip the 'Manual control' prompt
                             setControlMode(true);
@@ -112,6 +145,9 @@ bool processStartupKeys()
                 lcdMenu.setCursor(0, 0);
                 lcdMenu.printMenu("Level front");
                 lcdMenu.setActive(Calibration_Menu);
+        #if USES_ROTARY_ENCODER == 1
+                topLevelMenuNav = false;
+        #endif
 
                 startupState = StartupWaitForRollCompletion;
             }
@@ -141,6 +177,9 @@ bool processStartupKeys()
                 lcdMenu.printMenu("Finding GPS...");
                 lcdMenu.setActive(HA_Menu);
                 startupState = StartupWaitForHACompletion;
+        #endif
+        #if USES_ROTARY_ENCODER == 1
+                topLevelMenuNav = false;
         #endif
             }
             break;

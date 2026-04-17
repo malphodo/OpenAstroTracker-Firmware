@@ -128,6 +128,8 @@ Mini12864 V3 RGB (`MINI12864_VARIANT_V3` only):
 
 If RGB is not supported by the active display profile, RGB commands return `0#`.
 
+For a full serial command reference (LX200 + OpenAstroTracker extensions), see `SERIAL_COMMANDS.md`.
+
 ### SKR EXP 12864 boot diagnostics
 
 For `skr14turbo`, a boot-only EXP display diagnostic can be enabled with:

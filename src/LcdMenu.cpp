@@ -291,6 +291,13 @@ void LcdMenu::startup()
         _mini12864LedRgb[i] = 0;
     }
     _mini12864BacklightMode = MINI12864_MODE_DEFAULT;
+    _mini12864ButtonBlinkMode = MINI12864_BUTTON_BLINK_NONE;
+    _mini12864EditBlinkActive = false;
+    _mini12864ButtonBlinkRunning = false;
+    for (uint8_t i = 0; i < sizeof(_mini12864SavedButtonRgb); i++)
+    {
+        _mini12864SavedButtonRgb[i] = 0;
+    }
 
     #if (MINI12864_VARIANT == MINI12864_VARIANT_V3)
     if (mini12864RgbPinValid())
@@ -650,6 +657,94 @@ uint8_t LcdMenu::getMini12864BacklightMode() const
     return _mini12864BacklightMode;
 }
 
+bool LcdMenu::setMini12864ButtonBlinkMode(uint8_t mode)
+{
+    if (mode > (uint8_t) MINI12864_BUTTON_BLINK_EDIT)
+    {
+        return false;
+    }
+    _mini12864ButtonBlinkMode = mode;
+    return true;
+}
+
+uint8_t LcdMenu::getMini12864ButtonBlinkMode() const
+{
+    return _mini12864ButtonBlinkMode;
+}
+
+void LcdMenu::setMini12864EditBlinkActive(bool active)
+{
+    _mini12864EditBlinkActive = active;
+}
+
+bool LcdMenu::isMini12864EditBlinkActive() const
+{
+    return _mini12864EditBlinkActive;
+}
+
+void LcdMenu::tickMini12864Effects(unsigned long nowMs)
+{
+    #if (MINI12864_VARIANT == MINI12864_VARIANT_V3)
+    if (!isMini12864RgbSupported())
+    {
+        return;
+    }
+
+    const uint8_t activeMode = _mini12864EditBlinkActive ? (uint8_t) MINI12864_BUTTON_BLINK_EDIT : _mini12864ButtonBlinkMode;
+    if (activeMode == (uint8_t) MINI12864_BUTTON_BLINK_NONE)
+    {
+        if (_mini12864ButtonBlinkRunning)
+        {
+            for (uint8_t i = 0; i < 6; i++)
+            {
+                _mini12864LedRgb[i] = _mini12864SavedButtonRgb[i];
+            }
+            _mini12864ButtonBlinkRunning = false;
+            writeMini12864RgbChain(_mini12864LedRgb);
+        }
+        return;
+    }
+
+    if (!_mini12864ButtonBlinkRunning)
+    {
+        for (uint8_t i = 0; i < 6; i++)
+        {
+            _mini12864SavedButtonRgb[i] = _mini12864LedRgb[i];
+        }
+        _mini12864ButtonBlinkRunning = true;
+    }
+
+    const bool phase = (((nowMs / 250UL) % 2UL) != 0UL);
+    if (activeMode == (uint8_t) MINI12864_BUTTON_BLINK_WARNING)
+    {
+        // Warning mode: both encoder button LEDs alternate together blue <-> red.
+        if (phase)
+        {
+            // Blue phase
+            _mini12864LedRgb[0] = 0; _mini12864LedRgb[1] = 0; _mini12864LedRgb[2] = 255;
+            _mini12864LedRgb[3] = 0; _mini12864LedRgb[4] = 0; _mini12864LedRgb[5] = 255;
+        }
+        else
+        {
+            // Red phase
+            _mini12864LedRgb[0] = 255; _mini12864LedRgb[1] = 0; _mini12864LedRgb[2] = 0;
+            _mini12864LedRgb[3] = 255; _mini12864LedRgb[4] = 0; _mini12864LedRgb[5] = 0;
+        }
+    }
+    else
+    {
+        // Edit mode: encoder button LEDs blink red.
+        uint8_t v = phase ? 255 : 0;
+        _mini12864LedRgb[0] = v; _mini12864LedRgb[1] = 0; _mini12864LedRgb[2] = 0;
+        _mini12864LedRgb[3] = v; _mini12864LedRgb[4] = 0; _mini12864LedRgb[5] = 0;
+    }
+
+    writeMini12864RgbChain(_mini12864LedRgb);
+    #else
+    (void) nowMs;
+    #endif
+}
+
 void LcdMenu::setDisplayInverted(bool inverted)
 {
     #if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                       \
@@ -658,6 +753,21 @@ void LcdMenu::setDisplayInverted(bool inverted)
     LOG(DEBUG_INFO, "[LCD]: setDisplayInverted=%d", inverted ? 1 : 0);
     #else
     (void) inverted;
+    #endif
+}
+
+void LcdMenu::setDisplayPower(bool on)
+{
+    #if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                       \
+        || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
+    _lcd.setPowerSave(on ? 0 : 1);
+    if (on)
+    {
+        _lcd.sendBuffer();
+    }
+    LOG(DEBUG_INFO, "[LCD]: setDisplayPower=%d", on ? 1 : 0);
+    #else
+    (void) on;
     #endif
 }
 
@@ -708,10 +818,44 @@ void LcdMenu::getBacklightBrightnessRange(int *minPtr, int *maxPtr) const
     }
 }
 
+// Go to the previous menu item from currently active one (wraps around)
+void LcdMenu::setPrevActive()
+{
+    _activeMenuIndex = adjustWrap(_activeMenuIndex, -1, 0, _numMenuItems - 1);
+
+    #if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                         \
+        || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
+    // Rotary page-by-page navigation mode: do not paint the top menu bar here.
+    return;
+    #endif
+
+    // Update the display
+    updateDisplay();
+
+    // Clear submenu line, in case new menu doesn't print anything.
+    #if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                         \
+        || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
+    setCursor(0, 1);
+    printMenu("");
+    #else
+    _lcd.setCursor(0, 1 * _charHeightRows);
+    for (byte i = 0; i < _columns; i++)
+    {
+        _lcd.print(" ");
+    }
+    #endif
+}
+
 // Go to the next menu item from currently active one
 void LcdMenu::setNextActive()
 {
     _activeMenuIndex = adjustWrap(_activeMenuIndex, 1, 0, _numMenuItems - 1);
+
+    #if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                         \
+        || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
+    // Rotary page-by-page navigation mode: do not paint the top menu bar here.
+    return;
+    #endif
 
     // Update the display
     updateDisplay();
@@ -991,6 +1135,10 @@ void LcdMenu::clear()
 }
 
 void LcdMenu::setNextActive()
+{
+}
+
+void LcdMenu::setPrevActive()
 {
 }
 

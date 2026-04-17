@@ -430,6 +430,9 @@ void setup()
     LOG(DEBUG_ANY, "[SYSTEM]: EEPROM store ready!");
     updateConsoleText(eepromLine, F("INIT EEPROM... OK"));
 
+    rotaryMolSens = EEPROMStore::getJogSens();
+    LOG(DEBUG_ANY, "[SYSTEM]: JogSens from EEPROM: %u", static_cast<unsigned>(rotaryMolSens));
+
 // Calling the LCD startup here, I2C can't be found if called earlier
 #if DISPLAY_TYPE != DISPLAY_TYPE_NONE
     LOG(DEBUG_ANY, "[SYSTEM]: Get LCD ready...");

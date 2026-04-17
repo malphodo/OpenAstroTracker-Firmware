@@ -25,12 +25,12 @@ const float SteppingStorageNormalized = 25600.0;
 
 #if USE_DUMMY_EEPROM == true
 
-static uint8_t dummyEepromStorage[74];
+static uint8_t dummyEepromStorage[75];
 
 // Initialize the EEPROM object for ESP boards, setting aside storage
 void EEPROMStore::initialize()
 {
-    LOG(DEBUG_EEPROM, "[EEPROM]: Dummy: Startup with %d bytes", EEPROMStore::STORE_SIZE);
+    LOG(DEBUG_EEPROM, "[EEPROM]: Dummy: Startup with %d bytes", static_cast<int>(EEPROMStore::ItemAddress::STORE_SIZE));
     memset(dummyEepromStorage, 0, sizeof(dummyEepromStorage));
 
     displayContents();  // Will always be empty at restart
@@ -64,7 +64,7 @@ uint8_t EEPROMStore::read(uint8_t location)
 static constexpr uint32_t LPC_EEPROM_FLASH_BASE = 0x00078000UL;
 static constexpr uint32_t LPC_EEPROM_SECTOR     = 29UL;
 static constexpr uint32_t LPC_EEPROM_WRITE_SIZE = static_cast<uint32_t>(IAP_WRITE_256);
-static_assert(74 <= LPC_EEPROM_WRITE_SIZE, "EEPROM store exceeds LPC emulation page size");
+static_assert(75 <= LPC_EEPROM_WRITE_SIZE, "EEPROM store exceeds LPC emulation page size");
 
 alignas(4) static uint8_t lpcEepromShadow[LPC_EEPROM_WRITE_SIZE];
 
@@ -210,6 +210,7 @@ void EEPROMStore::displayContents()
     LOG(DEBUG_INFO, "[EEPROM]: Stored HATime: %s", getHATime().ToString());
     LOG(DEBUG_INFO, "[EEPROM]: Stored UTC Offset: %d", getUtcOffset());
     LOG(DEBUG_INFO, "[EEPROM]: Stored Brightness: %d", getBrightness());
+    LOG(DEBUG_INFO, "[EEPROM]: Stored JogSens: %u", static_cast<unsigned>(getJogSens()));
     LOG(DEBUG_INFO, "[EEPROM]: Stored RA Steps per Degree: %f", getRAStepsPerDegree());
     LOG(DEBUG_INFO, "[EEPROM]: Stored DEC Steps per Degree: %f", getDECStepsPerDegree());
     LOG(DEBUG_INFO, "[EEPROM]: Stored Speed Factor: %f", getSpeedFactor());
@@ -464,6 +465,37 @@ void EEPROMStore::storeBrightness(byte brightness)
     // There is no item flag for brightness - it is assumed to always be present
     updateUint8(LCD_BRIGHTNESS_ADDR, brightness);
     commit();  // Complete the transaction
+}
+
+uint8_t EEPROMStore::getJogSens()
+{
+    if (!isPresentExtended(JOG_SENS_MARKER_FLAG))
+    {
+        LOG(DEBUG_EEPROM, "[EEPROM]: No stored value for JogSens");
+        return 1;
+    }
+    uint8_t v = readUint8(JOG_SENS_ADDR);
+    if (v < 1 || v > 8)
+    {
+        LOG(DEBUG_EEPROM, "[EEPROM]: Invalid JogSens in EEPROM (%u), using 1", static_cast<unsigned>(v));
+        return 1;
+    }
+    return v;
+}
+
+void EEPROMStore::storeJogSens(uint8_t jogSens)
+{
+    if (jogSens < 1)
+    {
+        jogSens = 1;
+    }
+    if (jogSens > 8)
+    {
+        jogSens = 8;
+    }
+    updateUint8(JOG_SENS_ADDR, jogSens);
+    updateFlagsExtended(JOG_SENS_MARKER_FLAG);
+    commit();
 }
 
 // Return the RA steps per degree (actually microsteps per degree).

@@ -168,7 +168,7 @@ bool processStatusKeys()
 
         const byte maxIndex = static_cast<byte>(getInfoLineCount() - 1);
 
-#if DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
+#if USES_ROTARY_ENCODER == 1
         if (key == btnLEFT)
         {
             infoIndex = adjustWrap(infoIndex, -1, 0, maxIndex);
@@ -182,8 +182,7 @@ bool processStatusKeys()
             if (infoIndex == maxIndex)
             {
                 playExitBeepInfo();
-                lcdMenu.setNextActive();
-                waitForRelease = false;
+                requestBackToTop = true;
             }
         }
 
@@ -213,10 +212,6 @@ bool processStatusKeys()
                 lcdMenu.setNextActive();
                 waitForRelease = false;
             }
-        }
-        else if (key == btnRIGHT)
-        {
-            lcdMenu.setNextActive();
         }
 #endif
     }

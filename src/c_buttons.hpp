@@ -80,19 +80,28 @@ void loop()
 
     // Give the mount a time slice to do its thing...
     mount.loop();
+    lcdMenu.tickMini12864Effects(millis());
 
     // Update the LCD display
     unsigned long now = millis();
     if (!inSerialControl && okToUpdateMenu && !inStartup && !mount.isSlewingRAorDEC())
     {
+    #if USES_ROTARY_ENCODER == 1
+        // Page-by-page rotary mode does not use the top menu bar.
+    #else
         // Main menu display
         lcdMenu.updateDisplay();
+    #endif
     }
 
     // Tracking marker
     if ((mount.isBootComplete()) && (now - lastTrackingStatusPrint > 200))
     {
+    #if USES_ROTARY_ENCODER == 1
+        // Keep row 0 free from top-bar artifacts in rotary page mode.
+    #else
         lcdMenu.printAt(15, 0, mount.isSlewingTRK() ? '&' : '`');
+    #endif
         lastTrackingStatusPrint = now;
     }
 
@@ -122,6 +131,17 @@ void loop()
     #endif
     {
         bool waitForButtonRelease = false;
+        bool pageNavigatedByRotary = false;
+        bool valueEditingActive = false;
+    #if USES_ROTARY_ENCODER == 1
+        static unsigned long lastRotaryPageNavMs = 0;
+        valueEditingActive = cfgEditing || raEditing || decEditing || (focState == FOCUS_ADJUSTMENT);
+    #if USE_GPS == 1
+        valueEditingActive = valueEditingActive || haGpsEditing;
+    #else
+        valueEditingActive = valueEditingActive || haEditing;
+    #endif
+    #endif
 
     // Handle the keys
     #if SUPPORT_GUIDED_STARTUP == 1
@@ -132,6 +152,48 @@ void loop()
         else
     #endif
         {
+    #if USES_ROTARY_ENCODER == 1
+            // Page-by-page rotary browsing mode:
+            // turning the wheel switches the active menu/page directly.
+            const unsigned long nowNav = millis();
+            const lcdButton_t rotaryState = lcdButtons.currentState();
+            if (!valueEditingActive && (rotaryState == btnLEFT) && ((nowNav - lastRotaryPageNavMs) >= 90))
+            {
+                lcdMenu.setPrevActive();
+                lastRotaryPageNavMs  = nowNav;
+                waitForButtonRelease = true;
+                pageNavigatedByRotary = true;
+                topLevelMenuNav = false;
+                // Clear page content rows to avoid stale text while switching pages.
+                lcdMenu.setCursor(0, 1);
+                lcdMenu.printMenu("");
+                lcdMenu.setCursor(0, 2);
+                lcdMenu.printMenu("");
+                lcdMenu.setCursor(0, 3);
+                lcdMenu.printMenu("");
+                lcdMenu.setCursor(0, 4);
+                lcdMenu.printMenu("");
+            }
+            else if (!valueEditingActive && (rotaryState == btnRIGHT) && ((nowNav - lastRotaryPageNavMs) >= 90))
+            {
+                lcdMenu.setNextActive();
+                lastRotaryPageNavMs  = nowNav;
+                waitForButtonRelease = true;
+                pageNavigatedByRotary = true;
+                topLevelMenuNav = false;
+                // Clear page content rows to avoid stale text while switching pages.
+                lcdMenu.setCursor(0, 1);
+                lcdMenu.printMenu("");
+                lcdMenu.setCursor(0, 2);
+                lcdMenu.printMenu("");
+                lcdMenu.setCursor(0, 3);
+                lcdMenu.printMenu("");
+                lcdMenu.setCursor(0, 4);
+                lcdMenu.printMenu("");
+            }
+    #endif
+            if (!pageNavigatedByRotary)
+            {
             switch (lcdMenu.getActive())
             {
                 case RA_Menu:
@@ -181,6 +243,17 @@ void loop()
                     waitForButtonRelease = processConfigKeys();
                     break;
             }
+            }
+
+    #if USES_ROTARY_ENCODER == 1
+            // A sub-menu signaled Exit -> hand control back to the top-level carousel.
+            if (requestBackToTop)
+            {
+                requestBackToTop     = false;
+                topLevelMenuNav      = false;
+                waitForButtonRelease = true;
+            }
+    #endif
         }
 
         if (waitForButtonRelease)
@@ -215,10 +288,83 @@ void loop()
         else
     #endif
         {
-            if (!inSerialControl)
+            if (!inSerialControl
+                )
             {
+    #if USES_ROTARY_ENCODER == 1
+                // In rotary page mode, show a page title on line 0.
+                const int activeMenu = lcdMenu.getActive();
+                const char *pageTitle = "";
+                if (activeMenu == RA_Menu)
+                {
+                    pageTitle = "RA";
+                }
+                else if (activeMenu == DEC_Menu)
+                {
+                    pageTitle = "DEC";
+                }
+    #if SUPPORT_POINTS_OF_INTEREST == 1
+                else if (activeMenu == POI_Menu)
+                {
+                    pageTitle = "GO";
+                }
+    #else
+                else if (activeMenu == Home_Menu)
+                {
+                    pageTitle = "HOME";
+                }
+    #endif
+                else if (activeMenu == HA_Menu)
+                {
+                    pageTitle = "HA";
+                }
+    #if SUPPORT_MANUAL_CONTROL == 1
+                else if (activeMenu == Control_Menu)
+                {
+                    pageTitle = "CTRL";
+                }
+    #endif
+    #if SUPPORT_CALIBRATION == 1
+                else if (activeMenu == Calibration_Menu)
+                {
+                    pageTitle = "CAL";
+                }
+    #endif
+    #if (FOCUS_STEPPER_TYPE != STEPPER_TYPE_NONE)
+                else if (activeMenu == Focuser_Menu)
+                {
+                    pageTitle = "FOC";
+                }
+    #endif
+    #if SUPPORT_INFO_DISPLAY == 1
+                else if (activeMenu == Status_Menu)
+                {
+                    pageTitle = "INFO";
+                }
+    #endif
+                else if (activeMenu == Config_Menu)
+                {
+                    pageTitle = "CFG";
+                }
+                lcdMenu.setCursor(0, 0);
+                lcdMenu.printMenu(String(pageTitle));
+                lcdMenu.setCursor(0, 1);
+
+    #if SUPPORT_INFO_DISPLAY == 1
+                // INFO may use multiple rows; clear leftovers when showing other pages.
+                if (activeMenu != Status_Menu)
+                {
+                    lcdMenu.setCursor(0, 2);
+                    lcdMenu.printMenu("");
+                    lcdMenu.setCursor(0, 3);
+                    lcdMenu.printMenu("");
+                    lcdMenu.setCursor(0, 4);
+                    lcdMenu.printMenu("");
+                    lcdMenu.setCursor(0, 1);
+                }
+    #endif
+    #endif
                 // For some strange reason, a switch statement here causes a crash and reboot....
-                int activeMenu = lcdMenu.getActive();
                 if (activeMenu == RA_Menu)
                 {
                     printRASubmenu();

@@ -33,9 +33,16 @@ enum
     HIGHLIGHT_PITCH_LEVEL,
         #endif
     HIGHLIGHT_BACKLIGHT,
+        #if USES_ROTARY_ENCODER == 1
+    HIGHLIGHT_CAL_EXIT,
+        #endif
 
     HIGHLIGHT_FIRST = HIGHLIGHT_POLAR,
-    HIGHLIGHT_LAST  = HIGHLIGHT_BACKLIGHT
+        #if USES_ROTARY_ENCODER == 1
+    HIGHLIGHT_LAST = HIGHLIGHT_CAL_EXIT
+        #else
+    HIGHLIGHT_LAST = HIGHLIGHT_BACKLIGHT
+        #endif
 };
 
         // Polar calibration goes through these three states:
@@ -408,6 +415,89 @@ bool processCalibrationKeys()
     {
         waitForRelease = true;
 
+        #if USES_ROTARY_ENCODER == 1
+        // On rotary-encoder displays, LEFT/RIGHT are rotation events. In HIGHLIGHT_*
+        // states we remap them to UP/DOWN so the existing gotoNextHighlightState()
+        // paths take effect. In sub-calibration states we adjust the value by one
+        // step per click.
+        const bool isHighlightState = (calState >= HIGHLIGHT_FIRST) && (calState <= HIGHLIGHT_LAST);
+        if (isHighlightState)
+        {
+            if (key == btnLEFT)
+            {
+                key = btnUP;
+            }
+            else if (key == btnRIGHT)
+            {
+                key = btnDOWN;
+            }
+        }
+        else
+        {
+            int delta = 0;
+            if (key == btnLEFT)
+            {
+                delta = -1;
+            }
+            else if (key == btnRIGHT)
+            {
+                delta = 1;
+            }
+            if (delta != 0)
+            {
+                if (calState == SPEED_CALIBRATION)
+                {
+                    SpeedCalibration = clamp(static_cast<int>(SpeedCalibration) + delta, -32760, 32760);
+                    mount.setSpeedCalibration(1.0f + SpeedCalibration / 10000.0f, false);
+                    key = btnNONE;
+                }
+                else if (calState == UTC_OFFSET_CALIBRATION)
+                {
+                    UTCOffset += delta;
+                    key = btnNONE;
+                }
+                else if (calState == RA_STEP_CALIBRATION)
+                {
+                    RAStepsPerDegree += delta;
+                    key = btnNONE;
+                }
+                else if (calState == DEC_STEP_CALIBRATION)
+                {
+                    DECStepsPerDegree += delta;
+                    key = btnNONE;
+                }
+                else if (calState == BACKLASH_CALIBRATION)
+                {
+                    BacklashSteps += delta;
+                    key = btnNONE;
+                }
+                else if (calState == BACKLIGHT_CALIBRATION)
+                {
+                    int minBrightness;
+                    int maxBrightness;
+                    lcdMenu.getBacklightBrightnessRange(&minBrightness, &maxBrightness);
+                    Brightness = clamp(Brightness + delta, minBrightness, maxBrightness);
+                    lcdMenu.setBacklightBrightness(Brightness, false);
+                    key = btnNONE;
+                }
+            #if (AZ_STEPPER_TYPE != STEPPER_TYPE_NONE)
+                else if (calState == AZIMUTH_ADJUSTMENT)
+                {
+                    AzimuthMinutes = clamp(AzimuthMinutes + delta, -60, 60);
+                    key            = btnNONE;
+                }
+            #endif
+            #if (ALT_STEPPER_TYPE != STEPPER_TYPE_NONE)
+                else if (calState == ALTITUDE_ADJUSTMENT)
+                {
+                    AltitudeMinutes = clamp(AltitudeMinutes + delta, -60, 60);
+                    key             = btnNONE;
+                }
+            #endif
+            }
+        }
+        #endif
+
         switch (calState)
         {
             case POLAR_CALIBRATION_WAIT_HOME:
@@ -593,7 +683,7 @@ bool processCalibrationKeys()
                         calState       = HIGHLIGHT_ROLL_LEVEL;
                         okToUpdateMenu = true;
                     }
-                    else if (key == btnLEFT)
+                    else if ((key == btnLEFT) || (key == btnUP) || (key == btnDOWN))
                     {
                         setRollZeroPoint = !setRollZeroPoint;
                     }
@@ -638,7 +728,7 @@ bool processCalibrationKeys()
                         calState       = HIGHLIGHT_PITCH_LEVEL;
                         okToUpdateMenu = true;
                     }
-                    else if (key == btnLEFT)
+                    else if ((key == btnLEFT) || (key == btnUP) || (key == btnDOWN))
                     {
                         setPitchZeroPoint = !setPitchZeroPoint;
                     }
@@ -1003,6 +1093,22 @@ bool processCalibrationKeys()
                     }
                 }
                 break;
+
+        #if USES_ROTARY_ENCODER == 1
+            case HIGHLIGHT_CAL_EXIT:
+                {
+                    if (key == btnDOWN)
+                        gotoNextHighlightState(1);
+                    else if (key == btnUP)
+                        gotoNextHighlightState(-1);
+                    else if (key == btnSELECT)
+                    {
+                        requestBackToTop = true;
+                        calState         = HIGHLIGHT_FIRST;
+                    }
+                }
+                break;
+        #endif
         }
     }
 
@@ -1094,6 +1200,12 @@ void printCalibrationSubmenu()
     {
         lcdMenu.printMenu(">LCD Brightness");
     }
+        #if USES_ROTARY_ENCODER == 1
+    else if (calState == HIGHLIGHT_CAL_EXIT)
+    {
+        lcdMenu.printMenu(">Exit");
+    }
+        #endif
     else if (calState == POLAR_CALIBRATION_WAIT_CENTER_POLARIS)
     {
         if (!mount.isSlewingRAorDEC())

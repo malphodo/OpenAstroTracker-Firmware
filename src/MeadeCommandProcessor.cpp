@@ -4,6 +4,7 @@
 #include "LcdMenu.hpp"
 #include "Mount.hpp"
 #include "MeadeCommandProcessor.hpp"
+#include "EPROMStore.hpp"
 #include "WifiControl.hpp"
 #include "Gyro.hpp"
 #include <Wire.h>
@@ -1826,6 +1827,17 @@ String MeadeCommandProcessor::handleMeadeExtraCommands(String inCmd)
         return "0#";
     }
 
+    // :XSW0# / :XSW1# => force LCD controller power-save OFF/ON without reboot.
+    if (inCmd[0] == 'S' && inCmd.length() >= 3 && inCmd[1] == 'W')
+    {
+        if (_lcdMenu != nullptr)
+        {
+            _lcdMenu->setDisplayPower(inCmd[2] == '1');
+            return "1#";
+        }
+        return "0#";
+    }
+
     // :XSRrrrgggbbb# => set Mini12864 V3 NeoPixel RGB backlight (3 decimal triplets, 000-255).
     if (inCmd[0] == 'S' && inCmd.length() >= 11 && inCmd[1] == 'R')
     {
@@ -1862,6 +1874,30 @@ String MeadeCommandProcessor::handleMeadeExtraCommands(String inCmd)
         }
         bool ok = _lcdMenu->applyMini12864BacklightMode((uint8_t) mode);
         return ok ? "1#" : "0#";
+    }
+
+    // :XSBn# => set Mini12864 button blink mode (base mode).
+    //   0 = none, 1 = warning (red/blue blink), 2 = edit (red blink)
+    if (inCmd[0] == 'S' && inCmd.length() >= 3 && inCmd[1] == 'B')
+    {
+        if (_lcdMenu == nullptr || !_lcdMenu->isMini12864RgbSupported())
+        {
+            return "0#";
+        }
+        int mode = inCmd[2] - '0';
+        bool ok  = _lcdMenu->setMini12864ButtonBlinkMode((uint8_t) mode);
+        return ok ? "1#" : "0#";
+    }
+
+    // :XSE0# / :XSE1# => force/clear edit blink state (overrides base mode while active).
+    if (inCmd[0] == 'S' && inCmd.length() >= 3 && inCmd[1] == 'E')
+    {
+        if (_lcdMenu == nullptr || !_lcdMenu->isMini12864RgbSupported())
+        {
+            return "0#";
+        }
+        _lcdMenu->setMini12864EditBlinkActive(inCmd[2] == '1');
+        return "1#";
     }
 
     // :XSLNrrrgggbbb# => set a single Mini12864 V3 NeoPixel LED. N is 1..3 (1 char),
@@ -2160,6 +2196,14 @@ String MeadeCommandProcessor::handleMeadeExtraCommands(String inCmd)
                     static_cast<unsigned>(r), static_cast<unsigned>(g), static_cast<unsigned>(b));
                 return String(scratchBuffer);
             }
+            if ((inCmd.length() > 2) && (inCmd[2] == 'F'))  // :XGUF#
+            {
+                return String((int) _lcdMenu->getMini12864ButtonBlinkMode()) + "#";
+            }
+            if ((inCmd.length() > 2) && (inCmd[2] == 'X'))  // :XGUX#
+            {
+                return String(_lcdMenu->isMini12864EditBlinkActive() ? 1 : 0) + "#";
+            }
             return "0#";
         }
         else if (inCmd[1] == 'N')  // :XGN#
@@ -2187,6 +2231,11 @@ String MeadeCommandProcessor::handleMeadeExtraCommands(String inCmd)
 #else
             return "0,#";
 #endif
+        }
+        else if (inCmd[1] == 'J')  // :XGJ#
+        {
+            // Get JogSens (rotary encoder sensitivity), range 1..8.
+            return String((int) rotaryMolSens) + "#";
         }
     }
     else if (inCmd[0] == 'S')
@@ -2277,6 +2326,15 @@ String MeadeCommandProcessor::handleMeadeExtraCommands(String inCmd)
         else if (inCmd[1] == 'Y')  // :XSY
         {
             _mount->setSpeed(DEC_STEPS, inCmd.substring(2).toFloat());
+        }
+        else if (inCmd[1] == 'J')  // :XSJn#
+        {
+            // Set JogSens (rotary encoder sensitivity), clamped to 1..8 and persisted.
+            int newSens = inCmd.substring(2).toInt();
+            newSens     = constrain(newSens, 1, 8);
+            rotaryMolSens = static_cast<uint8_t>(newSens);
+            EEPROMStore::storeJogSens(rotaryMolSens);
+            return "1#";
         }
         else if (inCmd[1] == 'B')  // :XSB
         {

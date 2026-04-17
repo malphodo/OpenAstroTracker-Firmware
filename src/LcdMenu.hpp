@@ -100,6 +100,17 @@ class LcdMenu
     };
     bool applyMini12864BacklightMode(uint8_t mode);
     uint8_t getMini12864BacklightMode() const;
+    enum Mini12864ButtonBlinkMode : uint8_t
+    {
+        MINI12864_BUTTON_BLINK_NONE    = 0,
+        MINI12864_BUTTON_BLINK_WARNING = 1,
+        MINI12864_BUTTON_BLINK_EDIT    = 2,
+    };
+    bool setMini12864ButtonBlinkMode(uint8_t mode);
+    uint8_t getMini12864ButtonBlinkMode() const;
+    void setMini12864EditBlinkActive(bool active);
+    bool isMini12864EditBlinkActive() const;
+    void tickMini12864Effects(unsigned long nowMs);
 
     // Visibility self-test pattern (graphic displays only). Cycles buffer clear,
     // full black fill and invert a few times so a working Mini12864 panel produces
@@ -108,12 +119,16 @@ class LcdMenu
 
     // Toggle controller-level pixel polarity (ST7565/ST7567/UC1701 A6h/A7h).
     void setDisplayInverted(bool inverted);
+    void setDisplayPower(bool on);
 
     // Pass thru utility function
     void clear();
 
     // Go to the next menu item from currently active one
     void setNextActive();
+
+    // Go to the previous menu item from currently active one (wraps around)
+    void setPrevActive();
 
     // Update the display of the LCD with the current menu settings
     // This iterates over the menu items, building a menu string by concatenating their display string.
@@ -186,6 +201,10 @@ class LcdMenu
     // Sized for the BTT Mini12864 V3 hardware (3 LEDs). Indices are 0-based here.
     uint8_t _mini12864LedRgb[9];
     uint8_t _mini12864BacklightMode;
+    uint8_t _mini12864ButtonBlinkMode;
+    bool _mini12864EditBlinkActive;
+    bool _mini12864ButtonBlinkRunning;
+    uint8_t _mini12864SavedButtonRgb[6];
 
     #if DISPLAY_TYPE != DISPLAY_TYPE_LCD_JOY_I2C_SSD1306 && DISPLAY_TYPE != DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567                             \
         && DISPLAY_TYPE != DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701 && DISPLAY_TYPE != DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920                      \

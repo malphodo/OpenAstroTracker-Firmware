@@ -7,8 +7,15 @@ enum FocusMenuItem
 {
     HIGHLIGHT_FOCUS_FIRST      = 1,
     HIGHLIGHT_FOCUS_ADJUSTMENT = 1,
+    #if USES_ROTARY_ENCODER == 1
+    HIGHLIGHT_FOCUS_EXIT,
+    #endif
 
+    #if USES_ROTARY_ENCODER == 1
+    HIGHLIGHT_FOCUS_LAST = HIGHLIGHT_FOCUS_EXIT,
+    #else
     HIGHLIGHT_FOCUS_LAST = HIGHLIGHT_FOCUS_ADJUSTMENT,
+    #endif
 
     FOCUS_ADJUSTMENT,
 };
@@ -61,12 +68,33 @@ bool processFocuserKeys()
                 {
                     focState = FOCUS_ADJUSTMENT;
                 }
+    #if USES_ROTARY_ENCODER == 1
+                else if ((key == btnLEFT) || (key == btnRIGHT))
+                {
+                    focState = static_cast<FocusMenuItem>(adjustWrap(focState, 1, HIGHLIGHT_FOCUS_FIRST, HIGHLIGHT_FOCUS_LAST));
+                }
+    #else
                 if (key == btnRIGHT)
                 {
                     lcdMenu.setNextActive();
                 }
+    #endif
 
                 break;
+
+    #if USES_ROTARY_ENCODER == 1
+            case HIGHLIGHT_FOCUS_EXIT:
+                if (key == btnSELECT)
+                {
+                    requestBackToTop = true;
+                    focState         = HIGHLIGHT_FOCUS_ADJUSTMENT;
+                }
+                else if ((key == btnLEFT) || (key == btnRIGHT))
+                {
+                    focState = static_cast<FocusMenuItem>(adjustWrap(focState, 1, HIGHLIGHT_FOCUS_FIRST, HIGHLIGHT_FOCUS_LAST));
+                }
+                break;
+    #endif
 
             case FOCUS_ADJUSTMENT:
                 {
@@ -99,6 +127,12 @@ void printFocusSubmenu()
     {
         lcdMenu.printMenu(">Focus Adjust");
     }
+    #if USES_ROTARY_ENCODER == 1
+    else if (focState == HIGHLIGHT_FOCUS_EXIT)
+    {
+        lcdMenu.printMenu(">Exit");
+    }
+    #endif
     else if (focState == FOCUS_ADJUSTMENT)
     {
         strcpy(scratchBuffer, "Rate:  1 2 3 4 *");

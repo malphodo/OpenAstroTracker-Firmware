@@ -100,6 +100,24 @@ TinyGPSPlus gps;
 // How many menu items at most?
 #define MAXMENUITEMS 12
 
+// Mini12864 / graphic displays use a rotary encoder: navigation is rotate to cycle,
+// click to enter/edit. Keypad displays keep their original directional-key workflow.
+#if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                            \
+    || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
+    #define USES_ROTARY_ENCODER 1
+#else
+    #define USES_ROTARY_ENCODER 0
+#endif
+
+// When true, the top-level menu bar is in navigation mode: rotating cycles between
+// top-level menus, clicking enters the active menu. Set to false upon entering a menu,
+// set back to true when a sub-menu's "Exit" item is activated.
+bool topLevelMenuNav = (USES_ROTARY_ENCODER == 1);
+
+// Sub-menus set this to true to request a return to the top-level carousel.
+// c_buttons.hpp's loop inspects and clears it after each menu dispatch.
+bool requestBackToTop = false;
+
 #if SUPPORT_GUIDED_STARTUP == 1
 bool inStartup = true;  // Start with a guided startup
 #else
@@ -109,7 +127,7 @@ bool inStartup = false;  // Start with a guided startup
 // Serial control variables
 bool okToUpdateMenu                = true;   // Can be used to supress rendering the first line of the menu.
 bool quitSerialOnNextButtonRelease = false;  // Used to detect SELECT button to quit Serial mode.
-uint8_t rotaryMolSens              = 4;      // Encoder sensitivity (quadrature steps per event), 1..8.
+uint8_t rotaryMolSens              = 1;      // Config menu "JogSens": 1..8, lower = more sensitive (quadrature steps per event).
 
 // RA variables
 int RAselect;

@@ -2,14 +2,15 @@
 
 #if DISPLAY_TYPE > 0
     #include "Utility.hpp"
+    #include "EPROMStore.hpp"
 
 enum cfgItem_t
 {
-    CfgItemMolSens = 0,
+    CfgItemJogSens = 0,
     CfgItemExit    = 1,
 };
 
-static cfgItem_t cfgItem = CfgItemMolSens;
+static cfgItem_t cfgItem = CfgItemJogSens;
 static bool cfgEditing   = false;
 
 static void playExitBeep()
@@ -35,34 +36,34 @@ bool processConfigKeys()
     {
         waitForRelease = true;
 
-#if DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
+#if USES_ROTARY_ENCODER == 1
         if (!cfgEditing)
         {
             if (key == btnLEFT)
             {
-                cfgItem = static_cast<cfgItem_t>(adjustWrap(static_cast<int>(cfgItem), -1, CfgItemMolSens, CfgItemExit));
+                cfgItem = static_cast<cfgItem_t>(adjustWrap(static_cast<int>(cfgItem), -1, CfgItemJogSens, CfgItemExit));
             }
             else if (key == btnRIGHT)
             {
-                cfgItem = static_cast<cfgItem_t>(adjustWrap(static_cast<int>(cfgItem), 1, CfgItemMolSens, CfgItemExit));
+                cfgItem = static_cast<cfgItem_t>(adjustWrap(static_cast<int>(cfgItem), 1, CfgItemJogSens, CfgItemExit));
             }
             else if (key == btnSELECT)
             {
                 if (cfgItem == CfgItemExit)
                 {
                     playExitBeep();
-                    lcdMenu.setNextActive();
-                    waitForRelease = false;
+                    requestBackToTop = true;
                 }
                 else
                 {
                     cfgEditing = true;
+                    lcdMenu.setMini12864EditBlinkActive(true);
                 }
             }
         }
         else
         {
-            if (cfgItem == CfgItemMolSens)
+            if (cfgItem == CfgItemJogSens)
             {
                 if (key == btnLEFT)
                 {
@@ -75,6 +76,8 @@ bool processConfigKeys()
                 else if (key == btnSELECT)
                 {
                     cfgEditing = false;
+                    lcdMenu.setMini12864EditBlinkActive(false);
+                    EEPROMStore::storeJogSens(rotaryMolSens);
                 }
             }
         }
@@ -83,11 +86,11 @@ bool processConfigKeys()
         {
             if (key == btnUP)
             {
-                cfgItem = static_cast<cfgItem_t>(adjustWrap(static_cast<int>(cfgItem), -1, CfgItemMolSens, CfgItemExit));
+                cfgItem = static_cast<cfgItem_t>(adjustWrap(static_cast<int>(cfgItem), -1, CfgItemJogSens, CfgItemExit));
             }
             else if (key == btnDOWN)
             {
-                cfgItem = static_cast<cfgItem_t>(adjustWrap(static_cast<int>(cfgItem), 1, CfgItemMolSens, CfgItemExit));
+                cfgItem = static_cast<cfgItem_t>(adjustWrap(static_cast<int>(cfgItem), 1, CfgItemJogSens, CfgItemExit));
             }
             else if (key == btnSELECT)
             {
@@ -100,12 +103,13 @@ bool processConfigKeys()
                 else
                 {
                     cfgEditing = true;
+                    lcdMenu.setMini12864EditBlinkActive(true);
                 }
             }
         }
         else
         {
-            if (cfgItem == CfgItemMolSens)
+            if (cfgItem == CfgItemJogSens)
             {
                 if (key == btnLEFT)
                 {
@@ -118,6 +122,8 @@ bool processConfigKeys()
                 else if (key == btnSELECT)
                 {
                     cfgEditing = false;
+                    lcdMenu.setMini12864EditBlinkActive(false);
+                    EEPROMStore::storeJogSens(rotaryMolSens);
                 }
             }
         }
@@ -130,9 +136,9 @@ bool processConfigKeys()
 void printConfigSubmenu()
 {
     char line[20];
-    if (cfgItem == CfgItemMolSens)
+    if (cfgItem == CfgItemJogSens)
     {
-        snprintf(line, sizeof(line), ">MolSens:%u%s", static_cast<unsigned>(rotaryMolSens), cfgEditing ? "*" : "");
+        snprintf(line, sizeof(line), ">JogSens:%u%s", static_cast<unsigned>(rotaryMolSens), cfgEditing ? "*" : "");
     }
     else
     {

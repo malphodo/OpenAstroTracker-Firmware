@@ -178,14 +178,15 @@ void LcdButtons::checkKey()
     if (step != 0)
     {
         _encoderAcc += step;
+        // Rotary direction inverted by user preference: CW -> LEFT, CCW -> RIGHT.
         if (_encoderAcc >= stepsPerEvent)
         {
-            encoderEvent = btnRIGHT;
+            encoderEvent = btnLEFT;
             _encoderAcc = 0;
         }
         else if (_encoderAcc <= -stepsPerEvent)
         {
-            encoderEvent = btnLEFT;
+            encoderEvent = btnRIGHT;
             _encoderAcc = 0;
         }
     }

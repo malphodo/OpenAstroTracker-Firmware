@@ -51,10 +51,90 @@ int parkPOI    = sizeof(pointOfInterest) / sizeof(pointOfInterest[0]) - 1;
 int unparkPOI  = sizeof(pointOfInterest) / sizeof(pointOfInterest[0]) - 2;
 byte homePOI   = sizeof(pointOfInterest) / sizeof(pointOfInterest[0]) - 3;
 
+    #if USES_ROTARY_ENCODER == 1
+// Virtual trailing Exit entry past parkPOI.
+static const int POI_EXIT_INDEX = -1;
+static int poiCursor            = 0;  // 0..parkPOI or POI_EXIT_INDEX
+    #endif
+
 bool processPOIKeys()
 {
     lcdButton_t key;
     bool waitForRelease = false;
+
+    #if USES_ROTARY_ENCODER == 1
+    if (lcdButtons.keyChanged(&key))
+    {
+        waitForRelease = true;
+        // Range: 0..parkPOI, then POI_EXIT_INDEX after wrap.
+        const int maxPoi = parkPOI;
+        if (key == btnLEFT)
+        {
+            if (poiCursor == 0)
+            {
+                poiCursor = POI_EXIT_INDEX;
+            }
+            else if (poiCursor == POI_EXIT_INDEX)
+            {
+                poiCursor = maxPoi;
+            }
+            else
+            {
+                poiCursor -= 1;
+            }
+        }
+        else if (key == btnRIGHT)
+        {
+            if (poiCursor == maxPoi)
+            {
+                poiCursor = POI_EXIT_INDEX;
+            }
+            else if (poiCursor == POI_EXIT_INDEX)
+            {
+                poiCursor = 0;
+            }
+            else
+            {
+                poiCursor += 1;
+            }
+        }
+        else if (key == btnSELECT)
+        {
+            if (poiCursor == POI_EXIT_INDEX)
+            {
+                requestBackToTop = true;
+                topLevelMenuNav  = true;
+                poiCursor        = 0;
+            }
+            else
+            {
+                currentPOI = poiCursor;
+                mount.stopSlewing(ALL_DIRECTIONS);
+                if (currentPOI == homePOI)
+                {
+                    mount.startSlewingToHome();
+                }
+                else if (currentPOI == parkPOI)
+                {
+                    mount.park();
+                }
+                else if (currentPOI == unparkPOI)
+                {
+                    mount.startSlewing(TRACKING);
+                }
+                else
+                {
+                    PointOfInterest *poi = &pointOfInterest[currentPOI];
+                    long targetSeconds   = (60L * abs(poi->degreeDEC) + poi->minDEC) * 60L + poi->secDEC;
+                    targetSeconds *= (poi->degreeDEC < 0 ? -1 : 1);
+                    mount.targetRA().set(poi->hourRA, poi->minRA, poi->secRA);
+                    mount.targetDEC() = Declination::FromSeconds(targetSeconds);
+                    mount.startSlewingToTarget();
+                }
+            }
+        }
+    }
+    #else
     if (lcdButtons.keyChanged(&key))
     {
         waitForRelease = true;
@@ -96,37 +176,44 @@ bool processPOIKeys()
 
             case btnLEFT:
             case btnDOWN:
-                {
-                    currentPOI = adjustWrap(currentPOI, 1, 0, parkPOI);
-                }
+                currentPOI = adjustWrap(currentPOI, 1, 0, parkPOI);
                 break;
 
             case btnUP:
-                {
-                    currentPOI = adjustWrap(currentPOI, -1, 0, parkPOI);
-                }
+                currentPOI = adjustWrap(currentPOI, -1, 0, parkPOI);
                 break;
 
             case btnRIGHT:
-                {
-                    lcdMenu.setNextActive();
-                }
+                lcdMenu.setNextActive();
                 break;
 
             default:
                 break;
         }
     }
+    #endif
 
     return waitForRelease;
 }
 
 void printPOISubmenu()
 {
+    #if USES_ROTARY_ENCODER == 1
+    if (poiCursor == POI_EXIT_INDEX)
+    {
+        lcdMenu.printMenu(">Exit");
+        return;
+    }
+    if (mount.isSlewingIdle())
+    {
+        lcdMenu.printMenu(pointOfInterest[poiCursor].pDisplay);
+    }
+    #else
     if (mount.isSlewingIdle())
     {
         lcdMenu.printMenu(pointOfInterest[currentPOI].pDisplay);
     }
+    #endif
 }
     #endif
 #endif

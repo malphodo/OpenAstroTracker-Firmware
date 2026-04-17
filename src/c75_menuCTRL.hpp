@@ -10,6 +10,7 @@ enum ctrlState_t
 {
     HIGHLIGHT_MANUAL,
     HIGHLIGHT_SERIAL,
+    HIGHLIGHT_CTRL_EXIT,
     MANUAL_CONTROL_MODE,
     MANUAL_CONTROL_CONFIRM_HOME,
 };
@@ -111,7 +112,17 @@ bool processControlKeys()
                     ctrlState = MANUAL_CONTROL_MODE;
                     mount.stopSlewing(ALL_DIRECTIONS);
                 }
-                else if ((key == btnDOWN) || (key == btnUP))
+        #if USES_ROTARY_ENCODER == 1
+                else if (key == btnLEFT)
+                {
+                    ctrlState = HIGHLIGHT_CTRL_EXIT;
+                }
+                else if (key == btnRIGHT)
+                {
+                    ctrlState = HIGHLIGHT_SERIAL;
+                }
+        #else
+                else if ((key == btnDOWN) || (key == btnUP) || (key == btnLEFT))
                 {
                     ctrlState = HIGHLIGHT_SERIAL;
                 }
@@ -119,6 +130,7 @@ bool processControlKeys()
                 {
                     lcdMenu.setNextActive();
                 }
+        #endif
             }
             break;
 
@@ -130,7 +142,17 @@ bool processControlKeys()
                 {
                     inSerialControl = !inSerialControl;
                 }
-                else if ((key == btnDOWN) || (key == btnUP))
+        #if USES_ROTARY_ENCODER == 1
+                else if (key == btnLEFT)
+                {
+                    ctrlState = HIGHLIGHT_MANUAL;
+                }
+                else if (key == btnRIGHT)
+                {
+                    ctrlState = HIGHLIGHT_CTRL_EXIT;
+                }
+        #else
+                else if ((key == btnDOWN) || (key == btnUP) || (key == btnLEFT))
                 {
                     ctrlState = HIGHLIGHT_MANUAL;
                 }
@@ -139,8 +161,31 @@ bool processControlKeys()
                     inSerialControl = false;
                     lcdMenu.setNextActive();
                 }
+        #endif
             }
             break;
+
+        #if USES_ROTARY_ENCODER == 1
+        case HIGHLIGHT_CTRL_EXIT:
+            if (lcdButtons.keyChanged(&key))
+            {
+                waitForRelease = true;
+                if (key == btnSELECT)
+                {
+                    requestBackToTop = true;
+                    ctrlState        = HIGHLIGHT_MANUAL;
+                }
+                else if (key == btnLEFT)
+                {
+                    ctrlState = HIGHLIGHT_SERIAL;
+                }
+                else if (key == btnRIGHT)
+                {
+                    ctrlState = HIGHLIGHT_MANUAL;
+                }
+            }
+            break;
+        #endif
 
         case MANUAL_CONTROL_CONFIRM_HOME:
             if (lcdButtons.keyChanged(&key))
@@ -176,7 +221,7 @@ bool processControlKeys()
                     okToUpdateMenu = true;
                     setZeroPoint   = true;
                 }
-                else if (key == btnLEFT)
+                else if ((key == btnLEFT) || (key == btnRIGHT) || (key == btnUP) || (key == btnDOWN))
                 {
                     setZeroPoint = !setZeroPoint;
                 }
@@ -224,6 +269,11 @@ void printControlSubmenu()
         case HIGHLIGHT_SERIAL:
             lcdMenu.printMenu(">Serial display");
             break;
+        #if USES_ROTARY_ENCODER == 1
+        case HIGHLIGHT_CTRL_EXIT:
+            lcdMenu.printMenu(">Exit");
+            break;
+        #endif
         case MANUAL_CONTROL_CONFIRM_HOME:
             {
                 String disp = " Yes  No  ";

@@ -24,4 +24,4 @@ inline void yield()
 
 extern bool inSerialControl;  // True when the serial port is in control
 extern bool inNorthernHemisphere;
-extern uint8_t rotaryMolSens;
+extern uint8_t rotaryMolSens;  // Encoder / jog sensitivity (see Config → JogSens), 1..8
