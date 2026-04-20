@@ -1,4 +1,5 @@
 #include "SSD1306_128x64_Display.hpp"
+#include <SSD1306Wire.h>
 
 #if defined(ESP32)
     /*

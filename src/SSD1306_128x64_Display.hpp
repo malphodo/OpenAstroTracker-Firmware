@@ -1,6 +1,5 @@
 #pragma once
-#include <Arduino.h>
-#include "SSD1306Wire.h"
+#include "inc/Globals.hpp"
 #include "Configuration.hpp"
 #include "Utility.hpp"
 #include "Version.h"
