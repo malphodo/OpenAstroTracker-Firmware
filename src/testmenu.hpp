@@ -1,5 +1,5 @@
 #pragma once
-#include <Arduino.h>
+#include "inc/Globals.hpp"
 
 #if TEST_VERIFY_MODE == 1
 

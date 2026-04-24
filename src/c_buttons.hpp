@@ -1,6 +1,8 @@
 #pragma once
 
+#include "Arduino.h"
 #include "LcdButtons.hpp"
+#include "LcdMenu.hpp"
 #include "b_setup.hpp"
 #include "c65_startup.hpp"
 #include "c70_menuRA.hpp"
@@ -133,9 +135,31 @@ void loop()
         bool waitForButtonRelease = false;
         bool pageNavigatedByRotary = false;
         bool valueEditingActive = false;
+
     #if USES_ROTARY_ENCODER == 1
-        static unsigned long lastRotaryPageNavMs = 0;
-        valueEditingActive = cfgEditing || raEditing || decEditing || (focState == FOCUS_ADJUSTMENT);
+        auto resetRotaryEditModes = []() {
+            raEditing  = false;
+            decEditing = false;
+    #if USE_GPS == 1
+            haGpsEditing = false;
+    #else
+            haEditing = false;
+    #endif
+            cfgEditing = false;
+            lcdMenu.setMini12864EditBlinkActive(false);
+    #if (FOCUS_STEPPER_TYPE != STEPPER_TYPE_NONE)
+            if (focState == FOCUS_ADJUSTMENT)
+            {
+                focState = HIGHLIGHT_FOCUS_ADJUSTMENT;
+            }
+    #endif
+        };
+    #endif
+    #if USES_ROTARY_ENCODER == 1
+        valueEditingActive = cfgEditing || raEditing || decEditing;
+    #if (FOCUS_STEPPER_TYPE != STEPPER_TYPE_NONE)
+        valueEditingActive = valueEditingActive || (focState == FOCUS_ADJUSTMENT);
+    #endif
     #if USE_GPS == 1
         valueEditingActive = valueEditingActive || haGpsEditing;
     #else
@@ -153,43 +177,57 @@ void loop()
     #endif
         {
     #if USES_ROTARY_ENCODER == 1
-            // Page-by-page rotary browsing mode:
-            // turning the wheel switches the active menu/page directly.
-            const unsigned long nowNav = millis();
-            const lcdButton_t rotaryState = lcdButtons.currentState();
-            if (!valueEditingActive && (rotaryState == btnLEFT) && ((nowNav - lastRotaryPageNavMs) >= 90))
+            // Rotary interaction has two explicit modes:
+            //  - topLevelMenuNav=true  -> wheel cycles top-level pages, click enters page
+            //  - topLevelMenuNav=false -> wheel/click handled by active sub-menu only
+            // This removes conflicts where a field-edit click/turn unexpectedly changes page.
+            lcdButton_t rotaryEvent;
+            // Minimum interval between top-level page-change events.
+            // Prevents encoder bounces from firing a forward then a backward event
+            // in rapid succession (screen flashes and returns to previous page).
+            static unsigned long lastTopNavEventMs = 0;
+            static const unsigned long TOP_NAV_HOLDOFF_MS = 150UL;
+            // IMPORTANT: only consume keyChanged() at this level while browsing top-level pages.
+            // In page mode (topLevelMenuNav=false), sub-menus must receive the event themselves.
+            if (topLevelMenuNav && !valueEditingActive && lcdButtons.keyChanged(&rotaryEvent))
             {
-                lcdMenu.setPrevActive();
-                lastRotaryPageNavMs  = nowNav;
-                waitForButtonRelease = true;
-                pageNavigatedByRotary = true;
-                topLevelMenuNav = false;
-                // Clear page content rows to avoid stale text while switching pages.
-                lcdMenu.setCursor(0, 1);
-                lcdMenu.printMenu("");
-                lcdMenu.setCursor(0, 2);
-                lcdMenu.printMenu("");
-                lcdMenu.setCursor(0, 3);
-                lcdMenu.printMenu("");
-                lcdMenu.setCursor(0, 4);
-                lcdMenu.printMenu("");
+                if (rotaryEvent == btnLEFT || rotaryEvent == btnRIGHT)
+                {
+                    const unsigned long navNow = millis();
+                    if (navNow - lastTopNavEventMs >= TOP_NAV_HOLDOFF_MS)
+                    {
+                        if (rotaryEvent == btnLEFT)
+                        {
+                            lcdMenu.setPrevActive();
+                        }
+                        else
+                        {
+                            lcdMenu.setNextActive();
+                        }
+                        lastTopNavEventMs = navNow;
+                    }
+                    waitForButtonRelease = true;
+                    pageNavigatedByRotary = true;
+                }
+                else if (rotaryEvent == btnSELECT)
+                {
+                    // Enter the currently highlighted page.
+                    topLevelMenuNav = false;
+                    waitForButtonRelease = true;
+                    pageNavigatedByRotary = true;
+                    resetRotaryEditModes();
+                    // NOTE: setMini12864RgbLed() intentionally omitted here.
+                    // MINI12864_V3_RGB_PIN == LCD12864_CS_PIN == P1_21 : writing WS2812
+                    // data on that pin during LCD operation corrupts the SPI bus.
+                    // Do not force-clear rows here: the first entry after boot can trigger
+                    // multiple immediate display refreshes and cause a visible glitch.
+                    // Normal page rendering below already clears/overwrites needed rows.
+                }
             }
-            else if (!valueEditingActive && (rotaryState == btnRIGHT) && ((nowNav - lastRotaryPageNavMs) >= 90))
+            // When still in top-level navigation, never dispatch sub-menu key handlers.
+            if (topLevelMenuNav)
             {
-                lcdMenu.setNextActive();
-                lastRotaryPageNavMs  = nowNav;
-                waitForButtonRelease = true;
                 pageNavigatedByRotary = true;
-                topLevelMenuNav = false;
-                // Clear page content rows to avoid stale text while switching pages.
-                lcdMenu.setCursor(0, 1);
-                lcdMenu.printMenu("");
-                lcdMenu.setCursor(0, 2);
-                lcdMenu.printMenu("");
-                lcdMenu.setCursor(0, 3);
-                lcdMenu.printMenu("");
-                lcdMenu.setCursor(0, 4);
-                lcdMenu.printMenu("");
             }
     #endif
             if (!pageNavigatedByRotary)
@@ -246,16 +284,26 @@ void loop()
             }
 
     #if USES_ROTARY_ENCODER == 1
-            // A sub-menu signaled Exit -> hand control back to the top-level carousel.
+            // Exit from any sub-menu returns to top-level carousel mode.
             if (requestBackToTop)
             {
-                requestBackToTop     = false;
-                topLevelMenuNav      = false;
-                waitForButtonRelease = true;
+                requestBackToTop = false;
+                topLevelMenuNav  = true;
+                resetRotaryEditModes();
+                // Keep top-level row clean while returning from deep pages.
+                lcdMenu.setCursor(0, 1);
+                lcdMenu.printMenu("");
+                lcdMenu.setCursor(0, 2);
+                lcdMenu.printMenu("");
+                lcdMenu.setCursor(0, 3);
+                lcdMenu.printMenu("");
+                lcdMenu.setCursor(0, 4);
+                lcdMenu.printMenu("");
             }
     #endif
         }
 
+    #if USES_ROTARY_ENCODER == 0
         if (waitForButtonRelease)
         {
             if (lcdButtons.currentState() != btnNONE)
@@ -276,6 +324,7 @@ void loop()
                 } while (true);
             }
         }
+    #endif
 
         // Input handled, do output
         lcdMenu.setCursor(0, 1);
@@ -297,62 +346,62 @@ void loop()
                 const char *pageTitle = "";
                 if (activeMenu == RA_Menu)
                 {
-                    pageTitle = "RA";
+                    pageTitle = TR_RA;
                 }
                 else if (activeMenu == DEC_Menu)
                 {
-                    pageTitle = "DEC";
+                    pageTitle = TR_DEC;
                 }
     #if SUPPORT_POINTS_OF_INTEREST == 1
                 else if (activeMenu == POI_Menu)
                 {
-                    pageTitle = "GO";
+                    pageTitle = TR_GO;
                 }
     #else
                 else if (activeMenu == Home_Menu)
                 {
-                    pageTitle = "HOME";
+                    pageTitle = TR_HOME;
                 }
     #endif
                 else if (activeMenu == HA_Menu)
                 {
-                    pageTitle = "HA";
+                    pageTitle = TR_HA;
                 }
     #if SUPPORT_MANUAL_CONTROL == 1
                 else if (activeMenu == Control_Menu)
                 {
-                    pageTitle = "CTRL";
+                    pageTitle = TR_CTRL;
                 }
     #endif
     #if SUPPORT_CALIBRATION == 1
                 else if (activeMenu == Calibration_Menu)
                 {
-                    pageTitle = "CAL";
+                    pageTitle = TR_CAL;
                 }
     #endif
     #if (FOCUS_STEPPER_TYPE != STEPPER_TYPE_NONE)
                 else if (activeMenu == Focuser_Menu)
                 {
-                    pageTitle = "FOC";
+                    pageTitle = TR_FOC;
                 }
     #endif
     #if SUPPORT_INFO_DISPLAY == 1
                 else if (activeMenu == Status_Menu)
                 {
-                    pageTitle = "INFO";
+                    pageTitle = TR_INFO;
                 }
     #endif
                 else if (activeMenu == Config_Menu)
                 {
-                    pageTitle = "CFG";
+                    pageTitle = TR_CONFIG;
                 }
                 lcdMenu.setCursor(0, 0);
-                lcdMenu.printMenu(String(pageTitle));
+                lcdMenu.printMenu(String(pageTitle) + (topLevelMenuNav ? "" : "*"));
                 lcdMenu.setCursor(0, 1);
 
     #if SUPPORT_INFO_DISPLAY == 1
-                // INFO may use multiple rows; clear leftovers when showing other pages.
-                if (activeMenu != Status_Menu)
+                // INFO and CFG both use multiple rows; clear leftovers only for single-row pages.
+                if (activeMenu != Status_Menu && activeMenu != Config_Menu)
                 {
                     lcdMenu.setCursor(0, 2);
                     lcdMenu.printMenu("");
@@ -363,6 +412,13 @@ void loop()
                     lcdMenu.setCursor(0, 1);
                 }
     #endif
+    #endif
+    #if USES_ROTARY_ENCODER == 1
+                // In top-level nav mode the sub-menu renderers must not run:
+                // rows 1-4 were cleared on exit and should stay blank until
+                // the user enters a page again.
+                if (!topLevelMenuNav)
+                {
     #endif
                 // For some strange reason, a switch statement here causes a crash and reboot....
                 if (activeMenu == RA_Menu)
@@ -418,6 +474,9 @@ void loop()
                 {
                     printConfigSubmenu();
                 }
+    #if USES_ROTARY_ENCODER == 1
+                } // !topLevelMenuNav
+    #endif
             }
         }
     }

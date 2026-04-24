@@ -1,8 +1,8 @@
 #pragma once
-#include <Arduino.h>
-#include "OLEDDisplay.h"
+#include "inc/Globals.hpp"
+#include "../lib/OLEDDisplay/OLEDDisplay.h"
 #include "fonts128x64.h"
-#include "../Configuration.hpp"
+#include "Configuration.hpp"
 
 // Base class to implement a
 class InfoDisplayRender

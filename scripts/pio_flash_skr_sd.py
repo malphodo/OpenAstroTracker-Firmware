@@ -26,12 +26,13 @@ def _do_copy(env):
         return False, "pas de %s" % bin_src
 
     cur = os.path.join(root, "FIRMWARE.CUR")
-    dst = os.path.join(root, "FIRMWARE.BIN")
+    # SKR bootloader expects the uppercase filename.
+    dst_upper = os.path.join(root, "FIRMWARE.BIN")
     if os.path.isfile(cur):
         os.remove(cur)
         print("SKR SD: supprimé FIRMWARE.CUR")
-    shutil.copy2(bin_src, dst)
-    print("SKR SD: copié -> %s" % dst)
+    shutil.copy2(bin_src, dst_upper)
+    print("SKR SD: copié -> %s" % dst_upper)
     return True, None
 
 

@@ -2329,9 +2329,9 @@ String MeadeCommandProcessor::handleMeadeExtraCommands(String inCmd)
         }
         else if (inCmd[1] == 'J')  // :XSJn#
         {
-            // Set JogSens (rotary encoder sensitivity), clamped to 1..8 and persisted.
+            // Set JogSens (rotary encoder sensitivity), clamped to JOGSENS_MIN..JOGSENS_MAX and persisted.
             int newSens = inCmd.substring(2).toInt();
-            newSens     = constrain(newSens, 1, 8);
+            newSens     = constrain(newSens, (int) JOGSENS_MIN, (int) JOGSENS_MAX);
             rotaryMolSens = static_cast<uint8_t>(newSens);
             EEPROMStore::storeJogSens(rotaryMolSens);
             return "1#";

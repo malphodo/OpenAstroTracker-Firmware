@@ -1,5 +1,6 @@
 #include "inc/Globals.hpp"
 #include "../Configuration.hpp"
+#include "EPROMStore.hpp"
 #include "LcdMenu.hpp"
 #include "LcdButtons.hpp"
 
@@ -136,7 +137,7 @@ void LcdButtons::checkKey()
         _currentKey = btnSELECT;  // Active low
         #elif DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                  \
             || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
-    static const unsigned long ENCODER_DEBOUNCE_MS = 2;
+    static const unsigned long ENCODER_DEBOUNCE_MS = 5;
     static const unsigned long BUTTON_DEBOUNCE_MS = 20;
     static const int8_t QUADRATURE_TABLE[16] = {0, -1, 1, 0, 1, 0, 0, -1, -1, 0, 0, 1, 0, 1, -1, 0};
 
@@ -169,14 +170,21 @@ void LcdButtons::checkKey()
 
     lcdButton_t encoderEvent = btnNONE;
     int steps = static_cast<int>(rotaryMolSens);
-    if (steps < 1) steps = 1;
-    if (steps > 8) steps = 8;
-    const int8_t stepsPerEvent = static_cast<int8_t>(steps);
+    if (steps < JOGSENS_MIN) steps = JOGSENS_MIN;
+    if (steps > JOGSENS_MAX) steps = JOGSENS_MAX;
+    // Inverted scale: level 1 = least sensitive (slow), level 8 = most sensitive (fast).
+    const int8_t stepsPerEvent = static_cast<int8_t>(JOGSENS_MAX + JOGSENS_MIN - steps);
     const uint8_t ab = ((_encoderStableA ? 1 : 0) << 1) | (_encoderStableB ? 1 : 0);
     const uint8_t transition = (_encoderPrevAB << 2) | ab;
     const int8_t step = QUADRATURE_TABLE[transition];
     if (step != 0)
     {
+        // If direction reverses, discard the accumulator: a bounce in the opposite
+        // direction should not cancel a real movement already in progress.
+        if ((step > 0 && _encoderAcc < 0) || (step < 0 && _encoderAcc > 0))
+        {
+            _encoderAcc = 0;
+        }
         _encoderAcc += step;
         // Rotary direction inverted by user preference: CW -> LEFT, CCW -> RIGHT.
         if (_encoderAcc >= stepsPerEvent)
@@ -189,14 +197,24 @@ void LcdButtons::checkKey()
             encoderEvent = btnRIGHT;
             _encoderAcc = 0;
         }
+        // Only advance the quadrature state on valid transitions.
+        // Updating on invalid (bounce) transitions corrupts the direction tracking.
+        _encoderPrevAB = ab;
     }
-    _encoderPrevAB = ab;
 
     _currentKey = btnNONE;
     if (_encoderBtnStable)
         _currentKey = btnSELECT;
     else if (encoderEvent != btnNONE)
         _currentKey = encoderEvent;
+
+    // For rotary encoder events, LEFT/RIGHT are short pulses by design.
+    // Do not run them through the generic 5ms "stable key" filter below,
+    // otherwise pulses can be dropped and menu navigation appears frozen.
+    _newKey = _currentKey;
+    _lastKey = _currentKey;
+    _lastKeyChange = now;
+    return;
         #else
     const int analogKeyValue = currentAnalogState();
     if (analogKeyValue > 1000)

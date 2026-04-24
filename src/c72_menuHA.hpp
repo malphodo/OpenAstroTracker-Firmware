@@ -43,7 +43,7 @@ bool processHAKeys()
                 else if (HAselect == HA_FIELD_SAVE)
                 {
                     EEPROMStore::storeHATime(mount.HA());
-                    lcdMenu.printMenu("Stored.");
+                    lcdMenu.printMenu(TR_STORED);
                     mount.delay(500);
             #if SUPPORT_GUIDED_STARTUP == 1
                     if (startupState == StartupWaitForHACompletion)
@@ -114,7 +114,7 @@ bool processHAKeys()
 
             case btnSELECT:
                 EEPROMStore::storeHATime(mount.HA());
-                lcdMenu.printMenu("Stored.");
+                lcdMenu.printMenu(TR_STORED);
                 mount.delay(500);
 
             #if SUPPORT_GUIDED_STARTUP == 1

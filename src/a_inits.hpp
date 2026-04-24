@@ -127,7 +127,12 @@ bool inStartup = false;  // Start with a guided startup
 // Serial control variables
 bool okToUpdateMenu                = true;   // Can be used to supress rendering the first line of the menu.
 bool quitSerialOnNextButtonRelease = false;  // Used to detect SELECT button to quit Serial mode.
-uint8_t rotaryMolSens              = 1;      // Config menu "JogSens": 1..8, lower = more sensitive (quadrature steps per event).
+uint8_t rotaryMolSens              = 5;      // Default 5 (neutral: 1 cran = 1 event); overwritten from EEPROM in setup().
+
+// Language support
+#include "EPROMStore.hpp"
+#include "translations.hpp"
+Language currentLanguage = EEPROMStore::getLanguage();  // Load from EEPROM
 
 // RA variables
 int RAselect;

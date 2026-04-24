@@ -3,6 +3,12 @@
 #include "DayTime.hpp"
 #include "Latitude.hpp"
 #include "Longitude.hpp"
+#include "translations.hpp"
+
+// Rotary encoder jog sensitivity range (used across multiple translation units).
+// Scale: 1 = slowest (8 steps/event), 8 = most sensitive (1 step/event). Default: 5 (neutral).
+constexpr uint8_t JOGSENS_MIN = 1;
+constexpr uint8_t JOGSENS_MAX = 8;
 
 // Platform independant abstraction of the EEPROM storage capability of the boards.
 // This is needed because the ESP boards require two things that the Arduino boards don't:
@@ -23,7 +29,7 @@ class EEPROMStore
     static byte getBrightness();
     static void storeBrightness(byte brightness);
 
-    // Rotary encoder / jog sensitivity (Config → JogSens), 1..8; lower = more sensitive.
+    // Rotary encoder / jog sensitivity (Config → JogSens); lower = more sensitive.
     static uint8_t getJogSens();
     static void storeJogSens(uint8_t jogSens);
 
@@ -77,6 +83,21 @@ class EEPROMStore
 
     static int32_t getALTPosition();
     static void storeALTPosition(int32_t altPosition);
+
+    static Language getLanguage();
+    static void storeLanguage(Language language);
+
+    static bool getGyroEnabled();
+    static void storeGyroEnabled(bool enabled);
+
+    static bool getAutoPaEnabled();
+    static void storeAutoPaEnabled(bool enabled);
+
+    static bool getAutoHomeEnabled();
+    static void storeAutoHomeEnabled(bool enabled);
+
+    static bool getGpsEnabled();
+    static void storeGpsEnabled(bool enabled);
 
   private:
     /////////////////////////////////
@@ -152,6 +173,11 @@ class EEPROMStore
         AZ_NORM_STEPS_MARKER_FLAG  = 0x0400,
         ALT_NORM_STEPS_MARKER_FLAG = 0x0800,
         JOG_SENS_MARKER_FLAG       = 0x1000,
+        LANGUAGE_MARKER_FLAG       = 0x2000,
+        GYRO_ENABLED_MARKER_FLAG   = 0x4000,
+        AUTOPA_ENABLED_MARKER_FLAG = 0x8000,
+        AUTOHOME_ENABLED_MARKER_FLAG = 0x10000,
+        GPS_ENABLED_MARKER_FLAG = 0x20000,
     };
 
     // These are the offsets to each item stored in the EEPROM
@@ -233,7 +259,12 @@ class EEPROMStore
         _ALT_NORM_STEPS_DEGREE_ADDR_2,
         _ALT_NORM_STEPS_DEGREE_ADDR_3,  // Int32
         JOG_SENS_ADDR = 74,  // Uint8, 1..8
-        STORE_SIZE      = 75
+        LANGUAGE_ADDR = 75,  // Uint8, 0..4 (Language enum)
+        GYRO_ENABLED_ADDR = 76,  // Uint8, bool
+        AUTOPA_ENABLED_ADDR = 77,  // Uint8, bool
+        AUTOHOME_ENABLED_ADDR = 78,  // Uint8, bool
+        GPS_ENABLED_ADDR = 79,  // Uint8, bool
+        STORE_SIZE      = 80
     };
 
     // Helper functions

@@ -32,7 +32,6 @@ bool processHomeKeys()
             if (subGoIndex == HOME_EXIT_INDEX)
             {
                 requestBackToTop = true;
-                topLevelMenuNav  = true;
                 subGoIndex       = 0;
             }
             else if (subGoIndex == 0)

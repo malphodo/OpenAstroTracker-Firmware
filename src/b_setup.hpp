@@ -209,6 +209,12 @@ static void playBootBeep()
 // Main program setup
 //
 /////////////////////////////////
+
+#if DISPLAY_TYPE > 0
+// Forward declaration - defined in c79_menuCFG.hpp (included later in Core.cpp via c_buttons.hpp)
+static void initializeConfigSettings();
+#endif
+
 void setup()
 {
 #if defined(OAT_DEBUG_BUILD)
@@ -433,6 +439,11 @@ void setup()
     rotaryMolSens = EEPROMStore::getJogSens();
     LOG(DEBUG_ANY, "[SYSTEM]: JogSens from EEPROM: %u", static_cast<unsigned>(rotaryMolSens));
 
+#if DISPLAY_TYPE > 0
+    // Initialize configuration settings from EEPROM
+    initializeConfigSettings();
+#endif
+
 // Calling the LCD startup here, I2C can't be found if called earlier
 #if DISPLAY_TYPE != DISPLAY_TYPE_NONE
     LOG(DEBUG_ANY, "[SYSTEM]: Get LCD ready...");
@@ -494,33 +505,33 @@ void setup()
     }
 
     // Create the LCD top-level menu items
-    lcdMenu.addItem("RA", RA_Menu);
-    lcdMenu.addItem("DEC", DEC_Menu);
+    lcdMenu.addItem(TR_RA, RA_Menu);
+    lcdMenu.addItem(TR_DEC, DEC_Menu);
 
     #if SUPPORT_POINTS_OF_INTEREST == 1
-    lcdMenu.addItem("GO", POI_Menu);
+    lcdMenu.addItem(TR_GO, POI_Menu);
     #else
-    lcdMenu.addItem("GO", Home_Menu);
+    lcdMenu.addItem(TR_GO, Home_Menu);
     #endif
 
-    lcdMenu.addItem("HA", HA_Menu);
+    lcdMenu.addItem(TR_HA, HA_Menu);
 
     #if SUPPORT_MANUAL_CONTROL == 1
-    lcdMenu.addItem("CTRL", Control_Menu);
+    lcdMenu.addItem(TR_CTRL, Control_Menu);
     #endif
 
     #if SUPPORT_CALIBRATION == 1
-    lcdMenu.addItem("CAL", Calibration_Menu);
+    lcdMenu.addItem(TR_CAL, Calibration_Menu);
     #endif
 
     #if FOCUS_STEPPER_TYPE != STEPPER_TYPE_NONE
-    lcdMenu.addItem("FOC", Focuser_Menu);
+    lcdMenu.addItem(TR_FOC, Focuser_Menu);
     #endif
 
 #if SUPPORT_INFO_DISPLAY == 1
-    lcdMenu.addItem("INFO", Status_Menu);
+    lcdMenu.addItem(TR_INFO, Status_Menu);
 #endif
-    lcdMenu.addItem("Configuration", Config_Menu);
+    lcdMenu.addItem(TR_CONFIG, Config_Menu);
     updateConsoleText(lcdLine, F("Init LCD... OK"));
 
 #endif  // DISPLAY_TYPE > 0

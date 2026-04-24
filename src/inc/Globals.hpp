@@ -12,8 +12,12 @@
 #endif
 
 PUSH_NO_WARNINGS
-#include <Arduino.h>
-#include <WString.h>
+#include "Arduino.h"
+#if defined(__has_include)
+    #if __has_include(<WString.h>)
+        #include <WString.h>
+    #endif
+#endif
 POP_NO_WARNINGS
 
 #if !defined(yield)

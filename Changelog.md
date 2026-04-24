@@ -1,3 +1,11 @@
+**Unreleased - Updates**
+- Added a multilingual menu/title translation layer with persisted language selection in EEPROM.
+- Fixed Mini12864 rotary navigation edge cases, including first-entry page glitches, top-level page browsing, and INFO/CFG exit behavior.
+- Expanded the CFG menu with language, Gyro, AutoPA, AutoHome, and GPS toggles stored in EEPROM.
+- Localized INFO/CFG exit labels, RA/DEC GoTo labels, page titles, and HA stored feedback.
+- Set rotary JogSens default to a neutral value of 5 and refined encoder pulse handling for smoother navigation.
+- Added automatic SKR SD post-build copy support to F:\FIRMWARE.BIN when the card is mounted.
+
 **V1.13.20 - Updates**
 - Added robust Mini12864 V2/V3 support on SKR 1.4 Turbo with controller selection (ST7565/ST7567/UC1701), dedicated EXP pin mapping, and improved validation.
 - Added runtime LCD diagnostics and controls, including display polarity toggle and visibility test command.

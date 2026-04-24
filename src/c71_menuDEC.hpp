@@ -177,12 +177,12 @@ void printDECSubmenu()
     #if USES_ROTARY_ENCODER == 1
     if (DECselect == 4)
     {
-        lcdMenu.printMenu(">GoTo target");
+        lcdMenu.printMenu(String(">") + TR_GOTO + " " + TR_TARGET);
         return;
     }
     if (DECselect == DEC_FIELD_EXIT)
     {
-        lcdMenu.printMenu(">Exit");
+        lcdMenu.printMenu(String(">") + TR_EXIT);
         return;
     }
     #endif

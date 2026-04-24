@@ -472,13 +472,13 @@ uint8_t EEPROMStore::getJogSens()
     if (!isPresentExtended(JOG_SENS_MARKER_FLAG))
     {
         LOG(DEBUG_EEPROM, "[EEPROM]: No stored value for JogSens");
-        return 1;
+        return 5;  // Default: neutral (1 cran = 1 event)
     }
     uint8_t v = readUint8(JOG_SENS_ADDR);
     if (v < 1 || v > 8)
     {
-        LOG(DEBUG_EEPROM, "[EEPROM]: Invalid JogSens in EEPROM (%u), using 1", static_cast<unsigned>(v));
-        return 1;
+        LOG(DEBUG_EEPROM, "[EEPROM]: Invalid JogSens in EEPROM (%u), using 5", static_cast<unsigned>(v));
+        return 5;
     }
     return v;
 }
@@ -1061,4 +1061,111 @@ void EEPROMStore::storeALTPosition(int32_t altPosition)
     updateInt32(ALT_POSITION_ADDR, altPosition);
     updateFlagsExtended(ALT_POSITION_MARKER_FLAG);
     commit();  // Complete the transaction
+}
+
+// Return the stored language setting.
+// If it is not present then the default value of LANG_FRENCH is returned.
+Language EEPROMStore::getLanguage()
+{
+    if (!isPresentExtended(LANGUAGE_MARKER_FLAG))
+    {
+        LOG(DEBUG_EEPROM, "[EEPROM]: No stored value for Language");
+        return LANG_FRENCH;
+    }
+    uint8_t v = readUint8(LANGUAGE_ADDR);
+    if (v >= LANG_COUNT)
+    {
+        LOG(DEBUG_EEPROM, "[EEPROM]: Invalid Language in EEPROM (%u), using French", static_cast<unsigned>(v));
+        return LANG_FRENCH;
+    }
+    return static_cast<Language>(v);
+}
+
+// Store the configured language setting.
+void EEPROMStore::storeLanguage(Language language)
+{
+    uint8_t langValue = static_cast<uint8_t>(language);
+    updateUint8(LANGUAGE_ADDR, langValue);
+    updateFlagsExtended(LANGUAGE_MARKER_FLAG);
+    commit();
+}
+
+// Return the stored Gyro enabled setting.
+// If it is not present then the default value (USE_GYRO_LEVEL) is returned.
+bool EEPROMStore::getGyroEnabled()
+{
+    if (!isPresentExtended(GYRO_ENABLED_MARKER_FLAG))
+    {
+        LOG(DEBUG_EEPROM, "[EEPROM]: No stored value for Gyro enabled");
+        return USE_GYRO_LEVEL;
+    }
+    return readUint8(GYRO_ENABLED_ADDR) != 0;
+}
+
+// Store the Gyro enabled setting.
+void EEPROMStore::storeGyroEnabled(bool enabled)
+{
+    updateUint8(GYRO_ENABLED_ADDR, enabled ? 1 : 0);
+    updateFlagsExtended(GYRO_ENABLED_MARKER_FLAG);
+    commit();
+}
+
+// Return the stored AutoPA (Azimuth/Altitude) enabled setting.
+// If it is not present then the default value is returned.
+bool EEPROMStore::getAutoPaEnabled()
+{
+    if (!isPresentExtended(AUTOPA_ENABLED_MARKER_FLAG))
+    {
+        LOG(DEBUG_EEPROM, "[EEPROM]: No stored value for AutoPA enabled");
+        return (AZ_STEPPER_TYPE != STEPPER_TYPE_NONE);
+    }
+    return readUint8(AUTOPA_ENABLED_ADDR) != 0;
+}
+
+// Store the AutoPA (Azimuth/Altitude) enabled setting.
+void EEPROMStore::storeAutoPaEnabled(bool enabled)
+{
+    updateUint8(AUTOPA_ENABLED_ADDR, enabled ? 1 : 0);
+    updateFlagsExtended(AUTOPA_ENABLED_MARKER_FLAG);
+    commit();
+}
+
+// Return the stored AutoHome (RA Homing) enabled setting.
+// If it is not present then the default value (USE_HALL_SENSOR_RA_AUTOHOME) is returned.
+bool EEPROMStore::getAutoHomeEnabled()
+{
+    if (!isPresentExtended(AUTOHOME_ENABLED_MARKER_FLAG))
+    {
+        LOG(DEBUG_EEPROM, "[EEPROM]: No stored value for AutoHome enabled");
+        return USE_HALL_SENSOR_RA_AUTOHOME;
+    }
+    return readUint8(AUTOHOME_ENABLED_ADDR) != 0;
+}
+
+// Store the AutoHome (RA Homing) enabled setting.
+void EEPROMStore::storeAutoHomeEnabled(bool enabled)
+{
+    updateUint8(AUTOHOME_ENABLED_ADDR, enabled ? 1 : 0);
+    updateFlagsExtended(AUTOHOME_ENABLED_MARKER_FLAG);
+    commit();
+}
+
+// Return the stored GPS enabled setting.
+// If it is not present then the default value (USE_GPS) is returned.
+bool EEPROMStore::getGpsEnabled()
+{
+    if (!isPresentExtended(GPS_ENABLED_MARKER_FLAG))
+    {
+        LOG(DEBUG_EEPROM, "[EEPROM]: No stored value for GPS enabled");
+        return USE_GPS;
+    }
+    return readUint8(GPS_ENABLED_ADDR) != 0;
+}
+
+// Store the GPS enabled setting.
+void EEPROMStore::storeGpsEnabled(bool enabled)
+{
+    updateUint8(GPS_ENABLED_ADDR, enabled ? 1 : 0);
+    updateFlagsExtended(GPS_ENABLED_MARKER_FLAG);
+    commit();
 }

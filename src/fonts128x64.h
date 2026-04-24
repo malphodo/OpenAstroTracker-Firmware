@@ -1,5 +1,5 @@
 #pragma once
-#include <Arduino.h>
+#include "inc/Globals.hpp"
 
 // Font generated or edited with the glyphEditor
 const uint8_t Bitmap3x5[] PROGMEM = {

@@ -1,4 +1,5 @@
 #pragma once
+#include "inc/Globals.hpp"
 
 // Forward declarations
 class Mount;

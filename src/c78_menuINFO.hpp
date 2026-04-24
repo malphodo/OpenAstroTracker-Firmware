@@ -3,6 +3,7 @@
 #if DISPLAY_TYPE > 0
 
     #include "Utility.hpp"
+    #include "translations.hpp"
 
     #if SUPPORT_INFO_DISPLAY == 1
 
@@ -152,7 +153,7 @@ static void formatInfoLine(byte index, char *out, size_t outLen)
             break;
         }
         default:
-            snprintf(out, outLen, "Exit");
+            snprintf(out, outLen, "%s", TR_EXIT);
             break;
     }
 }
@@ -161,6 +162,21 @@ bool processStatusKeys()
 {
     lcdButton_t key;
     bool waitForRelease = false;
+
+#if USES_ROTARY_ENCODER == 1
+    // Guard: reset state when entering the page for the first time (or re-entering).
+    static bool infoNeedsReset = true;
+    static unsigned long lastInfoEventMs = 0;
+    static const unsigned long INFO_EVENT_HOLDOFF_MS = 150UL;
+    if (infoNeedsReset)
+    {
+        infoIndex      = 0;
+        infoScrollTop  = 0;
+        lastInfoEventMs = millis();   // block events for 150 ms after entry
+        infoNeedsReset = false;
+    }
+#endif
+
     if (lcdButtons.keyChanged(&key))
     {
         waitForRelease = true;
@@ -169,21 +185,31 @@ bool processStatusKeys()
         const byte maxIndex = static_cast<byte>(getInfoLineCount() - 1);
 
 #if USES_ROTARY_ENCODER == 1
-        if (key == btnLEFT)
+        const unsigned long infoNavNow = millis();
+        if (key == btnLEFT || key == btnRIGHT)
         {
-            infoIndex = adjustWrap(infoIndex, -1, 0, maxIndex);
-        }
-        else if (key == btnRIGHT)
-        {
-            infoIndex = adjustWrap(infoIndex, 1, 0, maxIndex);
+            if (infoNavNow - lastInfoEventMs >= INFO_EVENT_HOLDOFF_MS)
+            {
+                if (key == btnLEFT)
+                {
+                    infoIndex = adjustWrap(infoIndex, -1, 0, maxIndex);
+                }
+                else
+                {
+                    infoIndex = adjustWrap(infoIndex, 1, 0, maxIndex);
+                }
+                lastInfoEventMs = infoNavNow;
+            }
         }
         else if (key == btnSELECT)
         {
-            if (infoIndex == maxIndex)
+            if (infoIndex == maxIndex && (infoNavNow - lastInfoEventMs >= INFO_EVENT_HOLDOFF_MS))
             {
                 playExitBeepInfo();
                 requestBackToTop = true;
+                infoNeedsReset = true;   // reset state for next entry
             }
+            lastInfoEventMs = infoNavNow;
         }
 
         const byte visibleRows = 4;
