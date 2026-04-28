@@ -4,6 +4,7 @@
 #include "libs/MappedDict/MappedDict.hpp"
 #include "EPROMStore.hpp"
 #include "LcdMenu.hpp"
+#include "../assets/logos/xbm/config_gear_32.xbm"
 
 #if DISPLAY_TYPE != DISPLAY_TYPE_NONE
 
@@ -973,16 +974,35 @@ void LcdMenu::printChar(char ch)
         || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
     uint16_t x = (uint16_t) (_activeCol * 6);
     uint16_t y = (uint16_t) (_activeRow * 12 + 10);
-    uint16_t codepoint = (uint8_t) ch;
-    switch (ch)
+    if (ch == '}')
     {
-        case '@': codepoint = 176; break;  // degree symbol
-        case '&': codepoint = '*'; break;  // tracking marker fallback
-        case '`': codepoint = 'x'; break;  // no-tracking marker fallback
-        case '~': codepoint = 'v'; break;  // down arrow fallback
-        default: break;
+        // Draw a deterministic gear icon with primitives for better readability.
+        uint16_t top = (uint16_t) (_activeRow * 12);
+        uint16_t cx  = (uint16_t) (x + 5);
+        uint16_t cy  = (uint16_t) (top + 6);
+        _lcd.drawCircle(cx, cy, 3, U8G2_DRAW_ALL);
+        _lcd.drawDisc(cx, cy, 1, U8G2_DRAW_ALL);
+        _lcd.drawBox((uint16_t) (cx - 1), top, 2, 2);
+        _lcd.drawBox((uint16_t) (cx - 1), (uint16_t) (top + 10), 2, 2);
+        _lcd.drawBox((uint16_t) (x + 9), (uint16_t) (cy - 1), 2, 2);
+        _lcd.drawBox(x, (uint16_t) (cy - 1), 2, 2);
+        _activeCol += 2;
+        return;
     }
-    _lcd.drawGlyph(x, y, codepoint);
+    else
+    {
+        uint16_t codepoint = (uint8_t) ch;
+        switch (ch)
+        {
+            case '@': codepoint = 176; break;  // degree symbol
+            case '&': codepoint = '*'; break;  // tracking marker fallback
+            case '`': codepoint = 'x'; break;  // no-tracking marker fallback
+            case '~': codepoint = 'v'; break;  // down arrow fallback
+            default: break;
+        }
+        _lcd.setFont(u8g2_font_6x12_tf);
+        _lcd.drawGlyph(x, y, codepoint);
+    }
     _activeCol++;
     #else
     MappedDict<char, specialChar_t>::DictEntry_t lookupTable[] = {
@@ -1021,6 +1041,36 @@ void LcdMenu::printAt(int col, int row, char ch)
     printChar(ch);
     #if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                         \
         || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
+    _lcd.sendBuffer();
+    #endif
+}
+
+void LcdMenu::drawConfigLogoLarge()
+{
+    #if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                         \
+        || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
+    // Reserve rows 1..4 (y=12..63) for the large icon while browsing top-level pages.
+    _lcd.setDrawColor(0);
+    _lcd.drawBox(0, 12, _columns * 6, 52);
+    _lcd.setDrawColor(1);
+
+    // Draw the embedded logo asset centered below the title row.
+    const uint8_t logoX = 32;
+    const uint8_t logoY = 20;
+    _lcd.drawXBMP(logoX, logoY, config_gear_32_width, config_gear_32_height, config_gear_32_bits);
+
+    _lcd.sendBuffer();
+    #endif
+}
+
+void LcdMenu::clearConfigLogoLarge()
+{
+    #if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                         \
+        || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
+    // Clear rows 1..4 where the large top-level Configuration logo is drawn.
+    _lcd.setDrawColor(0);
+    _lcd.drawBox(0, 12, _columns * 6, 52);
+    _lcd.setDrawColor(1);
     _lcd.sendBuffer();
     #endif
 }
@@ -1211,6 +1261,14 @@ void LcdMenu::printChar(char ch)
 }
 
 void LcdMenu::printAt(int col, int row, char ch)
+{
+}
+
+void LcdMenu::drawConfigLogoLarge()
+{
+}
+
+void LcdMenu::clearConfigLogoLarge()
 {
 }
 

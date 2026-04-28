@@ -173,17 +173,46 @@ bool processRAKeys()
 void printRASubmenu()
 {
     #if USES_ROTARY_ENCODER == 1
-    if (RAselect == 4)
-    {
-        lcdMenu.printMenu(String(">") + TR_GOTO + " " + TR_TARGET);
-        return;
-    }
-    if (RAselect == RA_FIELD_EXIT)
-    {
-        lcdMenu.printMenu(String(">") + TR_EXIT);
-        return;
-    }
+    char lineBuf[24];
+
+    const char markerH = (RAselect == 0) ? (raEditing ? '*' : '>') : ' ';
+    const char markerM = (RAselect == 1) ? (raEditing ? '*' : '>') : ' ';
+    const char markerS = (RAselect == 2) ? (raEditing ? '*' : '>') : ' ';
+    const char markerShow = (RAselect == 3) ? (raEditing ? '*' : '>') : ' ';
+    const char markerGoto = (RAselect == 4) ? '>' : ' ';
+    const char markerExit = (RAselect == RA_FIELD_EXIT) ? '>' : ' ';
+
+    lcdMenu.setCursor(0, 1);
+    snprintf(lineBuf,
+             sizeof(lineBuf),
+             "%cH:%02d %cM:%02d %cS:%02d",
+             markerH,
+             mount.targetRA().getHours(),
+             markerM,
+             mount.targetRA().getMinutes(),
+             markerS,
+             mount.targetRA().getSeconds());
+    lcdMenu.printMenu(String(lineBuf));
+
+    lcdMenu.setCursor(0, 2);
+    snprintf(lineBuf,
+             sizeof(lineBuf),
+             "%c%s:%s",
+             markerShow,
+             TR_SHOW,
+             showTargetRA ? TR_TARGET : TR_CURRENT);
+    lcdMenu.printMenu(String(lineBuf));
+
+    lcdMenu.setCursor(0, 3);
+    snprintf(lineBuf, sizeof(lineBuf), "%c%s %s", markerGoto, TR_GOTO, TR_TARGET);
+    lcdMenu.printMenu(String(lineBuf));
+
+    lcdMenu.setCursor(0, 4);
+    snprintf(lineBuf, sizeof(lineBuf), "%c%s", markerExit, TR_EXIT);
+    lcdMenu.printMenu(String(lineBuf));
+    return;
     #endif
+
     if (mount.isSlewingIdle())
     {
         String ra = mount.RAString(LCDMENU_STRING | (showTargetRA ? TARGET_STRING : CURRENT_STRING), RAselect).substring(0, 12);

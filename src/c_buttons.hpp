@@ -135,6 +135,9 @@ void loop()
         bool waitForButtonRelease = false;
         bool pageNavigatedByRotary = false;
         bool valueEditingActive = false;
+    #if USES_ROTARY_ENCODER == 1
+        static bool configTopLogoRendered = false;
+    #endif
 
     #if USES_ROTARY_ENCODER == 1
         auto resetRotaryEditModes = []() {
@@ -396,12 +399,19 @@ void loop()
                     pageTitle = TR_CONFIG;
                 }
                 lcdMenu.setCursor(0, 0);
-                lcdMenu.printMenu(String(pageTitle) + (topLevelMenuNav ? "" : "*"));
+                const char *pageIcon = activeMenu == Config_Menu ? "} " : "";
+                lcdMenu.printMenu(String(pageIcon) + pageTitle + (topLevelMenuNav ? "" : "*"));
                 lcdMenu.setCursor(0, 1);
 
     #if SUPPORT_INFO_DISPLAY == 1
-                // INFO and CFG both use multiple rows; clear leftovers only for single-row pages.
-                if (activeMenu != Status_Menu && activeMenu != Config_Menu)
+                // INFO, CFG, RA, DEC and GO submenus use multiple rows; clear leftovers only for single-row pages.
+                if (activeMenu != Status_Menu && activeMenu != Config_Menu && activeMenu != RA_Menu && activeMenu != DEC_Menu
+    #if SUPPORT_POINTS_OF_INTEREST == 1
+                    && activeMenu != POI_Menu
+    #else
+                    && activeMenu != Home_Menu
+    #endif
+                )
                 {
                     lcdMenu.setCursor(0, 2);
                     lcdMenu.printMenu("");
@@ -410,6 +420,24 @@ void loop()
                     lcdMenu.setCursor(0, 4);
                     lcdMenu.printMenu("");
                     lcdMenu.setCursor(0, 1);
+                }
+    #endif
+
+    #if USES_ROTARY_ENCODER == 1
+                if (topLevelMenuNav && activeMenu == Config_Menu)
+                {
+                    if (!configTopLogoRendered)
+                    {
+                        lcdMenu.drawConfigLogoLarge();
+                        configTopLogoRendered = true;
+                    }
+                }
+                else if (configTopLogoRendered)
+                {
+                    // Leaving Configuration top-level: clear stale logo pixels once.
+                    lcdMenu.clearConfigLogoLarge();
+                    lcdMenu.setCursor(0, 1);
+                    configTopLogoRendered = false;
                 }
     #endif
     #endif

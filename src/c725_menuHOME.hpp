@@ -93,17 +93,17 @@ bool processHomeKeys()
 void printHomeSubmenu()
 {
     #if USES_ROTARY_ENCODER == 1
-    if (subGoIndex == 0)
-    {
-        lcdMenu.printMenu(">Home");
-        return;
-    }
-    if (subGoIndex == 1)
-    {
-        lcdMenu.printMenu(mount.isSlewingTRK() ? ">Park" : ">Unpark");
-        return;
-    }
-    lcdMenu.printMenu(">Exit");
+    lcdMenu.setCursor(0, 1);
+    lcdMenu.printMenu(String((subGoIndex == 0) ? ">" : " ") + String(TR_HOME));
+
+    lcdMenu.setCursor(0, 2);
+    lcdMenu.printMenu(String((subGoIndex == 1) ? ">" : " ") + String(mount.isSlewingTRK() ? TR_PARK : TR_UNPARK));
+
+    lcdMenu.setCursor(0, 3);
+    lcdMenu.printMenu(String((subGoIndex == HOME_EXIT_INDEX) ? ">" : " ") + String(TR_EXIT));
+
+    lcdMenu.setCursor(0, 4);
+    lcdMenu.printMenu("");
     #else
     char scratchBuffer[16];
     if (mount.isSlewingTRK())

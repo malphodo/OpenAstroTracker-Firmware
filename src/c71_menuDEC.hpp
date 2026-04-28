@@ -175,17 +175,46 @@ bool processDECKeys()
 void printDECSubmenu()
 {
     #if USES_ROTARY_ENCODER == 1
-    if (DECselect == 4)
-    {
-        lcdMenu.printMenu(String(">") + TR_GOTO + " " + TR_TARGET);
-        return;
-    }
-    if (DECselect == DEC_FIELD_EXIT)
-    {
-        lcdMenu.printMenu(String(">") + TR_EXIT);
-        return;
-    }
+    char lineBuf[24];
+
+    const char markerD = (DECselect == 0) ? (decEditing ? '*' : '>') : ' ';
+    const char markerM = (DECselect == 1) ? (decEditing ? '*' : '>') : ' ';
+    const char markerS = (DECselect == 2) ? (decEditing ? '*' : '>') : ' ';
+    const char markerShow = (DECselect == 3) ? (decEditing ? '*' : '>') : ' ';
+    const char markerGoto = (DECselect == 4) ? '>' : ' ';
+    const char markerExit = (DECselect == DEC_FIELD_EXIT) ? '>' : ' ';
+
+    lcdMenu.setCursor(0, 1);
+    snprintf(lineBuf,
+             sizeof(lineBuf),
+             "%cD:%03.0f %cM:%02d %cS:%02d",
+             markerD,
+             fabsf(mount.targetDEC().getTotalDegrees()),
+             markerM,
+             mount.targetDEC().getMinutes(),
+             markerS,
+             mount.targetDEC().getSeconds());
+    lcdMenu.printMenu(String(lineBuf));
+
+    lcdMenu.setCursor(0, 2);
+    snprintf(lineBuf,
+             sizeof(lineBuf),
+             "%c%s:%s",
+             markerShow,
+             TR_SHOW,
+             showTargetDEC ? TR_TARGET : TR_CURRENT);
+    lcdMenu.printMenu(String(lineBuf));
+
+    lcdMenu.setCursor(0, 3);
+    snprintf(lineBuf, sizeof(lineBuf), "%c%s %s", markerGoto, TR_GOTO, TR_TARGET);
+    lcdMenu.printMenu(String(lineBuf));
+
+    lcdMenu.setCursor(0, 4);
+    snprintf(lineBuf, sizeof(lineBuf), "%c%s", markerExit, TR_EXIT);
+    lcdMenu.printMenu(String(lineBuf));
+    return;
     #endif
+
     if (mount.isSlewingIdle())
     {
         String dec = mount.DECString(LCDMENU_STRING | (showTargetDEC ? TARGET_STRING : CURRENT_STRING), DECselect).substring(0, 13);

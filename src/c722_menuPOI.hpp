@@ -52,9 +52,32 @@ int unparkPOI  = sizeof(pointOfInterest) / sizeof(pointOfInterest[0]) - 2;
 byte homePOI   = sizeof(pointOfInterest) / sizeof(pointOfInterest[0]) - 3;
 
     #if USES_ROTARY_ENCODER == 1
-// Virtual trailing Exit entry past parkPOI.
-static const int POI_EXIT_INDEX = -1;
-static int poiCursor            = 0;  // 0..parkPOI or POI_EXIT_INDEX
+static int poiCursor    = 0;
+static int poiScrollTop = 0;
+
+static inline int getPoiExitIndex()
+{
+    return parkPOI + 1;
+}
+
+static inline const char *getPoiLabel(int poiIndex)
+{
+    const char *label = pointOfInterest[poiIndex].pDisplay;
+    return (label[0] == '>') ? (label + 1) : label;
+}
+
+static inline void syncPoiScroll()
+{
+    const int visibleRows = 4;
+    if (poiCursor < poiScrollTop)
+    {
+        poiScrollTop = poiCursor;
+    }
+    else if (poiCursor >= poiScrollTop + visibleRows)
+    {
+        poiScrollTop = poiCursor - visibleRows + 1;
+    }
+}
     #endif
 
 bool processPOIKeys()
@@ -66,45 +89,25 @@ bool processPOIKeys()
     if (lcdButtons.keyChanged(&key))
     {
         waitForRelease = true;
-        // Range: 0..parkPOI, then POI_EXIT_INDEX after wrap.
-        const int maxPoi = parkPOI;
+        const int exitIndex = getPoiExitIndex();
         if (key == btnLEFT)
         {
-            if (poiCursor == 0)
-            {
-                poiCursor = POI_EXIT_INDEX;
-            }
-            else if (poiCursor == POI_EXIT_INDEX)
-            {
-                poiCursor = maxPoi;
-            }
-            else
-            {
-                poiCursor -= 1;
-            }
+            poiCursor = adjustWrap(poiCursor, -1, 0, exitIndex);
+            syncPoiScroll();
         }
         else if (key == btnRIGHT)
         {
-            if (poiCursor == maxPoi)
-            {
-                poiCursor = POI_EXIT_INDEX;
-            }
-            else if (poiCursor == POI_EXIT_INDEX)
-            {
-                poiCursor = 0;
-            }
-            else
-            {
-                poiCursor += 1;
-            }
+            poiCursor = adjustWrap(poiCursor, 1, 0, exitIndex);
+            syncPoiScroll();
         }
         else if (key == btnSELECT)
         {
-            if (poiCursor == POI_EXIT_INDEX)
+            if (poiCursor == exitIndex)
             {
                 requestBackToTop = true;
                 topLevelMenuNav  = true;
                 poiCursor        = 0;
+                poiScrollTop     = 0;
             }
             else
             {
@@ -199,14 +202,24 @@ bool processPOIKeys()
 void printPOISubmenu()
 {
     #if USES_ROTARY_ENCODER == 1
-    if (poiCursor == POI_EXIT_INDEX)
+    const int visibleRows = 4;
+    const int exitIndex   = getPoiExitIndex();
+    syncPoiScroll();
+
+    for (int row = 0; row < visibleRows; row++)
     {
-        lcdMenu.printMenu(">Exit");
-        return;
-    }
-    if (mount.isSlewingIdle())
-    {
-        lcdMenu.printMenu(pointOfInterest[poiCursor].pDisplay);
+        const int lineIndex = poiScrollTop + row;
+        String line = "";
+        if (lineIndex < exitIndex)
+        {
+            line = String((lineIndex == poiCursor) ? ">" : " ") + String(getPoiLabel(lineIndex));
+        }
+        else if (lineIndex == exitIndex)
+        {
+            line = String((lineIndex == poiCursor) ? ">" : " ") + String(TR_EXIT);
+        }
+        lcdMenu.setCursor(0, static_cast<byte>(1 + row));
+        lcdMenu.printMenu(line);
     }
     #else
     if (mount.isSlewingIdle())
