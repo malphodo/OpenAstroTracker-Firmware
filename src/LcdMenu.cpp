@@ -620,8 +620,8 @@ static const uint8_t MINI12864_PRESETS[LcdMenu::MINI12864_MODE_COUNT][3][3] = {
     {{0, 0, 0}, {0, 0, 0}, {0, 0, 0}},
     // MINI12864_MODE_NIGHT_ASTRO: dim red encoder + red LCD for night vision
     {{80, 0, 0}, {80, 0, 0}, {255, 0, 0}},
-    // MINI12864_MODE_COMFORT: encoder off, LCD golden-orange
-    {{0, 0, 0}, {0, 0, 0}, {255, 160, 20}},
+    // MINI12864_MODE_COMFORT: all LEDs golden-orange
+    {{255, 160, 20}, {255, 160, 20}, {255, 160, 20}},
     // MINI12864_MODE_DAY: soft blue encoder, white LCD
     {{0, 0, 50}, {0, 0, 50}, {255, 255, 255}},
     // MINI12864_MODE_DEFAULT: white on every LED
@@ -1128,6 +1128,14 @@ void LcdMenu::printMenu(String line)
     }
 }
 
+void LcdMenu::invalidateCachedDisplayRow(byte row)
+{
+    if (row < MAX_DISPLAY_ROWS)
+    {
+        _lastDisplay[row] = "";
+    }
+}
+
     #if DISPLAY_TYPE != DISPLAY_TYPE_LCD_JOY_I2C_SSD1306 && DISPLAY_TYPE != DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567                             \
         && DISPLAY_TYPE != DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701 && DISPLAY_TYPE != DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920                      \
         && DISPLAY_TYPE != DISPLAY_TYPE_MINI12864_V2
@@ -1254,6 +1262,11 @@ uint8_t LcdMenu::getMini12864BacklightMode() const
 
 void LcdMenu::printMenu(String line)
 {
+}
+
+void LcdMenu::invalidateCachedDisplayRow(byte row)
+{
+    (void) row;
 }
 
 void LcdMenu::printChar(char ch)

@@ -11,7 +11,9 @@ POP_NO_WARNINGS
 
 #if BOARD == BOARD_LPC1769_SKR_V14_TURBO
 PUSH_NO_WARNINGS
+extern "C" {
     #include <lpc17xx_iap.h>
+}
 POP_NO_WARNINGS
 #endif
 
@@ -1167,5 +1169,25 @@ void EEPROMStore::storeGpsEnabled(bool enabled)
 {
     updateUint8(GPS_ENABLED_ADDR, enabled ? 1 : 0);
     updateFlagsExtended(GPS_ENABLED_MARKER_FLAG);
+    commit();
+}
+
+// Return the stored boot song enabled setting.
+// If it is not present then the default value (true) is returned.
+bool EEPROMStore::getBootSongEnabled()
+{
+    if (!isPresentExtended(BOOT_SONG_ENABLED_MARKER_FLAG))
+    {
+        LOG(DEBUG_EEPROM, "[EEPROM]: No stored value for Boot Song enabled");
+        return true;
+    }
+    return readUint8(BOOT_SONG_ENABLED_ADDR) != 0;
+}
+
+// Store the boot song enabled setting.
+void EEPROMStore::storeBootSongEnabled(bool enabled)
+{
+    updateUint8(BOOT_SONG_ENABLED_ADDR, enabled ? 1 : 0);
+    updateFlagsExtended(BOOT_SONG_ENABLED_MARKER_FLAG);
     commit();
 }

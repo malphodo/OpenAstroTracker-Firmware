@@ -9,11 +9,20 @@ enum cfgItem_t
 {
     CfgItemJogSens = 0,
     CfgItemLanguage = 1,
-    CfgItemGyro = 2,
-    CfgItemAutoPa = 3,
-    CfgItemAutoHome = 4,
-    CfgItemGPS = 5,
-    CfgItemExit = 6,
+    CfgItemLedMode = 2,
+    CfgItemGyro = 3,
+    CfgItemAutoPa = 4,
+    CfgItemAutoHome = 5,
+    CfgItemGPS = 6,
+    CfgItemStartSong = 7,
+    CfgItemExit = 8,
+};
+
+enum cfgLedMode_t : uint8_t
+{
+    CfgLedModeAstro = 0,
+    CfgLedModeGold = 1,
+    CfgLedModeDay = 2,
 };
 
 static cfgItem_t cfgItem  = CfgItemJogSens;
@@ -25,6 +34,32 @@ static bool cfgGyroEnabled = false;
 static bool cfgAutoPaEnabled = false;
 static bool cfgAutoHomeEnabled = false;
 static bool cfgGpsEnabled = false;
+static bool cfgStartSongEnabled = true;
+static uint8_t cfgLedMode = CfgLedModeDay;
+
+static uint8_t toMini12864Mode(uint8_t cfgMode)
+{
+    switch (cfgMode)
+    {
+        case CfgLedModeAstro:
+            return (uint8_t) LcdMenu::MINI12864_MODE_NIGHT_ASTRO;
+        case CfgLedModeGold:
+            return (uint8_t) LcdMenu::MINI12864_MODE_COMFORT;
+        default:
+            return (uint8_t) LcdMenu::MINI12864_MODE_DAY;
+    }
+}
+
+static uint8_t fromMini12864Mode(uint8_t miniMode)
+{
+    if (miniMode == (uint8_t) LcdMenu::MINI12864_MODE_NIGHT_ASTRO)
+        return CfgLedModeAstro;
+    if (miniMode == (uint8_t) LcdMenu::MINI12864_MODE_COMFORT)
+        return CfgLedModeGold;
+    if (miniMode == (uint8_t) LcdMenu::MINI12864_MODE_DAY)
+        return CfgLedModeDay;
+    return CfgLedModeDay;
+}
 
 // Initialize config settings from EEPROM
 static void initializeConfigSettings()
@@ -33,6 +68,8 @@ static void initializeConfigSettings()
     cfgAutoPaEnabled = EEPROMStore::getAutoPaEnabled();
     cfgAutoHomeEnabled = EEPROMStore::getAutoHomeEnabled();
     cfgGpsEnabled = EEPROMStore::getGpsEnabled();
+    cfgStartSongEnabled = EEPROMStore::getBootSongEnabled();
+    cfgLedMode = fromMini12864Mode(lcdMenu.getMini12864BacklightMode());
 }
 
 static void playExitBeep()
@@ -47,6 +84,23 @@ static void playExitBeep()
         delayMicroseconds(260);
     }
 #endif
+}
+
+static void resetConfigUiStateOnExit()
+{
+    cfgEditing = false;
+    lcdMenu.setMini12864EditBlinkActive(false);
+
+    // Clear submenu rows so stale trailing characters (like '*') do not bleed
+    // into the next page that may print shorter strings.
+    lcdMenu.setCursor(0, 1);
+    lcdMenu.printMenu("");
+    lcdMenu.setCursor(0, 2);
+    lcdMenu.printMenu("");
+    lcdMenu.setCursor(0, 3);
+    lcdMenu.printMenu("");
+    lcdMenu.setCursor(0, 4);
+    lcdMenu.printMenu("");
 }
 
 bool processConfigKeys()
@@ -94,12 +148,27 @@ bool processConfigKeys()
             {
                 if (cfgItem == CfgItemExit)
                 {
-                    if (cfgNow - lastCfgEventMs >= CFG_EVENT_HOLDOFF_MS)
+                    playExitBeep();
+                    resetConfigUiStateOnExit();
+                    // Wait for the SELECT button to be physically released before
+                    // handing control back to the top-level loop.
+                    while (lcdButtons.currentState() == btnSELECT)
                     {
-                        playExitBeep();
-                        requestBackToTop = true;
-                        cfgNeedsReset = true;   // reset state for next entry
+                        mount.loop();
                     }
+                    // Drain the SELECT→NONE keyChanged edge so the top-level handler
+                    // sees btnNONE (no event) on its first poll, not btnSELECT.
+                    {
+                        lcdButton_t drainKey;
+                        lcdButtons.keyChanged(&drainKey);
+                    }
+                    // Set topLevelMenuNav directly here, synchronously, so that the
+                    // display section in THIS same frame already renders the title
+                    // without '*'.  The requestBackToTop handler will fire later in
+                    // the same frame and arm the SELECT hold-off guards.
+                    topLevelMenuNav = true;
+                    requestBackToTop = true;
+                    cfgNeedsReset = true;   // reset state for next entry
                 }
                 else
                 {
@@ -146,6 +215,25 @@ bool processConfigKeys()
                     cfgEditing = false;
                     lcdMenu.setMini12864EditBlinkActive(false);
                     EEPROMStore::storeLanguage(currentLanguage);
+                }
+            }
+            else if (cfgItem == CfgItemLedMode)
+            {
+                if (key == btnLEFT)
+                {
+                    cfgLedMode = static_cast<uint8_t>(adjustWrap((int) cfgLedMode, -1, CfgLedModeAstro, CfgLedModeDay));
+                    lcdMenu.applyMini12864BacklightMode(toMini12864Mode(cfgLedMode));
+                }
+                else if (key == btnRIGHT)
+                {
+                    cfgLedMode = static_cast<uint8_t>(adjustWrap((int) cfgLedMode, 1, CfgLedModeAstro, CfgLedModeDay));
+                    lcdMenu.applyMini12864BacklightMode(toMini12864Mode(cfgLedMode));
+                }
+                else if (key == btnSELECT)
+                {
+                    cfgEditing = false;
+                    lcdMenu.setMini12864EditBlinkActive(false);
+                    lcdMenu.applyMini12864BacklightMode(toMini12864Mode(cfgLedMode));
                 }
             }
             else if (cfgItem == CfgItemGyro)
@@ -200,6 +288,19 @@ bool processConfigKeys()
                     EEPROMStore::storeGpsEnabled(cfgGpsEnabled);
                 }
             }
+            else if (cfgItem == CfgItemStartSong)
+            {
+                if (key == btnLEFT || key == btnRIGHT)
+                {
+                    cfgStartSongEnabled = !cfgStartSongEnabled;
+                }
+                else if (key == btnSELECT)
+                {
+                    cfgEditing = false;
+                    lcdMenu.setMini12864EditBlinkActive(false);
+                    EEPROMStore::storeBootSongEnabled(cfgStartSongEnabled);
+                }
+            }
         }
 #else
         if (!cfgEditing)
@@ -217,6 +318,8 @@ bool processConfigKeys()
                 if (cfgItem == CfgItemExit)
                 {
                     playExitBeep();
+                    resetConfigUiStateOnExit();
+                    cfgNeedsReset = true;
                     lcdMenu.setNextActive();
                     waitForRelease = false;
                 }
@@ -264,6 +367,38 @@ bool processConfigKeys()
                     EEPROMStore::storeLanguage(currentLanguage);
                 }
             }
+            else if (cfgItem == CfgItemLedMode)
+            {
+                if (key == btnLEFT)
+                {
+                    cfgLedMode = static_cast<uint8_t>(adjustWrap((int) cfgLedMode, -1, CfgLedModeAstro, CfgLedModeDay));
+                    lcdMenu.applyMini12864BacklightMode(toMini12864Mode(cfgLedMode));
+                }
+                else if (key == btnRIGHT)
+                {
+                    cfgLedMode = static_cast<uint8_t>(adjustWrap((int) cfgLedMode, 1, CfgLedModeAstro, CfgLedModeDay));
+                    lcdMenu.applyMini12864BacklightMode(toMini12864Mode(cfgLedMode));
+                }
+                else if (key == btnSELECT)
+                {
+                    cfgEditing = false;
+                    lcdMenu.setMini12864EditBlinkActive(false);
+                    lcdMenu.applyMini12864BacklightMode(toMini12864Mode(cfgLedMode));
+                }
+            }
+            else if (cfgItem == CfgItemStartSong)
+            {
+                if (key == btnLEFT || key == btnRIGHT)
+                {
+                    cfgStartSongEnabled = !cfgStartSongEnabled;
+                }
+                else if (key == btnSELECT)
+                {
+                    cfgEditing = false;
+                    lcdMenu.setMini12864EditBlinkActive(false);
+                    EEPROMStore::storeBootSongEnabled(cfgStartSongEnabled);
+                }
+            }
         }
 #endif
     }
@@ -284,6 +419,11 @@ static void formatCfgLine(cfgItem_t item, char *out, size_t outLen)
         case CfgItemLanguage:
             snprintf(out, outLen, "%cLang:%s%s", cur, LANGUAGE_NAMES[currentLanguage], editing ? "*" : "");
             break;
+        case CfgItemLedMode:
+            snprintf(out, outLen, "%cLed:%s%s", cur,
+                     (cfgLedMode == CfgLedModeAstro) ? "Astro" : ((cfgLedMode == CfgLedModeGold) ? "Gold" : "Day"),
+                     editing ? "*" : "");
+            break;
         case CfgItemGyro:
             snprintf(out, outLen, "%cGyro:%s%s", cur, cfgGyroEnabled ? TR_ON : TR_OFF, editing ? "*" : "");
             break;
@@ -295,6 +435,9 @@ static void formatCfgLine(cfgItem_t item, char *out, size_t outLen)
             break;
         case CfgItemGPS:
             snprintf(out, outLen, "%cGPS:%s%s", cur, cfgGpsEnabled ? TR_ON : TR_OFF, editing ? "*" : "");
+            break;
+        case CfgItemStartSong:
+            snprintf(out, outLen, "%cStartSong:%s%s", cur, cfgStartSongEnabled ? TR_ON : TR_OFF, editing ? "*" : "");
             break;
         default:  // CfgItemExit
             snprintf(out, outLen, "%c%s", cur, TR_EXIT);

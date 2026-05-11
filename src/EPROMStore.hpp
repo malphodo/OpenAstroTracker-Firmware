@@ -99,6 +99,9 @@ class EEPROMStore
     static bool getGpsEnabled();
     static void storeGpsEnabled(bool enabled);
 
+    static bool getBootSongEnabled();
+    static void storeBootSongEnabled(bool enabled);
+
   private:
     /////////////////////////////////
     //
@@ -177,7 +180,8 @@ class EEPROMStore
         GYRO_ENABLED_MARKER_FLAG   = 0x4000,
         AUTOPA_ENABLED_MARKER_FLAG = 0x8000,
         AUTOHOME_ENABLED_MARKER_FLAG = 0x10000,
-        GPS_ENABLED_MARKER_FLAG = 0x20000,
+        GPS_ENABLED_MARKER_FLAG    = 0x20000,
+        BOOT_SONG_ENABLED_MARKER_FLAG = 0x40000,
     };
 
     // These are the offsets to each item stored in the EEPROM
@@ -263,8 +267,9 @@ class EEPROMStore
         GYRO_ENABLED_ADDR = 76,  // Uint8, bool
         AUTOPA_ENABLED_ADDR = 77,  // Uint8, bool
         AUTOHOME_ENABLED_ADDR = 78,  // Uint8, bool
-        GPS_ENABLED_ADDR = 79,  // Uint8, bool
-        STORE_SIZE      = 80
+        GPS_ENABLED_ADDR       = 79,  // Uint8, bool
+        BOOT_SONG_ENABLED_ADDR = 80,  // Uint8, bool
+        STORE_SIZE             = 81
     };
 
     // Helper functions

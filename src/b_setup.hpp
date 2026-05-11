@@ -187,19 +187,29 @@ static void playBootBeep()
 {
 #if defined(LCD12864_BEEPER_PIN) && (LCD12864_BEEPER_PIN != U8X8_PIN_NONE)
     pinMode(LCD12864_BEEPER_PIN, OUTPUT);
-    // Short ascending 2-note beep at boot.
-    const uint16_t halfPeriodUs[] = {320, 240};
-    const uint16_t cycles[] = {70, 90};
-    for (uint8_t n = 0; n < 2; n++)
+    // Rhythmic boot fanfare: C5-C5-C5 (staccato) — E5-G5 (crescendo) — C6 (triumphant)
+    // halfUs = 1000000 / (2 * freq).  cycles = ms * 500 / halfUs.
+    struct Note { uint16_t halfUs; uint16_t ms; uint8_t pauseMs; };
+    const Note melody[] = {
+        { 956,  80, 15},  // C5 — ta
+        { 956,  80, 15},  // C5 — ta
+        { 956,  80, 35},  // C5 — ta  (pause plus longue avant envolée)
+        { 759, 150, 15},  // E5 — mi
+        { 637, 150, 15},  // G5 — sol
+        { 478, 380,  0},  // C6 — DO! (note finale triumphante)
+    };
+    for (uint8_t n = 0; n < 6; n++)
     {
-        for (uint16_t i = 0; i < cycles[n]; i++)
+        uint16_t cycles = (uint32_t)melody[n].ms * 500UL / melody[n].halfUs;
+        for (uint16_t i = 0; i < cycles; i++)
         {
             digitalWrite(LCD12864_BEEPER_PIN, HIGH);
-            delayMicroseconds(halfPeriodUs[n]);
+            delayMicroseconds(melody[n].halfUs);
             digitalWrite(LCD12864_BEEPER_PIN, LOW);
-            delayMicroseconds(halfPeriodUs[n]);
+            delayMicroseconds(melody[n].halfUs);
         }
-        delay(12);
+        if (melody[n].pauseMs)
+            delay(melody[n].pauseMs);
     }
 #endif
 }
@@ -748,7 +758,10 @@ void setup()
     mount.startSlewing(TRACKING);
 #endif
 
-    playBootBeep();
+    if (EEPROMStore::getBootSongEnabled())
+    {
+        playBootBeep();
+    }
     mount.bootComplete();
     LOG(DEBUG_ANY, "[SYSTEM]: Boot complete!");
     addConsoleText(F("BOOT COMPLETE!"));

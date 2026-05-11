@@ -8,8 +8,11 @@
 #include "c70_menuRA.hpp"
 #include "c71_menuDEC.hpp"
 #include "c722_menuPOI.hpp"
-#include "c72_menuHA.hpp"
-#include "c72_menuHA_GPS.hpp"
+#if USE_GPS == 0
+    #include "c72_menuHA.hpp"
+#else
+    #include "c72_menuHA_GPS.hpp"
+#endif
 #include "c75_menuCTRL.hpp"
 #include "c76_menuCAL.hpp"
 #include "c77_menuFOC.hpp"
@@ -190,6 +193,25 @@ void loop()
             // in rapid succession (screen flashes and returns to previous page).
             static unsigned long lastTopNavEventMs = 0;
             static const unsigned long TOP_NAV_HOLDOFF_MS = 150UL;
+            // Set to true when a sub-page exits via SELECT.
+            // Blocks top-level SELECT entry until the button is physically released,
+            // detected by polling currentState() each frame — immune to keyChanged
+            // edge-detection races and works regardless of how long the button is held.
+            static bool topLevelWaitForSelectRelease = false;
+            // Absolute time-based holdoff: prevents re-entering any sub-menu for
+            // SUB_EXIT_SELECT_HOLDOFF_MS after any requestBackToTop exit, regardless
+            // of button debounce state or keyChanged edge-detection race conditions.
+            static unsigned long lastSubMenuExitMs = 0;
+            static const unsigned long SUB_EXIT_SELECT_HOLDOFF_MS = 500UL;
+
+            // Poll physical state: if we are waiting for release, check each frame.
+            if (topLevelWaitForSelectRelease && lcdButtons.currentState() != btnSELECT)
+            {
+                // Button has been physically released; arm bounce holdoff from this moment.
+                topLevelWaitForSelectRelease = false;
+                lastTopNavEventMs = millis();
+            }
+
             // IMPORTANT: only consume keyChanged() at this level while browsing top-level pages.
             // In page mode (topLevelMenuNav=false), sub-menus must receive the event themselves.
             if (topLevelMenuNav && !valueEditingActive && lcdButtons.keyChanged(&rotaryEvent))
@@ -214,17 +236,22 @@ void loop()
                 }
                 else if (rotaryEvent == btnSELECT)
                 {
-                    // Enter the currently highlighted page.
-                    topLevelMenuNav = false;
-                    waitForButtonRelease = true;
-                    pageNavigatedByRotary = true;
-                    resetRotaryEditModes();
-                    // NOTE: setMini12864RgbLed() intentionally omitted here.
-                    // MINI12864_V3_RGB_PIN == LCD12864_CS_PIN == P1_21 : writing WS2812
-                    // data on that pin during LCD operation corrupts the SPI bus.
-                    // Do not force-clear rows here: the first entry after boot can trigger
-                    // multiple immediate display refreshes and cause a visible glitch.
-                    // Normal page rendering below already clears/overwrites needed rows.
+                    // Only enter the page if:
+                    //  1. Not waiting for a post-exit button release
+                    //  2. Normal bounce holdoff has expired
+                    //  3. At least SUB_EXIT_SELECT_HOLDOFF_MS has passed since last sub-menu exit
+                    //     (absolute time guard — immune to all button debounce race conditions)
+                    const unsigned long navNow = millis();
+                    if (!topLevelWaitForSelectRelease
+                        && (navNow - lastTopNavEventMs >= TOP_NAV_HOLDOFF_MS)
+                        && (navNow - lastSubMenuExitMs >= SUB_EXIT_SELECT_HOLDOFF_MS))
+                    {
+                        topLevelMenuNav = false;
+                        waitForButtonRelease = true;
+                        pageNavigatedByRotary = true;
+                        resetRotaryEditModes();
+                        lastTopNavEventMs = navNow;
+                    }
                 }
             }
             // When still in top-level navigation, never dispatch sub-menu key handlers.
@@ -292,7 +319,16 @@ void loop()
             {
                 requestBackToTop = false;
                 topLevelMenuNav  = true;
+                // Flag: refuse SELECT at top level until the button is physically released.
+                // This is the correct fix for the '*' persistence bug: a time-based holdoff
+                // fails when the user holds the button longer than the holdoff duration.
+                topLevelWaitForSelectRelease = (lcdButtons.currentState() == btnSELECT);
+                lastTopNavEventMs = millis();
+                lastSubMenuExitMs = millis();  // arme le holdoff 500 ms — garde absolue
                 resetRotaryEditModes();
+                // Force title row repaint (rotary "in page" suffix '*') — printMenu skips when
+                // _lastDisplay matches even if pixels were out of sync (e.g. after CFG exit).
+                lcdMenu.invalidateCachedDisplayRow(0);
                 // Keep top-level row clean while returning from deep pages.
                 lcdMenu.setCursor(0, 1);
                 lcdMenu.printMenu("");

@@ -139,6 +139,10 @@ class LcdMenu
     // Print a string to the LCD at the current cursor position, substituting the special arrows and padding with spaces to the end
     void printMenu(String line);
 
+    // Forget the last string drawn on `row` so the next printMenu() always repaints (fixes stale
+    // pixels when the on-screen title suffix e.g. "*" toggles but the cached line matches).
+    void invalidateCachedDisplayRow(byte row);
+
     // Print a character at a specific position
     void printAt(int col, int row, char ch);
 
