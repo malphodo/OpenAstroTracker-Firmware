@@ -435,7 +435,9 @@ void loop()
                     pageTitle = TR_CONFIG;
                 }
                 lcdMenu.setCursor(0, 0);
-                const char *pageIcon = activeMenu == Config_Menu ? "} " : "";
+                // Keep the config icon only in top-level navigation. In page mode, reserve
+                // the full title width so the trailing '*' always remains visible.
+                const char *pageIcon = (topLevelMenuNav && activeMenu == Config_Menu) ? "} " : "";
                 lcdMenu.printMenu(String(pageIcon) + pageTitle + (topLevelMenuNav ? "" : "*"));
                 lcdMenu.setCursor(0, 1);
 

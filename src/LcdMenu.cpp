@@ -1090,30 +1090,49 @@ void LcdMenu::printMenu(String line)
         return;
     }
 
-    if ((_lastDisplay[_activeRow] != line) || (_activeCol != 0))
+    // Clamp to the visible width so long titles cannot overflow into controller-specific
+    // wrap regions, which can leave stale trailing characters on subsequent redraws.
+    String visibleLine = line;
+    if (visibleLine.length() > _columns)
     {
-        _lastDisplay[_activeRow] = line;
+        visibleLine.remove(_columns);
+    }
 
-        int spaces = _columns - line.length();
+    if ((_lastDisplay[_activeRow] != visibleLine) || (_activeCol != 0))
+    {
+        _lastDisplay[_activeRow] = visibleLine;
+
         #if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                     \
             || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
         int pixelY = _activeRow * 12;
         _lcd.setDrawColor(0);
         _lcd.drawBox(0, pixelY, _columns * 6, 12);
         _lcd.setDrawColor(1);
-        for (char i : line)
+
+        const byte startCol = _activeCol;
+        for (char i : visibleLine)
         {
+            const byte glyphCols = (i == '}') ? 2 : 1;
+            if ((_activeCol + glyphCols) > _columns)
+            {
+                break;
+            }
             printChar(i);
         }
-        while (spaces > 0)
+
+        // Fill the rest of the line explicitly to clear stale trailing pixels.
+        while (_activeCol < _columns)
         {
             printChar(' ');
-            spaces--;
         }
+
+        // Keep cursor bookkeeping predictable for callers.
+        _activeCol = startCol;
         _lcd.sendBuffer();
         #else
+        int spaces = _columns - visibleLine.length();
         _lcd.setCursor(_activeCol, _charHeightRows * _activeRow);
-        for (char i : line)
+        for (char i : visibleLine)
         {
             printChar(i);
         }
