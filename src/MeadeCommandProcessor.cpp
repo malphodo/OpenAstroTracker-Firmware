@@ -1438,17 +1438,26 @@ String MeadeCommandProcessor::handleMeadeGPSCommands(String inCmd)
             if (gpsAqcuisitionComplete(indicator))
             {
                 LOG(DEBUG_MEADE, "[MEADE]: GPS startup, GPS acquired");
-                // Play beep to indicate GPS fix - tone at 1kHz
+                // Play a short two-note motif to make GPS fix clearly audible.
 #if defined(LCD12864_BEEPER_PIN) && (LCD12864_BEEPER_PIN != U8X8_PIN_NONE)
                 pinMode(LCD12864_BEEPER_PIN, OUTPUT);
-                uint16_t halfUs = 500;  // 1kHz frequency (halfUs = 1000000 / (2 * 1000))
-                uint16_t cycles = 200;  // 200ms duration
-                for (uint16_t i = 0; i < cycles; i++)
+                struct GpsNote { uint16_t halfUs; uint16_t ms; uint8_t pauseMs; };
+                const GpsNote gpsFixMelody[] = {
+                    { 637, 140, 20 },  // G5
+                    { 478, 240,  0 },  // C6
+                };
+                for (uint8_t n = 0; n < 2; n++)
                 {
-                    digitalWrite(LCD12864_BEEPER_PIN, HIGH);
-                    delayMicroseconds(halfUs);
-                    digitalWrite(LCD12864_BEEPER_PIN, LOW);
-                    delayMicroseconds(halfUs);
+                    const uint16_t cycles = (uint32_t)gpsFixMelody[n].ms * 500UL / gpsFixMelody[n].halfUs;
+                    for (uint16_t i = 0; i < cycles; i++)
+                    {
+                        digitalWrite(LCD12864_BEEPER_PIN, HIGH);
+                        delayMicroseconds(gpsFixMelody[n].halfUs);
+                        digitalWrite(LCD12864_BEEPER_PIN, LOW);
+                        delayMicroseconds(gpsFixMelody[n].halfUs);
+                    }
+                    if (gpsFixMelody[n].pauseMs)
+                        delay(gpsFixMelody[n].pauseMs);
                 }
 #endif
                 return "1";
