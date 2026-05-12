@@ -52,6 +52,161 @@ void LcdMenu::drawRaLogoLarge()
 #endif
 }
 
+void LcdMenu::drawDecLogoLarge()
+{
+#if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701 \
+    || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
+    // Reserve rows 1..4 (y=12..63) for the large icon while browsing top-level pages.
+    _lcd.setDrawColor(0);
+    _lcd.drawBox(0, 12, _columns * 6, 52);
+    _lcd.setDrawColor(1);
+
+    // DEC logo: vertical north-south indicator.
+    const uint8_t cx = 48;
+    const uint8_t cy = 36;
+    _lcd.drawCircle(cx, cy, 15);
+    _lcd.drawCircle(cx, cy, 14);
+    _lcd.drawLine(cx, cy - 15, cx, cy + 15);
+    _lcd.drawLine(cx - 3, cy - 20, cx, cy - 15);
+    _lcd.drawLine(cx + 3, cy - 20, cx, cy - 15);
+    _lcd.drawLine(cx - 3, cy + 20, cx, cy + 15);
+    _lcd.drawLine(cx + 3, cy + 20, cx, cy + 15);
+    _lcd.drawStr(cx - 5, cy + 4, "DEC");
+
+    _lcd.sendBuffer();
+#endif
+}
+
+void LcdMenu::drawHaLogoLarge()
+{
+#if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701 \
+    || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
+    // Reserve rows 1..4 (y=12..63) for the large icon while browsing top-level pages.
+    _lcd.setDrawColor(0);
+    _lcd.drawBox(0, 12, _columns * 6, 52);
+    _lcd.setDrawColor(1);
+
+    // HA logo: horizontal east-west indicator.
+    const uint8_t cx = 48;
+    const uint8_t cy = 36;
+    _lcd.drawCircle(cx, cy, 15);
+    _lcd.drawCircle(cx, cy, 14);
+    _lcd.drawLine(cx - 15, cy, cx + 15, cy);
+    _lcd.drawLine(cx - 20, cy - 3, cx - 15, cy);
+    _lcd.drawLine(cx - 20, cy + 3, cx - 15, cy);
+    _lcd.drawLine(cx + 20, cy - 3, cx + 15, cy);
+    _lcd.drawLine(cx + 20, cy + 3, cx + 15, cy);
+    _lcd.drawStr(cx - 5, cy + 4, "HA");
+
+    _lcd.sendBuffer();
+#endif
+}
+
+void LcdMenu::drawHomeLogoLarge()
+{
+#if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701 \
+    || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
+    // Reserve rows 1..4 (y=12..63) for the large icon while browsing top-level pages.
+    _lcd.setDrawColor(0);
+    _lcd.drawBox(0, 12, _columns * 6, 52);
+    _lcd.setDrawColor(1);
+
+    // HOME logo: simple house shape.
+    const uint8_t cx = 48;
+    const uint8_t cy = 36;
+    _lcd.drawBox(cx - 12, cy - 2, 24, 16);
+    _lcd.drawLine(cx - 15, cy - 2, cx, cy - 12);
+    _lcd.drawLine(cx, cy - 12, cx + 15, cy - 2);
+    _lcd.drawLine(cx - 4, cy + 10, cx - 4, cy + 14);
+    _lcd.drawLine(cx + 4, cy + 10, cx + 4, cy + 14);
+    _lcd.drawLine(cx - 4, cy + 10, cx + 4, cy + 10);
+    _lcd.drawDisc(cx, cy + 12, 2);
+
+    _lcd.sendBuffer();
+#endif
+}
+
+void LcdMenu::drawCalLogoLarge()
+{
+#if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701 \
+    || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
+    // Reserve rows 1..4 (y=12..63) for the large icon while browsing top-level pages.
+    _lcd.setDrawColor(0);
+    _lcd.drawBox(0, 12, _columns * 6, 52);
+    _lcd.setDrawColor(1);
+
+    // CAL logo: crosshair with circle.
+    const uint8_t cx = 48;
+    const uint8_t cy = 36;
+    _lcd.drawCircle(cx, cy, 15);
+    _lcd.drawCircle(cx, cy, 14);
+    _lcd.drawLine(cx, cy - 14, cx, cy + 14);
+    _lcd.drawLine(cx - 14, cy, cx + 14, cy);
+    _lcd.drawDisc(cx, cy, 2);
+    _lcd.drawStr(cx - 7, cy + 4, "CAL");
+
+    _lcd.sendBuffer();
+#endif
+}
+
+void LcdMenu::drawCtrlLogoLarge()
+{
+#if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701 \
+    || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
+    // Reserve rows 1..4 (y=12..63) for the large icon while browsing top-level pages.
+    _lcd.setDrawColor(0);
+    _lcd.drawBox(0, 12, _columns * 6, 52);
+    _lcd.setDrawColor(1);
+
+    // CTRL logo: joystick-like control symbol.
+    const uint8_t cx = 48;
+    const uint8_t cy = 36;
+    _lcd.drawCircle(cx, cy, 15);
+    _lcd.drawCircle(cx, cy, 14);
+    _lcd.drawBox(cx - 10, cy - 10, 20, 20);
+    _lcd.drawDisc(cx, cy, 4);
+    _lcd.drawLine(cx - 10, cy, cx - 14, cy);
+    _lcd.drawLine(cx + 10, cy, cx + 14, cy);
+    _lcd.drawLine(cx, cy - 10, cx, cy - 14);
+    _lcd.drawLine(cx, cy + 10, cx, cy + 14);
+
+    _lcd.sendBuffer();
+#endif
+}
+
+void LcdMenu::drawPoiLogoLarge()
+{
+#if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701 \
+    || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
+    // Reserve rows 1..4 (y=12..63) for the large icon while browsing top-level pages.
+    _lcd.setDrawColor(0);
+    _lcd.drawBox(0, 12, _columns * 6, 52);
+    _lcd.setDrawColor(1);
+
+    // POI logo: star symbol.
+    const uint8_t cx = 48;
+    const uint8_t cy = 36;
+    _lcd.drawCircle(cx, cy, 15);
+    _lcd.drawCircle(cx, cy, 14);
+    // Draw a 5-point star
+    for (int i = 0; i < 5; i++) {
+        float angle = i * 72 * 3.14159 / 180;
+        int x1 = cx + (int)(10 * cos(angle));
+        int y1 = cy + (int)(10 * sin(angle));
+        float nextAngle = (i + 1) * 72 * 3.14159 / 180;
+        int x2 = cx + (int)(5 * cos(angle + 36 * 3.14159 / 180));
+        int y2 = cy + (int)(5 * sin(angle + 36 * 3.14159 / 180));
+        _lcd.drawLine(x1, y1, x2, y2);
+        int x3 = cx + (int)(10 * cos(nextAngle));
+        int y3 = cy + (int)(10 * sin(nextAngle));
+        _lcd.drawLine(x2, y2, x3, y3);
+    }
+    _lcd.drawStr(cx - 7, cy + 4, "POI");
+
+    _lcd.sendBuffer();
+#endif
+}
+
 #if DISPLAY_TYPE != DISPLAY_TYPE_NONE
 
     #if DISPLAY_FLIP_180 == 1
@@ -1347,6 +1502,30 @@ void LcdMenu::drawConfigLogoLarge()
 }
 
 void LcdMenu::drawRaLogoLarge()
+{
+}
+
+void LcdMenu::drawDecLogoLarge()
+{
+}
+
+void LcdMenu::drawHaLogoLarge()
+{
+}
+
+void LcdMenu::drawHomeLogoLarge()
+{
+}
+
+void LcdMenu::drawCalLogoLarge()
+{
+}
+
+void LcdMenu::drawCtrlLogoLarge()
+{
+}
+
+void LcdMenu::drawPoiLogoLarge()
 {
 }
 

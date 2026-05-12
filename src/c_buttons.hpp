@@ -142,6 +142,12 @@ void loop()
         static bool configTopLogoRendered = false;
         static bool infoTopLogoRendered = false;
         static bool raTopLogoRendered = false;
+        static bool decTopLogoRendered = false;
+        static bool haTopLogoRendered = false;
+        static bool homeTopLogoRendered = false;
+        static bool calTopLogoRendered = false;
+        static bool ctrlTopLogoRendered = false;
+        static bool poiTopLogoRendered = false;
     #endif
 
     #if USES_ROTARY_ENCODER == 1
@@ -488,6 +494,48 @@ void loop()
                     lcdMenu.setCursor(0, 1);
                     raTopLogoRendered = false;
                 }
+                if (decTopLogoRendered && !(topLevelMenuNav && activeMenu == DEC_Menu))
+                {
+                    // Leaving DEC top-level: clear stale logo pixels once.
+                    lcdMenu.clearConfigLogoLarge();
+                    lcdMenu.setCursor(0, 1);
+                    decTopLogoRendered = false;
+                }
+                if (haTopLogoRendered && !(topLevelMenuNav && activeMenu == HA_Menu))
+                {
+                    // Leaving HA top-level: clear stale logo pixels once.
+                    lcdMenu.clearConfigLogoLarge();
+                    lcdMenu.setCursor(0, 1);
+                    haTopLogoRendered = false;
+                }
+                if (homeTopLogoRendered && !(topLevelMenuNav && activeMenu == Home_Menu))
+                {
+                    // Leaving HOME top-level: clear stale logo pixels once.
+                    lcdMenu.clearConfigLogoLarge();
+                    lcdMenu.setCursor(0, 1);
+                    homeTopLogoRendered = false;
+                }
+                if (calTopLogoRendered && !(topLevelMenuNav && activeMenu == Calibration_Menu))
+                {
+                    // Leaving CAL top-level: clear stale logo pixels once.
+                    lcdMenu.clearConfigLogoLarge();
+                    lcdMenu.setCursor(0, 1);
+                    calTopLogoRendered = false;
+                }
+                if (ctrlTopLogoRendered && !(topLevelMenuNav && activeMenu == Control_Menu))
+                {
+                    // Leaving CTRL top-level: clear stale logo pixels once.
+                    lcdMenu.clearConfigLogoLarge();
+                    lcdMenu.setCursor(0, 1);
+                    ctrlTopLogoRendered = false;
+                }
+                if (poiTopLogoRendered && !(topLevelMenuNav && activeMenu == POI_Menu))
+                {
+                    // Leaving POI top-level: clear stale logo pixels once.
+                    lcdMenu.clearConfigLogoLarge();
+                    lcdMenu.setCursor(0, 1);
+                    poiTopLogoRendered = false;
+                }
 
                 if (topLevelMenuNav && activeMenu == Config_Menu && !configTopLogoRendered)
                 {
@@ -495,6 +543,12 @@ void loop()
                     configTopLogoRendered = true;
                     infoTopLogoRendered   = false;
                     raTopLogoRendered     = false;
+                    decTopLogoRendered    = false;
+                    haTopLogoRendered     = false;
+                    homeTopLogoRendered   = false;
+                    calTopLogoRendered    = false;
+                    ctrlTopLogoRendered   = false;
+                    poiTopLogoRendered    = false;
                 }
                 if (topLevelMenuNav && activeMenu == Status_Menu && !infoTopLogoRendered)
                 {
@@ -502,6 +556,12 @@ void loop()
                     infoTopLogoRendered   = true;
                     configTopLogoRendered = false;
                     raTopLogoRendered     = false;
+                    decTopLogoRendered    = false;
+                    haTopLogoRendered     = false;
+                    homeTopLogoRendered   = false;
+                    calTopLogoRendered    = false;
+                    ctrlTopLogoRendered   = false;
+                    poiTopLogoRendered    = false;
                 }
                 if (topLevelMenuNav && activeMenu == RA_Menu && !raTopLogoRendered)
                 {
@@ -509,6 +569,90 @@ void loop()
                     raTopLogoRendered     = true;
                     infoTopLogoRendered   = false;
                     configTopLogoRendered = false;
+                    decTopLogoRendered    = false;
+                    haTopLogoRendered     = false;
+                    homeTopLogoRendered   = false;
+                    calTopLogoRendered    = false;
+                    ctrlTopLogoRendered   = false;
+                    poiTopLogoRendered    = false;
+                }
+                if (topLevelMenuNav && activeMenu == DEC_Menu && !decTopLogoRendered)
+                {
+                    lcdMenu.drawDecLogoLarge();
+                    decTopLogoRendered    = true;
+                    configTopLogoRendered = false;
+                    infoTopLogoRendered   = false;
+                    raTopLogoRendered     = false;
+                    haTopLogoRendered     = false;
+                    homeTopLogoRendered   = false;
+                    calTopLogoRendered    = false;
+                    ctrlTopLogoRendered   = false;
+                    poiTopLogoRendered    = false;
+                }
+                if (topLevelMenuNav && activeMenu == HA_Menu && !haTopLogoRendered)
+                {
+                    lcdMenu.drawHaLogoLarge();
+                    haTopLogoRendered     = true;
+                    configTopLogoRendered = false;
+                    infoTopLogoRendered   = false;
+                    raTopLogoRendered     = false;
+                    decTopLogoRendered    = false;
+                    homeTopLogoRendered   = false;
+                    calTopLogoRendered    = false;
+                    ctrlTopLogoRendered   = false;
+                    poiTopLogoRendered    = false;
+                }
+                if (topLevelMenuNav && activeMenu == Home_Menu && !homeTopLogoRendered)
+                {
+                    lcdMenu.drawHomeLogoLarge();
+                    homeTopLogoRendered   = true;
+                    configTopLogoRendered = false;
+                    infoTopLogoRendered   = false;
+                    raTopLogoRendered     = false;
+                    decTopLogoRendered    = false;
+                    haTopLogoRendered     = false;
+                    calTopLogoRendered    = false;
+                    ctrlTopLogoRendered   = false;
+                    poiTopLogoRendered    = false;
+                }
+                if (topLevelMenuNav && activeMenu == Calibration_Menu && !calTopLogoRendered)
+                {
+                    lcdMenu.drawCalLogoLarge();
+                    calTopLogoRendered    = true;
+                    configTopLogoRendered = false;
+                    infoTopLogoRendered   = false;
+                    raTopLogoRendered     = false;
+                    decTopLogoRendered    = false;
+                    haTopLogoRendered     = false;
+                    homeTopLogoRendered   = false;
+                    ctrlTopLogoRendered   = false;
+                    poiTopLogoRendered    = false;
+                }
+                if (topLevelMenuNav && activeMenu == Control_Menu && !ctrlTopLogoRendered)
+                {
+                    lcdMenu.drawCtrlLogoLarge();
+                    ctrlTopLogoRendered   = true;
+                    configTopLogoRendered = false;
+                    infoTopLogoRendered   = false;
+                    raTopLogoRendered     = false;
+                    decTopLogoRendered    = false;
+                    haTopLogoRendered     = false;
+                    homeTopLogoRendered   = false;
+                    calTopLogoRendered    = false;
+                    poiTopLogoRendered    = false;
+                }
+                if (topLevelMenuNav && activeMenu == POI_Menu && !poiTopLogoRendered)
+                {
+                    lcdMenu.drawPoiLogoLarge();
+                    poiTopLogoRendered    = true;
+                    configTopLogoRendered = false;
+                    infoTopLogoRendered   = false;
+                    raTopLogoRendered     = false;
+                    decTopLogoRendered    = false;
+                    haTopLogoRendered     = false;
+                    homeTopLogoRendered   = false;
+                    calTopLogoRendered    = false;
+                    ctrlTopLogoRendered   = false;
                 }
     #endif
     #endif

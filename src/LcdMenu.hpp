@@ -151,6 +151,12 @@ class LcdMenu
     void clearConfigLogoLarge();
     void drawInfoLogoLarge();
     void drawRaLogoLarge();
+    void drawDecLogoLarge();
+    void drawHaLogoLarge();
+    void drawHomeLogoLarge();
+    void drawCalLogoLarge();
+    void drawCtrlLogoLarge();
+    void drawPoiLogoLarge();
 
 #if DISPLAY_TYPE == DISPLAY_TYPE_LCD_KEYPAD_I2C_MCP23008 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_KEYPAD_I2C_MCP23017
     uint8_t readButtons();
