@@ -141,6 +141,7 @@ void loop()
     #if USES_ROTARY_ENCODER == 1
         static bool configTopLogoRendered = false;
         static bool infoTopLogoRendered = false;
+        static bool raTopLogoRendered = false;
     #endif
 
     #if USES_ROTARY_ENCODER == 1
@@ -443,8 +444,11 @@ void loop()
                 lcdMenu.setCursor(0, 1);
 
     #if SUPPORT_INFO_DISPLAY == 1
-                // INFO, CFG, RA, DEC and GO submenus use multiple rows; clear leftovers only for single-row pages.
+                // INFO, CFG, RA, DEC, FOC and GO submenus use multiple rows; clear leftovers only for single-row pages.
                 if (activeMenu != Status_Menu && activeMenu != Config_Menu && activeMenu != RA_Menu && activeMenu != DEC_Menu
+    #if (FOCUS_STEPPER_TYPE != STEPPER_TYPE_NONE)
+                    && activeMenu != Focuser_Menu
+    #endif
     #if SUPPORT_POINTS_OF_INTEREST == 1
                     && activeMenu != POI_Menu
     #else
@@ -477,17 +481,33 @@ void loop()
                     lcdMenu.setCursor(0, 1);
                     infoTopLogoRendered = false;
                 }
+                if (raTopLogoRendered && !(topLevelMenuNav && activeMenu == RA_Menu))
+                {
+                    // Leaving RA top-level: clear stale logo pixels once.
+                    lcdMenu.clearConfigLogoLarge();
+                    lcdMenu.setCursor(0, 1);
+                    raTopLogoRendered = false;
+                }
 
                 if (topLevelMenuNav && activeMenu == Config_Menu && !configTopLogoRendered)
                 {
                     lcdMenu.drawConfigLogoLarge();
                     configTopLogoRendered = true;
                     infoTopLogoRendered   = false;
+                    raTopLogoRendered     = false;
                 }
                 if (topLevelMenuNav && activeMenu == Status_Menu && !infoTopLogoRendered)
                 {
                     lcdMenu.drawInfoLogoLarge();
                     infoTopLogoRendered   = true;
+                    configTopLogoRendered = false;
+                    raTopLogoRendered     = false;
+                }
+                if (topLevelMenuNav && activeMenu == RA_Menu && !raTopLogoRendered)
+                {
+                    lcdMenu.drawRaLogoLarge();
+                    raTopLogoRendered     = true;
+                    infoTopLogoRendered   = false;
                     configTopLogoRendered = false;
                 }
     #endif

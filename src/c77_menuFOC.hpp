@@ -7,17 +7,12 @@ enum FocusMenuItem
 {
     HIGHLIGHT_FOCUS_FIRST      = 1,
     HIGHLIGHT_FOCUS_ADJUSTMENT = 1,
-    #if USES_ROTARY_ENCODER == 1
+    HIGHLIGHT_FOCUS_RATE,
     HIGHLIGHT_FOCUS_EXIT,
-    #endif
-
-    #if USES_ROTARY_ENCODER == 1
     HIGHLIGHT_FOCUS_LAST = HIGHLIGHT_FOCUS_EXIT,
-    #else
-    HIGHLIGHT_FOCUS_LAST = HIGHLIGHT_FOCUS_ADJUSTMENT,
-    #endif
 
     FOCUS_ADJUSTMENT,
+    FOCUS_RATE_ADJUSTMENT,
 };
 
 FocusMenuItem focState = HIGHLIGHT_FOCUS_FIRST;
@@ -68,33 +63,76 @@ bool processFocuserKeys()
                 {
                     focState = FOCUS_ADJUSTMENT;
                 }
-    #if USES_ROTARY_ENCODER == 1
-                else if ((key == btnLEFT) || (key == btnRIGHT))
+                else if (key == btnLEFT)
+                {
+                    focState = static_cast<FocusMenuItem>(adjustWrap(focState, -1, HIGHLIGHT_FOCUS_FIRST, HIGHLIGHT_FOCUS_LAST));
+                }
+                else if (key == btnRIGHT)
                 {
                     focState = static_cast<FocusMenuItem>(adjustWrap(focState, 1, HIGHLIGHT_FOCUS_FIRST, HIGHLIGHT_FOCUS_LAST));
                 }
-    #else
-                if (key == btnRIGHT)
+                else if (key == btnUP)
                 {
-                    lcdMenu.setNextActive();
+                    focState = static_cast<FocusMenuItem>(adjustWrap(focState, -1, HIGHLIGHT_FOCUS_FIRST, HIGHLIGHT_FOCUS_LAST));
                 }
-    #endif
+                else if (key == btnDOWN)
+                {
+                    focState = static_cast<FocusMenuItem>(adjustWrap(focState, 1, HIGHLIGHT_FOCUS_FIRST, HIGHLIGHT_FOCUS_LAST));
+                }
 
                 break;
 
-    #if USES_ROTARY_ENCODER == 1
+            case HIGHLIGHT_FOCUS_RATE:
+                if (key == btnSELECT)
+                {
+                    focState = FOCUS_RATE_ADJUSTMENT;
+                }
+                else if (key == btnLEFT)
+                {
+                    focState = static_cast<FocusMenuItem>(adjustWrap(focState, -1, HIGHLIGHT_FOCUS_FIRST, HIGHLIGHT_FOCUS_LAST));
+                }
+                else if (key == btnRIGHT)
+                {
+                    focState = static_cast<FocusMenuItem>(adjustWrap(focState, 1, HIGHLIGHT_FOCUS_FIRST, HIGHLIGHT_FOCUS_LAST));
+                }
+                else if (key == btnUP)
+                {
+                    focState = static_cast<FocusMenuItem>(adjustWrap(focState, -1, HIGHLIGHT_FOCUS_FIRST, HIGHLIGHT_FOCUS_LAST));
+                }
+                else if (key == btnDOWN)
+                {
+                    focState = static_cast<FocusMenuItem>(adjustWrap(focState, 1, HIGHLIGHT_FOCUS_FIRST, HIGHLIGHT_FOCUS_LAST));
+                }
+
+                break;
+
             case HIGHLIGHT_FOCUS_EXIT:
                 if (key == btnSELECT)
                 {
+    #if USES_ROTARY_ENCODER == 1
                     requestBackToTop = true;
+    #else
+                    lcdMenu.setNextActive();
+    #endif
                     focState         = HIGHLIGHT_FOCUS_ADJUSTMENT;
                 }
-                else if ((key == btnLEFT) || (key == btnRIGHT))
+                else if (key == btnLEFT)
+                {
+                    focState = static_cast<FocusMenuItem>(adjustWrap(focState, -1, HIGHLIGHT_FOCUS_FIRST, HIGHLIGHT_FOCUS_LAST));
+                }
+                else if (key == btnRIGHT)
+                {
+                    focState = static_cast<FocusMenuItem>(adjustWrap(focState, 1, HIGHLIGHT_FOCUS_FIRST, HIGHLIGHT_FOCUS_LAST));
+                }
+                else if (key == btnUP)
+                {
+                    focState = static_cast<FocusMenuItem>(adjustWrap(focState, -1, HIGHLIGHT_FOCUS_FIRST, HIGHLIGHT_FOCUS_LAST));
+                }
+                else if (key == btnDOWN)
                 {
                     focState = static_cast<FocusMenuItem>(adjustWrap(focState, 1, HIGHLIGHT_FOCUS_FIRST, HIGHLIGHT_FOCUS_LAST));
                 }
                 break;
-    #endif
 
             case FOCUS_ADJUSTMENT:
                 {
@@ -102,6 +140,15 @@ bool processFocuserKeys()
                     if (key == btnSELECT)
                     {
                         focState = HIGHLIGHT_FOCUS_ADJUSTMENT;
+                    }
+                }
+                break;
+
+            case FOCUS_RATE_ADJUSTMENT:
+                {
+                    if (key == btnSELECT)
+                    {
+                        focState = HIGHLIGHT_FOCUS_RATE;
                     }
                     else if (key == btnRIGHT)
                     {
@@ -122,33 +169,28 @@ bool processFocuserKeys()
 
 void printFocusSubmenu()
 {
-    char scratchBuffer[20];
-    if (focState == HIGHLIGHT_FOCUS_ADJUSTMENT)
-    {
-        lcdMenu.printMenu(">Focus Adjust");
-    }
-    #if USES_ROTARY_ENCODER == 1
-    else if (focState == HIGHLIGHT_FOCUS_EXIT)
-    {
-        lcdMenu.printMenu(">Exit");
-    }
-    #endif
-    else if (focState == FOCUS_ADJUSTMENT)
-    {
-        strcpy(scratchBuffer, "Rate:  1 2 3 4 *");
-        scratchBuffer[6 + rateIndex * 2] = '>';
-        scratchBuffer[8 + rateIndex * 2] = '<';
-        if (!mount.isRunningFocus())
-        {
-            scratchBuffer[15] = '-';
-        }
-        else
-        {
-            scratchBuffer[15] = mount.getFocusSpeed() < 0 ? '~' : '^';
-        }
+    const bool inMoveEdit = (focState == FOCUS_ADJUSTMENT);
+    const bool inRateEdit = (focState == FOCUS_RATE_ADJUSTMENT);
+    const char motionChar = !mount.isRunningFocus() ? '-' : (mount.getFocusSpeed() < 0 ? '~' : '^');
 
-        lcdMenu.printMenu(scratchBuffer);
-    }
+    char lineBuf[18];
+
+    lcdMenu.setCursor(0, 1);
+    snprintf(lineBuf, sizeof(lineBuf), "%cMove [%c]%s", (focState == HIGHLIGHT_FOCUS_ADJUSTMENT || inMoveEdit) ? '>' : ' ', motionChar,
+             inMoveEdit ? "*" : "");
+    lcdMenu.printMenu(String(lineBuf));
+
+    lcdMenu.setCursor(0, 2);
+    snprintf(lineBuf, sizeof(lineBuf), "%cRate:%u%s", (focState == HIGHLIGHT_FOCUS_RATE || inRateEdit) ? '>' : ' ',
+             static_cast<unsigned>(rateIndex + 1), inRateEdit ? "*" : "");
+    lcdMenu.printMenu(String(lineBuf));
+
+    lcdMenu.setCursor(0, 3);
+    lcdMenu.printMenu(" U/DN move");
+
+    lcdMenu.setCursor(0, 4);
+    snprintf(lineBuf, sizeof(lineBuf), "%c%s", (focState == HIGHLIGHT_FOCUS_EXIT) ? '>' : ' ', TR_EXIT);
+    lcdMenu.printMenu(String(lineBuf));
 }
 
 #endif
