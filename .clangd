@@ -1,0 +1,22 @@
+If:
+  PathMatch: '.*\.(hpp|h)$'
+CompileFlags:
+  Compiler: 'D:/Users/laure/.platformio/packages/toolchain-gccarmnoneeabi/bin/arm-none-eabi-g++.exe'
+  Add:
+    - -xc++
+    - -std=gnu++17
+    - -I.
+    - -Isrc
+    - -isystem
+    - D:/Users/laure/.platformio/packages/toolchain-gccarmnoneeabi/arm-none-eabi/include/c++/14.2.1
+    - -isystem
+    - D:/Users/laure/.platformio/packages/toolchain-gccarmnoneeabi/arm-none-eabi/include/c++/14.2.1/arm-none-eabi
+    - -isystem
+    - D:/Users/laure/.platformio/packages/toolchain-gccarmnoneeabi/arm-none-eabi/include/c++/14.2.1/backward
+    - -isystem
+    - D:/Users/laure/.platformio/packages/toolchain-gccarmnoneeabi/lib/gcc/arm-none-eabi/14.2.1/include
+    - -isystem
+    - D:/Users/laure/.platformio/packages/toolchain-gccarmnoneeabi/lib/gcc/arm-none-eabi/14.2.1/include-fixed
+    - -isystem
+    - D:/Users/laure/.platformio/packages/toolchain-gccarmnoneeabi/arm-none-eabi/include
+  BuiltinHeaders: QueryDriver

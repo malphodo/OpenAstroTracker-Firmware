@@ -1438,6 +1438,19 @@ String MeadeCommandProcessor::handleMeadeGPSCommands(String inCmd)
             if (gpsAqcuisitionComplete(indicator))
             {
                 LOG(DEBUG_MEADE, "[MEADE]: GPS startup, GPS acquired");
+                // Play beep to indicate GPS fix - tone at 1kHz
+#if defined(LCD12864_BEEPER_PIN) && (LCD12864_BEEPER_PIN != U8X8_PIN_NONE)
+                pinMode(LCD12864_BEEPER_PIN, OUTPUT);
+                uint16_t halfUs = 500;  // 1kHz frequency (halfUs = 1000000 / (2 * 1000))
+                uint16_t cycles = 200;  // 200ms duration
+                for (uint16_t i = 0; i < cycles; i++)
+                {
+                    digitalWrite(LCD12864_BEEPER_PIN, HIGH);
+                    delayMicroseconds(halfUs);
+                    digitalWrite(LCD12864_BEEPER_PIN, LOW);
+                    delayMicroseconds(halfUs);
+                }
+#endif
                 return "1";
             }
         }
