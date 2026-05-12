@@ -148,6 +148,7 @@ void loop()
         static bool calTopLogoRendered = false;
         static bool ctrlTopLogoRendered = false;
         static bool poiTopLogoRendered = false;
+        static bool focTopLogoRendered = false;
     #endif
 
     #if USES_ROTARY_ENCODER == 1
@@ -536,6 +537,13 @@ void loop()
                     lcdMenu.setCursor(0, 1);
                     poiTopLogoRendered = false;
                 }
+                if (focTopLogoRendered && !(topLevelMenuNav && activeMenu == Focuser_Menu))
+                {
+                    // Leaving FOC top-level: clear stale logo pixels once.
+                    lcdMenu.clearConfigLogoLarge();
+                    lcdMenu.setCursor(0, 1);
+                    focTopLogoRendered = false;
+                }
 
                 if (topLevelMenuNav && activeMenu == Config_Menu && !configTopLogoRendered)
                 {
@@ -549,6 +557,7 @@ void loop()
                     calTopLogoRendered    = false;
                     ctrlTopLogoRendered   = false;
                     poiTopLogoRendered    = false;
+                    focTopLogoRendered    = false;
                 }
                 if (topLevelMenuNav && activeMenu == Status_Menu && !infoTopLogoRendered)
                 {
@@ -562,6 +571,7 @@ void loop()
                     calTopLogoRendered    = false;
                     ctrlTopLogoRendered   = false;
                     poiTopLogoRendered    = false;
+                    focTopLogoRendered    = false;
                 }
                 if (topLevelMenuNav && activeMenu == RA_Menu && !raTopLogoRendered)
                 {
@@ -575,6 +585,7 @@ void loop()
                     calTopLogoRendered    = false;
                     ctrlTopLogoRendered   = false;
                     poiTopLogoRendered    = false;
+                    focTopLogoRendered    = false;
                 }
                 if (topLevelMenuNav && activeMenu == DEC_Menu && !decTopLogoRendered)
                 {
@@ -588,6 +599,7 @@ void loop()
                     calTopLogoRendered    = false;
                     ctrlTopLogoRendered   = false;
                     poiTopLogoRendered    = false;
+                    focTopLogoRendered    = false;
                 }
                 if (topLevelMenuNav && activeMenu == HA_Menu && !haTopLogoRendered)
                 {
@@ -601,6 +613,7 @@ void loop()
                     calTopLogoRendered    = false;
                     ctrlTopLogoRendered   = false;
                     poiTopLogoRendered    = false;
+                    focTopLogoRendered    = false;
                 }
                 if (topLevelMenuNav && activeMenu == Home_Menu && !homeTopLogoRendered)
                 {
@@ -614,6 +627,7 @@ void loop()
                     calTopLogoRendered    = false;
                     ctrlTopLogoRendered   = false;
                     poiTopLogoRendered    = false;
+                    focTopLogoRendered    = false;
                 }
                 if (topLevelMenuNav && activeMenu == Calibration_Menu && !calTopLogoRendered)
                 {
@@ -627,6 +641,7 @@ void loop()
                     homeTopLogoRendered   = false;
                     ctrlTopLogoRendered   = false;
                     poiTopLogoRendered    = false;
+                    focTopLogoRendered    = false;
                 }
                 if (topLevelMenuNav && activeMenu == Control_Menu && !ctrlTopLogoRendered)
                 {
@@ -640,6 +655,7 @@ void loop()
                     homeTopLogoRendered   = false;
                     calTopLogoRendered    = false;
                     poiTopLogoRendered    = false;
+                    focTopLogoRendered    = false;
                 }
                 if (topLevelMenuNav && activeMenu == POI_Menu && !poiTopLogoRendered)
                 {
@@ -653,6 +669,21 @@ void loop()
                     homeTopLogoRendered   = false;
                     calTopLogoRendered    = false;
                     ctrlTopLogoRendered   = false;
+                    focTopLogoRendered    = false;
+                }
+                if (topLevelMenuNav && activeMenu == Focuser_Menu && !focTopLogoRendered)
+                {
+                    lcdMenu.drawFocLogoLarge();
+                    focTopLogoRendered    = true;
+                    configTopLogoRendered = false;
+                    infoTopLogoRendered   = false;
+                    raTopLogoRendered     = false;
+                    decTopLogoRendered    = false;
+                    haTopLogoRendered     = false;
+                    homeTopLogoRendered   = false;
+                    calTopLogoRendered    = false;
+                    ctrlTopLogoRendered   = false;
+                    poiTopLogoRendered    = false;
                 }
     #endif
     #endif

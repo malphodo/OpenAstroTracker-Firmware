@@ -207,6 +207,34 @@ void LcdMenu::drawPoiLogoLarge()
 #endif
 }
 
+void LcdMenu::drawFocLogoLarge()
+{
+#if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701 \
+    || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
+    // Reserve rows 1..4 (y=12..63) for the large icon while browsing top-level pages.
+    _lcd.setDrawColor(0);
+    _lcd.drawBox(0, 12, _columns * 6, 52);
+    _lcd.setDrawColor(1);
+
+    // FOC logo: focus symbol (lens-like shape with focus points).
+    const uint8_t cx = 48;
+    const uint8_t cy = 36;
+    _lcd.drawCircle(cx, cy, 15);
+    _lcd.drawCircle(cx, cy, 14);
+    // Draw lens-like shape (two curves)
+    _lcd.drawCircle(cx - 8, cy, 6);
+    _lcd.drawCircle(cx + 8, cy, 6);
+    // Draw focus arrows pointing inward
+    _lcd.drawLine(cx - 12, cy - 10, cx - 14, cy - 8);
+    _lcd.drawLine(cx - 12, cy - 10, cx - 10, cy - 12);
+    _lcd.drawLine(cx + 12, cy + 10, cx + 14, cy + 8);
+    _lcd.drawLine(cx + 12, cy + 10, cx + 10, cy + 12);
+    _lcd.drawStr(cx - 8, cy + 4, "FOC");
+
+    _lcd.sendBuffer();
+#endif
+}
+
 #if DISPLAY_TYPE != DISPLAY_TYPE_NONE
 
     #if DISPLAY_FLIP_180 == 1
@@ -1526,6 +1554,10 @@ void LcdMenu::drawCtrlLogoLarge()
 }
 
 void LcdMenu::drawPoiLogoLarge()
+{
+}
+
+void LcdMenu::drawFocLogoLarge()
 {
 }
 
