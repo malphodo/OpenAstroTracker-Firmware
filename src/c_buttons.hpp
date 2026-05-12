@@ -140,6 +140,7 @@ void loop()
         bool valueEditingActive = false;
     #if USES_ROTARY_ENCODER == 1
         static bool configTopLogoRendered = false;
+        static bool infoTopLogoRendered = false;
     #endif
 
     #if USES_ROTARY_ENCODER == 1
@@ -437,7 +438,7 @@ void loop()
                 lcdMenu.setCursor(0, 0);
                 // Keep the config icon only in top-level navigation. In page mode, reserve
                 // the full title width so the trailing '*' always remains visible.
-                const char *pageIcon = (topLevelMenuNav && activeMenu == Config_Menu) ? "} " : "";
+                const char *pageIcon = (topLevelMenuNav && activeMenu == Config_Menu) ? "} " : (topLevelMenuNav && activeMenu == Status_Menu) ? "i " : "";
                 lcdMenu.printMenu(String(pageIcon) + pageTitle + (topLevelMenuNav ? "" : "*"));
                 lcdMenu.setCursor(0, 1);
 
@@ -462,19 +463,31 @@ void loop()
     #endif
 
     #if USES_ROTARY_ENCODER == 1
-                if (topLevelMenuNav && activeMenu == Config_Menu)
-                {
-                    if (!configTopLogoRendered)
-                    {
-                        lcdMenu.drawConfigLogoLarge();
-                        configTopLogoRendered = true;
-                    }
-                }
-                else if (configTopLogoRendered)
+                if (configTopLogoRendered && !(topLevelMenuNav && activeMenu == Config_Menu))
                 {
                     // Leaving Configuration top-level: clear stale logo pixels once.
                     lcdMenu.clearConfigLogoLarge();
                     lcdMenu.setCursor(0, 1);
+                    configTopLogoRendered = false;
+                }
+                if (infoTopLogoRendered && !(topLevelMenuNav && activeMenu == Status_Menu))
+                {
+                    // Leaving INFO top-level: clear stale logo pixels once.
+                    lcdMenu.clearConfigLogoLarge();
+                    lcdMenu.setCursor(0, 1);
+                    infoTopLogoRendered = false;
+                }
+
+                if (topLevelMenuNav && activeMenu == Config_Menu && !configTopLogoRendered)
+                {
+                    lcdMenu.drawConfigLogoLarge();
+                    configTopLogoRendered = true;
+                    infoTopLogoRendered   = false;
+                }
+                if (topLevelMenuNav && activeMenu == Status_Menu && !infoTopLogoRendered)
+                {
+                    lcdMenu.drawInfoLogoLarge();
+                    infoTopLogoRendered   = true;
                     configTopLogoRendered = false;
                 }
     #endif

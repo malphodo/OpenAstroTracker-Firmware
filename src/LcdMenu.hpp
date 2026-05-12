@@ -149,6 +149,7 @@ class LcdMenu
     // Draw a large Configuration logo below the title row (graphic displays only).
     void drawConfigLogoLarge();
     void clearConfigLogoLarge();
+    void drawInfoLogoLarge();
 
 #if DISPLAY_TYPE == DISPLAY_TYPE_LCD_KEYPAD_I2C_MCP23008 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_KEYPAD_I2C_MCP23017
     uint8_t readButtons();

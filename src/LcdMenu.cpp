@@ -4,7 +4,30 @@
 #include "libs/MappedDict/MappedDict.hpp"
 #include "EPROMStore.hpp"
 #include "LcdMenu.hpp"
+
 #include "../assets/logos/xbm/config_gear_32.xbm"
+
+void LcdMenu::drawInfoLogoLarge()
+{
+#if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701 \
+    || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
+    // Reserve rows 1..4 (y=12..63) for the large icon while browsing top-level pages.
+    _lcd.setDrawColor(0);
+    _lcd.drawBox(0, 12, _columns * 6, 52);
+    _lcd.setDrawColor(1);
+
+    // Draw a large "info" pictogram centered below the title row.
+    const uint8_t cx = 48;
+    const uint8_t cy = 36;
+    _lcd.drawCircle(cx, cy, 15);
+    _lcd.drawCircle(cx, cy, 14);
+    _lcd.drawDisc(cx, cy - 8, 2);
+    _lcd.drawBox(cx - 1, cy - 2, 3, 12);
+    _lcd.drawBox(cx - 3, cy + 10, 7, 2);
+
+    _lcd.sendBuffer();
+#endif
+}
 
 #if DISPLAY_TYPE != DISPLAY_TYPE_NONE
 

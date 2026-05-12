@@ -6,6 +6,8 @@
 - Set rotary JogSens default to a neutral value of 5 and refined encoder pulse handling for smoother navigation.
 - Added automatic SKR SD post-build copy support to F:\FIRMWARE.BIN when the card is mounted.
 - Fixed page-title marker rendering on long labels: the trailing '*' now appears reliably in selected-page mode and no longer remains stuck after exit.
+- Added a large INFO page logo below the title on Mini12864/U8g2 displays, matching the Configuration page visual behavior.
+- Fixed a top-level carousel transition bug where moving from INFO to Configuration could make the Configuration large logo flash and disappear.
 
 **V1.13.20 - Updates**
 - Added robust Mini12864 V2/V3 support on SKR 1.4 Turbo with controller selection (ST7565/ST7567/UC1701), dedicated EXP pin mapping, and improved validation.
