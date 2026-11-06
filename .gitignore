@@ -20,3 +20,9 @@ tools/oat_test_harness/dist/
 tools/oat_test_harness/*.spec
 # macOS
 **/.DS_Store
+
+# Local editor / agent artefacts (never commit)
+compile_commands.json
+.claude/worktrees/
+.cursor/
+cursor-secrets.ps1
