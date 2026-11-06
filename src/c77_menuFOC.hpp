@@ -114,7 +114,7 @@ bool processFocuserKeys()
     #else
                     lcdMenu.setNextActive();
     #endif
-                    focState         = HIGHLIGHT_FOCUS_ADJUSTMENT;
+                    focState = HIGHLIGHT_FOCUS_ADJUSTMENT;
                 }
                 else if (key == btnLEFT)
                 {
@@ -176,13 +176,21 @@ void printFocusSubmenu()
     char lineBuf[18];
 
     lcdMenu.setCursor(0, 1);
-    snprintf(lineBuf, sizeof(lineBuf), "%cMove [%c]%s", (focState == HIGHLIGHT_FOCUS_ADJUSTMENT || inMoveEdit) ? '>' : ' ', motionChar,
+    snprintf(lineBuf,
+             sizeof(lineBuf),
+             "%cMove [%c]%s",
+             (focState == HIGHLIGHT_FOCUS_ADJUSTMENT || inMoveEdit) ? '>' : ' ',
+             motionChar,
              inMoveEdit ? "*" : "");
     lcdMenu.printMenu(String(lineBuf));
 
     lcdMenu.setCursor(0, 2);
-    snprintf(lineBuf, sizeof(lineBuf), "%cRate:%u%s", (focState == HIGHLIGHT_FOCUS_RATE || inRateEdit) ? '>' : ' ',
-             static_cast<unsigned>(rateIndex + 1), inRateEdit ? "*" : "");
+    snprintf(lineBuf,
+             sizeof(lineBuf),
+             "%cRate:%u%s",
+             (focState == HIGHLIGHT_FOCUS_RATE || inRateEdit) ? '>' : ' ',
+             static_cast<unsigned>(rateIndex + 1),
+             inRateEdit ? "*" : "");
     lcdMenu.printMenu(String(lineBuf));
 
     lcdMenu.setCursor(0, 3);

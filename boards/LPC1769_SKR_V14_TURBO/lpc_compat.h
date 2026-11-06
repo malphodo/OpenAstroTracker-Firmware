@@ -14,11 +14,11 @@
 #endif
 
 #ifndef radians
-    #define radians(x) ((x) *0.017453292519943295f)
+    #define radians(x) ((x) * 0.017453292519943295f)
 #endif
 
 #ifndef degrees
-    #define degrees(x) ((x) *57.29577951308232f)
+    #define degrees(x) ((x) * 57.29577951308232f)
 #endif
 
 #ifndef yield

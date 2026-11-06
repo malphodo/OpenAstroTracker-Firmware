@@ -33,8 +33,8 @@ enum startupState_t
         #define NO     2
         #define CANCEL 3
 
-startupState_t startupState = StartupIsInHomePosition;
-int isInHomePosition        = NO;
+startupState_t startupState      = StartupIsInHomePosition;
+int isInHomePosition             = NO;
 unsigned long startupNavRepeatMs = 0;
 
 void startupIsCompleted()
@@ -75,7 +75,7 @@ bool processStartupKeys()
     {
         case StartupIsInHomePosition:
             {
-                const unsigned long now = millis();
+                const unsigned long now   = millis();
                 const lcdButton_t heldKey = lcdButtons.currentState();
                 // Robust rotary handling for Mini12864: consume held directional states as
                 // navigation events with repeat limiting (keyChanged() can miss short pulses).
@@ -94,7 +94,7 @@ bool processStartupKeys()
                 {
                     if ((now - startupNavRepeatMs) >= 75)
                     {
-                        isInHomePosition = adjustWrap(isInHomePosition, step, YES, CANCEL);
+                        isInHomePosition   = adjustWrap(isInHomePosition, step, YES, CANCEL);
                         startupNavRepeatMs = now;
                     }
                 }
@@ -145,9 +145,9 @@ bool processStartupKeys()
                 lcdMenu.setCursor(0, 0);
                 lcdMenu.printMenu("Level front");
                 lcdMenu.setActive(Calibration_Menu);
-        #if USES_ROTARY_ENCODER == 1
+            #if USES_ROTARY_ENCODER == 1
                 topLevelMenuNav = false;
-        #endif
+            #endif
 
                 startupState = StartupWaitForRollCompletion;
             }

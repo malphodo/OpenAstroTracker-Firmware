@@ -11,7 +11,8 @@ POP_NO_WARNINGS
 
 #if BOARD == BOARD_LPC1769_SKR_V14_TURBO
 PUSH_NO_WARNINGS
-extern "C" {
+extern "C"
+{
     #include <lpc17xx_iap.h>
 }
 POP_NO_WARNINGS

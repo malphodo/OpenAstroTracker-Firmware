@@ -5,13 +5,13 @@
     #include <LiquidCrystal.h>
 #elif DISPLAY_TYPE == DISPLAY_TYPE_LCD_KEYPAD_I2C_MCP23008 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_KEYPAD_I2C_MCP23017
     #include <LiquidTWI2.h>
-#elif DISPLAY_TYPE == DISPLAY_TYPE_LCD_JOY_I2C_SSD1306 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567                              \
-    || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920                         \
+#elif DISPLAY_TYPE == DISPLAY_TYPE_LCD_JOY_I2C_SSD1306 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567                             \
+    || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920                        \
     || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
     #include <U8x8lib.h>  // https://github.com/olikraus/u8g2
 #endif
 
-#if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                            \
+#if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                           \
     || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
     #include <U8g2lib.h>
 #endif
@@ -201,10 +201,10 @@ class LcdMenu
     MenuItem **_menuItems;  // The first menu item (linked list)
     byte _numMenuItems;
     byte _activeMenuIndex;
-    byte _longestDisplay;    // The number of characters in the longest menu item
-    byte _columns;           // The number of columns in the LCD display
-    byte _activeRow;         // The row that the LCD cursor is on
-    byte _activeCol;         // The column that the LCD cursor is on
+    byte _longestDisplay;  // The number of characters in the longest menu item
+    byte _columns;         // The number of columns in the LCD display
+    byte _activeRow;       // The row that the LCD cursor is on
+    byte _activeCol;       // The column that the LCD cursor is on
     static constexpr byte MAX_DISPLAY_ROWS = 8;
     String _lastDisplay[MAX_DISPLAY_ROWS];  // The last string that was displayed on each row
     byte _brightness;
@@ -223,8 +223,8 @@ class LcdMenu
     bool _mini12864ButtonBlinkRunning;
     uint8_t _mini12864SavedButtonRgb[6];
 
-    #if DISPLAY_TYPE != DISPLAY_TYPE_LCD_JOY_I2C_SSD1306 && DISPLAY_TYPE != DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567                             \
-        && DISPLAY_TYPE != DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701 && DISPLAY_TYPE != DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920                      \
+    #if DISPLAY_TYPE != DISPLAY_TYPE_LCD_JOY_I2C_SSD1306 && DISPLAY_TYPE != DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567                           \
+        && DISPLAY_TYPE != DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701 && DISPLAY_TYPE != DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920                    \
         && DISPLAY_TYPE != DISPLAY_TYPE_MINI12864_V2
     enum specialChar_t : byte
     {

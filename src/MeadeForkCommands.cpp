@@ -162,7 +162,7 @@ bool MeadeCommandProcessor::handleForkCommand(const char *cmd, String &reply)
         return false;
     }
 
-    LcdMenu *lcd           = _lcdMenu;
+    LcdMenu *lcd            = _lcdMenu;
     const bool rgbSupported = (lcd != nullptr) && lcd->isMini12864RgbSupported();
 
     // ---------------------------------------------------------------
@@ -272,7 +272,8 @@ bool MeadeCommandProcessor::handleForkCommand(const char *cmd, String &reply)
             else if (eq(leaf, "UR"))
             {
                 lcd->getMini12864Rgb(&r, &g, &b);
-                snprintf(buf, sizeof(buf), "%u,%u,%u,%u#", lcd->isMini12864RgbEnabled() ? 1u : 0u, (unsigned) r, (unsigned) g, (unsigned) b);
+                snprintf(
+                    buf, sizeof(buf), "%u,%u,%u,%u#", lcd->isMini12864RgbEnabled() ? 1u : 0u, (unsigned) r, (unsigned) g, (unsigned) b);
                 reply = buf;
             }
             else if (eq(leaf, "UF"))

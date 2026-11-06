@@ -177,9 +177,9 @@ void printDECSubmenu()
     #if USES_ROTARY_ENCODER == 1
     char lineBuf[24];
 
-    const char markerD = (DECselect == 0) ? (decEditing ? '*' : '>') : ' ';
-    const char markerM = (DECselect == 1) ? (decEditing ? '*' : '>') : ' ';
-    const char markerS = (DECselect == 2) ? (decEditing ? '*' : '>') : ' ';
+    const char markerD    = (DECselect == 0) ? (decEditing ? '*' : '>') : ' ';
+    const char markerM    = (DECselect == 1) ? (decEditing ? '*' : '>') : ' ';
+    const char markerS    = (DECselect == 2) ? (decEditing ? '*' : '>') : ' ';
     const char markerShow = (DECselect == 3) ? (decEditing ? '*' : '>') : ' ';
     const char markerGoto = (DECselect == 4) ? '>' : ' ';
     const char markerExit = (DECselect == DEC_FIELD_EXIT) ? '>' : ' ';
@@ -197,12 +197,7 @@ void printDECSubmenu()
     lcdMenu.printMenu(String(lineBuf));
 
     lcdMenu.setCursor(0, 2);
-    snprintf(lineBuf,
-             sizeof(lineBuf),
-             "%c%s:%s",
-             markerShow,
-             TR_SHOW,
-             showTargetDEC ? TR_TARGET : TR_CURRENT);
+    snprintf(lineBuf, sizeof(lineBuf), "%c%s:%s", markerShow, TR_SHOW, showTargetDEC ? TR_TARGET : TR_CURRENT);
     lcdMenu.printMenu(String(lineBuf));
 
     lcdMenu.setCursor(0, 3);

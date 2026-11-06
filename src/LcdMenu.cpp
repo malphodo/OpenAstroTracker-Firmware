@@ -9,7 +9,7 @@
 
 void LcdMenu::drawInfoLogoLarge()
 {
-#if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701 \
+#if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                           \
     || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
     // Reserve rows 1..4 (y=12..63) for the large icon while browsing top-level pages.
     _lcd.setDrawColor(0);
@@ -31,7 +31,7 @@ void LcdMenu::drawInfoLogoLarge()
 
 void LcdMenu::drawRaLogoLarge()
 {
-#if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701 \
+#if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                           \
     || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
     // Reserve rows 1..4 (y=12..63) for the large icon while browsing top-level pages.
     _lcd.setDrawColor(0);
@@ -54,7 +54,7 @@ void LcdMenu::drawRaLogoLarge()
 
 void LcdMenu::drawDecLogoLarge()
 {
-#if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701 \
+#if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                           \
     || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
     // Reserve rows 1..4 (y=12..63) for the large icon while browsing top-level pages.
     _lcd.setDrawColor(0);
@@ -79,7 +79,7 @@ void LcdMenu::drawDecLogoLarge()
 
 void LcdMenu::drawHaLogoLarge()
 {
-#if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701 \
+#if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                           \
     || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
     // Reserve rows 1..4 (y=12..63) for the large icon while browsing top-level pages.
     _lcd.setDrawColor(0);
@@ -104,7 +104,7 @@ void LcdMenu::drawHaLogoLarge()
 
 void LcdMenu::drawHomeLogoLarge()
 {
-#if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701 \
+#if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                           \
     || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
     // Reserve rows 1..4 (y=12..63) for the large icon while browsing top-level pages.
     _lcd.setDrawColor(0);
@@ -128,7 +128,7 @@ void LcdMenu::drawHomeLogoLarge()
 
 void LcdMenu::drawCalLogoLarge()
 {
-#if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701 \
+#if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                           \
     || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
     // Reserve rows 1..4 (y=12..63) for the large icon while browsing top-level pages.
     _lcd.setDrawColor(0);
@@ -151,7 +151,7 @@ void LcdMenu::drawCalLogoLarge()
 
 void LcdMenu::drawCtrlLogoLarge()
 {
-#if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701 \
+#if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                           \
     || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
     // Reserve rows 1..4 (y=12..63) for the large icon while browsing top-level pages.
     _lcd.setDrawColor(0);
@@ -176,7 +176,7 @@ void LcdMenu::drawCtrlLogoLarge()
 
 void LcdMenu::drawPoiLogoLarge()
 {
-#if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701 \
+#if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                           \
     || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
     // Reserve rows 1..4 (y=12..63) for the large icon while browsing top-level pages.
     _lcd.setDrawColor(0);
@@ -189,16 +189,17 @@ void LcdMenu::drawPoiLogoLarge()
     _lcd.drawCircle(cx, cy, 15);
     _lcd.drawCircle(cx, cy, 14);
     // Draw a 5-point star
-    for (int i = 0; i < 5; i++) {
-        float angle = i * 72 * 3.14159 / 180;
-        int x1 = cx + (int)(10 * cos(angle));
-        int y1 = cy + (int)(10 * sin(angle));
+    for (int i = 0; i < 5; i++)
+    {
+        float angle     = i * 72 * 3.14159 / 180;
+        int x1          = cx + (int) (10 * cos(angle));
+        int y1          = cy + (int) (10 * sin(angle));
         float nextAngle = (i + 1) * 72 * 3.14159 / 180;
-        int x2 = cx + (int)(5 * cos(angle + 36 * 3.14159 / 180));
-        int y2 = cy + (int)(5 * sin(angle + 36 * 3.14159 / 180));
+        int x2          = cx + (int) (5 * cos(angle + 36 * 3.14159 / 180));
+        int y2          = cy + (int) (5 * sin(angle + 36 * 3.14159 / 180));
         _lcd.drawLine(x1, y1, x2, y2);
-        int x3 = cx + (int)(10 * cos(nextAngle));
-        int y3 = cy + (int)(10 * sin(nextAngle));
+        int x3 = cx + (int) (10 * cos(nextAngle));
+        int y3 = cy + (int) (10 * sin(nextAngle));
         _lcd.drawLine(x2, y2, x3, y3);
     }
     _lcd.drawStr(cx - 7, cy + 4, "POI");
@@ -209,7 +210,7 @@ void LcdMenu::drawPoiLogoLarge()
 
 void LcdMenu::drawFocLogoLarge()
 {
-#if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701 \
+#if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                           \
     || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
     // Reserve rows 1..4 (y=12..63) for the large icon while browsing top-level pages.
     _lcd.setDrawColor(0);
@@ -273,88 +274,88 @@ static inline bool mini12864V2BacklightPinValid()
     return MINI12864_V2_BACKLIGHT_PIN >= 0;
 }
 
-#if (MINI12864_VARIANT == MINI12864_VARIANT_V3)
-    #ifndef MINI12864_V3_LED_COUNT
-        // BTT Mini12864 V3 has 3 daisy-chained WS2812 LEDs: 2 behind the LCD + 1 on the encoder.
-        #define MINI12864_V3_LED_COUNT 3
-    #endif
+    #if (MINI12864_VARIANT == MINI12864_VARIANT_V3)
+        #ifndef MINI12864_V3_LED_COUNT
+            // BTT Mini12864 V3 has 3 daisy-chained WS2812 LEDs: 2 behind the LCD + 1 on the encoder.
+            #define MINI12864_V3_LED_COUNT 3
+        #endif
 
-    static inline bool mini12864RgbPinValid()
-    {
-        return MINI12864_V3_RGB_PIN >= 0;
-    }
+static inline bool mini12864RgbPinValid()
+{
+    return MINI12864_V3_RGB_PIN >= 0;
+}
 
-    static inline void writeMini12864NeopixelByte(uint8_t value)
+static inline void writeMini12864NeopixelByte(uint8_t value)
+{
+    for (uint8_t mask = 0x80; mask != 0; mask >>= 1)
     {
-        for (uint8_t mask = 0x80; mask != 0; mask >>= 1)
+        digitalWrite(MINI12864_V3_RGB_PIN, HIGH);
+        if ((value & mask) != 0)
         {
-            digitalWrite(MINI12864_V3_RGB_PIN, HIGH);
-            if ((value & mask) != 0)
-            {
-                delayMicroseconds(1);
-            }
-            digitalWrite(MINI12864_V3_RGB_PIN, LOW);
             delayMicroseconds(1);
         }
+        digitalWrite(MINI12864_V3_RGB_PIN, LOW);
+        delayMicroseconds(1);
     }
+}
 
-    // Note: standard WS2812/WS2812B chips expect bytes in GRB order, but the WS2812-style
-    // driver on the BTT Mini12864 V3 has been observed to interpret the stream as RGB. This
-    // is tested empirically (R=255 produced green in GRB mode). Change WIRE_USES_GRB to 1
-    // only if the hardware is confirmed to be strict GRB.
-    #ifndef MINI12864_V3_WIRE_USES_GRB
-        #define MINI12864_V3_WIRE_USES_GRB 0
-    #endif
-
-    static inline void writeMini12864OneLed(uint8_t r, uint8_t g, uint8_t b)
-    {
-        #if MINI12864_V3_WIRE_USES_GRB
-        writeMini12864NeopixelByte(g);
-        writeMini12864NeopixelByte(r);
-        writeMini12864NeopixelByte(b);
-        #else
-        writeMini12864NeopixelByte(r);
-        writeMini12864NeopixelByte(g);
-        writeMini12864NeopixelByte(b);
+        // Note: standard WS2812/WS2812B chips expect bytes in GRB order, but the WS2812-style
+        // driver on the BTT Mini12864 V3 has been observed to interpret the stream as RGB. This
+        // is tested empirically (R=255 produced green in GRB mode). Change WIRE_USES_GRB to 1
+        // only if the hardware is confirmed to be strict GRB.
+        #ifndef MINI12864_V3_WIRE_USES_GRB
+            #define MINI12864_V3_WIRE_USES_GRB 0
         #endif
-    }
 
-    static void writeMini12864RgbNow(uint8_t r, uint8_t g, uint8_t b)
+static inline void writeMini12864OneLed(uint8_t r, uint8_t g, uint8_t b)
+{
+        #if MINI12864_V3_WIRE_USES_GRB
+    writeMini12864NeopixelByte(g);
+    writeMini12864NeopixelByte(r);
+    writeMini12864NeopixelByte(b);
+        #else
+    writeMini12864NeopixelByte(r);
+    writeMini12864NeopixelByte(g);
+    writeMini12864NeopixelByte(b);
+        #endif
+}
+
+static void writeMini12864RgbNow(uint8_t r, uint8_t g, uint8_t b)
+{
+    if (!mini12864RgbPinValid())
     {
-        if (!mini12864RgbPinValid())
-        {
-            return;
-        }
-
-        noInterrupts();
-        for (uint8_t i = 0; i < MINI12864_V3_LED_COUNT; i++)
-        {
-            writeMini12864OneLed(r, g, b);
-        }
-        interrupts();
-        delayMicroseconds(80);  // Latch
+        return;
     }
 
-    // Per-LED variant: takes an array of MINI12864_V3_LED_COUNT * 3 bytes in R,G,B order.
-    static void writeMini12864RgbChain(const uint8_t *rgbTriplets)
+    noInterrupts();
+    for (uint8_t i = 0; i < MINI12864_V3_LED_COUNT; i++)
     {
-        if (!mini12864RgbPinValid())
-        {
-            return;
-        }
-
-        noInterrupts();
-        for (uint8_t i = 0; i < MINI12864_V3_LED_COUNT; i++)
-        {
-            uint8_t r = rgbTriplets[i * 3 + 0];
-            uint8_t g = rgbTriplets[i * 3 + 1];
-            uint8_t b = rgbTriplets[i * 3 + 2];
-            writeMini12864OneLed(r, g, b);
-        }
-        interrupts();
-        delayMicroseconds(80);  // Latch
+        writeMini12864OneLed(r, g, b);
     }
-#endif
+    interrupts();
+    delayMicroseconds(80);  // Latch
+}
+
+// Per-LED variant: takes an array of MINI12864_V3_LED_COUNT * 3 bytes in R,G,B order.
+static void writeMini12864RgbChain(const uint8_t *rgbTriplets)
+{
+    if (!mini12864RgbPinValid())
+    {
+        return;
+    }
+
+    noInterrupts();
+    for (uint8_t i = 0; i < MINI12864_V3_LED_COUNT; i++)
+    {
+        uint8_t r = rgbTriplets[i * 3 + 0];
+        uint8_t g = rgbTriplets[i * 3 + 1];
+        uint8_t b = rgbTriplets[i * 3 + 2];
+        writeMini12864OneLed(r, g, b);
+    }
+    interrupts();
+    delayMicroseconds(80);  // Latch
+}
+    #endif
 
     // Class that drives the LCD screen with a menu
     // You add a string and an id item and this class handles the display and navigation
@@ -382,20 +383,20 @@ LcdMenu::LcdMenu(byte cols, byte rows, int maxItems)
 }
     #elif DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567
 LcdMenu::LcdMenu(byte cols, byte rows, int maxItems)
-    : _lcd(LCD_U8G2_ROT, LCD12864_SCK_PIN, LCD12864_MOSI_PIN, LCD12864_CS_PIN, LCD12864_DC_PIN, LCD12864_RST_PIN),
-      _cols(cols), _rows(rows), _maxItems(maxItems), _charHeightRows(1)
+    : _lcd(LCD_U8G2_ROT, LCD12864_SCK_PIN, LCD12864_MOSI_PIN, LCD12864_CS_PIN, LCD12864_DC_PIN, LCD12864_RST_PIN), _cols(cols), _rows(rows),
+      _maxItems(maxItems), _charHeightRows(1)
 {
 }
     #elif DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701
 LcdMenu::LcdMenu(byte cols, byte rows, int maxItems)
-    : _lcd(LCD_U8G2_ROT, LCD12864_SCK_PIN, LCD12864_MOSI_PIN, LCD12864_CS_PIN, LCD12864_DC_PIN, LCD12864_RST_PIN),
-      _cols(cols), _rows(rows), _maxItems(maxItems), _charHeightRows(1)
+    : _lcd(LCD_U8G2_ROT, LCD12864_SCK_PIN, LCD12864_MOSI_PIN, LCD12864_CS_PIN, LCD12864_DC_PIN, LCD12864_RST_PIN), _cols(cols), _rows(rows),
+      _maxItems(maxItems), _charHeightRows(1)
 {
 }
     #elif DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920
 LcdMenu::LcdMenu(byte cols, byte rows, int maxItems)
-    : _lcd(LCD_U8G2_ROT, LCD12864_ST7920_SCK_PIN, LCD12864_ST7920_MOSI_PIN, LCD12864_ST7920_CS_PIN, LCD12864_RST_PIN),
-      _cols(cols), _rows(rows), _maxItems(maxItems), _charHeightRows(1)
+    : _lcd(LCD_U8G2_ROT, LCD12864_ST7920_SCK_PIN, LCD12864_ST7920_MOSI_PIN, LCD12864_ST7920_CS_PIN, LCD12864_RST_PIN), _cols(cols),
+      _rows(rows), _maxItems(maxItems), _charHeightRows(1)
 {
 }
     #elif DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
@@ -442,9 +443,9 @@ void LcdMenu::startup()
     _lcd.clear();
     _lcd.setFont(u8x8_font_7x14_1x2_f);  // Each 7x14 character takes up 2 8-pixel rows
     _lcdBadHw = false;
-    #elif DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                       \
+    #elif DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                     \
         || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
-    #if DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
+        #if DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
     // Some Mini12864 boards route an LCD reset line to EXP1_5 (P1_20). BTT V3 does not,
     // but pulsing it LOW->HIGH is harmless when unconnected and rescues V2 clones that would
     // otherwise boot with the controller stuck in reset.
@@ -454,33 +455,37 @@ void LcdMenu::startup()
     digitalWrite(P1_20, HIGH);
     delay(50);
     LOG(DEBUG_INFO, "[LCD]: Mini12864 pulse-reset on P1_20 done");
-    #endif
+        #endif
     _lcd.begin();
     _lcd.setPowerSave(0);
-    #if DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
+        #if DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
     // Apply display-wide pixel polarity. ST7565/ST7567/UC1701 share commands:
     //   0xA6 = normal (drawn = dark on clear)
     //   0xA7 = inverse (drawn = clear on dark)
     _lcd.sendF("c", (MINI12864_INVERT_DISPLAY != 0) ? 0xA7 : 0xA6);
     // Force a reasonable contrast at boot so the panel is legible regardless of any EEPROM state.
     _lcd.setContrast(MINI12864_CONTRAST);
-        #if MINI12864_CONTROLLER == MINI12864_CONTROLLER_UC1701
+            #if MINI12864_CONTROLLER == MINI12864_CONTROLLER_UC1701
     LOG(DEBUG_INFO, "[LCD]: Mini12864 controller=UC1701, contrast=%d", (int) MINI12864_CONTRAST);
-        #elif MINI12864_CONTROLLER == MINI12864_CONTROLLER_ST7565
+            #elif MINI12864_CONTROLLER == MINI12864_CONTROLLER_ST7565
     LOG(DEBUG_INFO, "[LCD]: Mini12864 controller=ST7565, contrast=%d", (int) MINI12864_CONTRAST);
-        #else
+            #else
     LOG(DEBUG_INFO, "[LCD]: Mini12864 controller=ST7567, contrast=%d", (int) MINI12864_CONTRAST);
+            #endif
+    LOG(DEBUG_INFO,
+        "[LCD]: Mini12864 pins SCK=%d MOSI=%d CS=%d DC=%d RST=%d",
+        (int) LCD12864_MINI_SCK_PIN,
+        (int) LCD12864_MINI_MOSI_PIN,
+        (int) LCD12864_MINI_CS_PIN,
+        (int) LCD12864_MINI_DC_PIN,
+        (int) LCD12864_MINI_RST_PIN);
         #endif
-    LOG(DEBUG_INFO, "[LCD]: Mini12864 pins SCK=%d MOSI=%d CS=%d DC=%d RST=%d",
-        (int) LCD12864_MINI_SCK_PIN, (int) LCD12864_MINI_MOSI_PIN, (int) LCD12864_MINI_CS_PIN,
-        (int) LCD12864_MINI_DC_PIN, (int) LCD12864_MINI_RST_PIN);
-    #endif
     _lcd.setFont(u8g2_font_6x12_tf);
     _lcd.clearBuffer();
-    #if DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
+        #if DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
     _lcd.drawStr(0, 14, "OpenAstroTracker");
     _lcd.drawFrame(0, 0, 128, 64);  // Visible border helps confirm the panel is actually driven.
-    #endif
+        #endif
     _lcd.sendBuffer();
     _lcdBadHw = false;
     #endif
@@ -497,7 +502,7 @@ void LcdMenu::startup()
         LOG(DEBUG_INFO, "[LCD]: EEPROM brightness invalid, using MINI12864_CONTRAST=%d", _brightness);
     }
     #endif
-    _backlightEnabled = (_brightness > 0);
+    _backlightEnabled      = (_brightness > 0);
     _lastNonZeroBrightness = (_brightness > 0) ? _brightness : 180;
     setBacklightBrightness(_brightness, false);
 
@@ -511,7 +516,7 @@ void LcdMenu::startup()
     {
         _lastDisplay[i] = "";
     }
-    _menuItems       = new MenuItem *[_maxItems];
+    _menuItems           = new MenuItem *[_maxItems];
     _mini12864RgbEnabled = false;
     _mini12864RgbR       = 0;
     _mini12864RgbG       = 0;
@@ -520,9 +525,9 @@ void LcdMenu::startup()
     {
         _mini12864LedRgb[i] = 0;
     }
-    _mini12864BacklightMode = MINI12864_MODE_DEFAULT;
-    _mini12864ButtonBlinkMode = MINI12864_BUTTON_BLINK_NONE;
-    _mini12864EditBlinkActive = false;
+    _mini12864BacklightMode      = MINI12864_MODE_DEFAULT;
+    _mini12864ButtonBlinkMode    = MINI12864_BUTTON_BLINK_NONE;
+    _mini12864EditBlinkActive    = false;
     _mini12864ButtonBlinkRunning = false;
     for (uint8_t i = 0; i < sizeof(_mini12864SavedButtonRgb); i++)
     {
@@ -541,13 +546,14 @@ void LcdMenu::startup()
         _mini12864RgbR = MINI12864_V3_RGB_R;
         _mini12864RgbG = MINI12864_V3_RGB_G;
         _mini12864RgbB = MINI12864_V3_RGB_B;
-        writeMini12864RgbNow(_mini12864RgbEnabled ? _mini12864RgbR : 0, _mini12864RgbEnabled ? _mini12864RgbG : 0,
-            _mini12864RgbEnabled ? _mini12864RgbB : 0);
+        writeMini12864RgbNow(_mini12864RgbEnabled ? _mini12864RgbR : 0,
+                             _mini12864RgbEnabled ? _mini12864RgbG : 0,
+                             _mini12864RgbEnabled ? _mini12864RgbB : 0);
     }
     #endif
 
-    #if DISPLAY_TYPE != DISPLAY_TYPE_LCD_JOY_I2C_SSD1306 && DISPLAY_TYPE != DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567                             \
-        && DISPLAY_TYPE != DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701 && DISPLAY_TYPE != DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920                      \
+    #if DISPLAY_TYPE != DISPLAY_TYPE_LCD_JOY_I2C_SSD1306 && DISPLAY_TYPE != DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567                           \
+        && DISPLAY_TYPE != DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701 && DISPLAY_TYPE != DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920                    \
         && DISPLAY_TYPE != DISPLAY_TYPE_MINI12864_V2
     // Create special characters for degrees and arrows
     _lcd.createChar(_degrees, DegreesBitmap);
@@ -663,7 +669,7 @@ void LcdMenu::setCursor(byte col, byte row)
 // Pass thru utility function
 void LcdMenu::clear()
 {
-    #if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                         \
+    #if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                       \
         || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
     _lcd.clearBuffer();
     _lcd.sendBuffer();
@@ -675,7 +681,7 @@ void LcdMenu::clear()
 // Set the brightness of the backlight
 void LcdMenu::setBacklightBrightness(int level, bool persist)
 {
-    _brightness = level;
+    _brightness       = level;
     _backlightEnabled = (_brightness > 0);
     if (_brightness > 0)
     {
@@ -704,20 +710,20 @@ void LcdMenu::setBacklightBrightness(int level, bool persist)
         // Nothing to do?
     #elif DISPLAY_TYPE == DISPLAY_TYPE_LCD_JOY_I2C_SSD1306
     _lcd.setContrast(_brightness);
-    #elif DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                       \
+    #elif DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                     \
         || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
     _lcd.setContrast(_brightness);
-    #if DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2 && (MINI12864_VARIANT == MINI12864_VARIANT_V2)
+        #if DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2 && (MINI12864_VARIANT == MINI12864_VARIANT_V2)
     if (mini12864V2BacklightPinValid())
     {
         pinMode(MINI12864_V2_BACKLIGHT_PIN, OUTPUT);
-        #if MINI12864_V2_BACKLIGHT_ACTIVE_HIGH
+            #if MINI12864_V2_BACKLIGHT_ACTIVE_HIGH
         digitalWrite(MINI12864_V2_BACKLIGHT_PIN, _backlightEnabled ? HIGH : LOW);
-        #else
+            #else
         digitalWrite(MINI12864_V2_BACKLIGHT_PIN, _backlightEnabled ? LOW : HIGH);
-        #endif
+            #endif
     }
-    #endif
+        #endif
     #endif
 
     if (persist)
@@ -769,8 +775,8 @@ void LcdMenu::setMini12864RgbEnabled(bool enabled)
 {
     _mini12864RgbEnabled = enabled;
     #if (MINI12864_VARIANT == MINI12864_VARIANT_V3)
-    writeMini12864RgbNow(_mini12864RgbEnabled ? _mini12864RgbR : 0, _mini12864RgbEnabled ? _mini12864RgbG : 0,
-        _mini12864RgbEnabled ? _mini12864RgbB : 0);
+    writeMini12864RgbNow(
+        _mini12864RgbEnabled ? _mini12864RgbR : 0, _mini12864RgbEnabled ? _mini12864RgbG : 0, _mini12864RgbEnabled ? _mini12864RgbB : 0);
     #endif
 }
 
@@ -816,11 +822,11 @@ bool LcdMenu::setMini12864RgbLed(uint8_t ledIndex1Based, uint8_t r, uint8_t g, u
     {
         return false;
     }
-    uint8_t idx = (uint8_t)(ledIndex1Based - 1);
+    uint8_t idx                   = (uint8_t) (ledIndex1Based - 1);
     _mini12864LedRgb[idx * 3 + 0] = r;
     _mini12864LedRgb[idx * 3 + 1] = g;
     _mini12864LedRgb[idx * 3 + 2] = b;
-    _mini12864RgbEnabled = true;
+    _mini12864RgbEnabled          = true;
     writeMini12864RgbChain(_mini12864LedRgb);
     return true;
     #else
@@ -866,13 +872,13 @@ bool LcdMenu::applyMini12864BacklightMode(uint8_t mode)
     }
     for (uint8_t led = 0; led < MINI12864_V3_LED_COUNT; led++)
     {
-        uint8_t srcLed = (led < 3) ? led : 2;  // clamp if the chain is smaller than table
+        uint8_t srcLed                = (led < 3) ? led : 2;  // clamp if the chain is smaller than table
         _mini12864LedRgb[led * 3 + 0] = MINI12864_PRESETS[mode][srcLed][0];
         _mini12864LedRgb[led * 3 + 1] = MINI12864_PRESETS[mode][srcLed][1];
         _mini12864LedRgb[led * 3 + 2] = MINI12864_PRESETS[mode][srcLed][2];
     }
     _mini12864BacklightMode = mode;
-    _mini12864RgbEnabled = (mode != (uint8_t) MINI12864_MODE_OFF);
+    _mini12864RgbEnabled    = (mode != (uint8_t) MINI12864_MODE_OFF);
     writeMini12864RgbChain(_mini12864LedRgb);
     LOG(DEBUG_INFO, "[LCD]: applyMini12864BacklightMode(%d) applied", (int) mode);
     return true;
@@ -951,22 +957,34 @@ void LcdMenu::tickMini12864Effects(unsigned long nowMs)
         if (phase)
         {
             // Blue phase
-            _mini12864LedRgb[0] = 0; _mini12864LedRgb[1] = 0; _mini12864LedRgb[2] = 255;
-            _mini12864LedRgb[3] = 0; _mini12864LedRgb[4] = 0; _mini12864LedRgb[5] = 255;
+            _mini12864LedRgb[0] = 0;
+            _mini12864LedRgb[1] = 0;
+            _mini12864LedRgb[2] = 255;
+            _mini12864LedRgb[3] = 0;
+            _mini12864LedRgb[4] = 0;
+            _mini12864LedRgb[5] = 255;
         }
         else
         {
             // Red phase
-            _mini12864LedRgb[0] = 255; _mini12864LedRgb[1] = 0; _mini12864LedRgb[2] = 0;
-            _mini12864LedRgb[3] = 255; _mini12864LedRgb[4] = 0; _mini12864LedRgb[5] = 0;
+            _mini12864LedRgb[0] = 255;
+            _mini12864LedRgb[1] = 0;
+            _mini12864LedRgb[2] = 0;
+            _mini12864LedRgb[3] = 255;
+            _mini12864LedRgb[4] = 0;
+            _mini12864LedRgb[5] = 0;
         }
     }
     else
     {
         // Edit mode: encoder button LEDs blink red.
-        uint8_t v = phase ? 255 : 0;
-        _mini12864LedRgb[0] = v; _mini12864LedRgb[1] = 0; _mini12864LedRgb[2] = 0;
-        _mini12864LedRgb[3] = v; _mini12864LedRgb[4] = 0; _mini12864LedRgb[5] = 0;
+        uint8_t v           = phase ? 255 : 0;
+        _mini12864LedRgb[0] = v;
+        _mini12864LedRgb[1] = 0;
+        _mini12864LedRgb[2] = 0;
+        _mini12864LedRgb[3] = v;
+        _mini12864LedRgb[4] = 0;
+        _mini12864LedRgb[5] = 0;
     }
 
     writeMini12864RgbChain(_mini12864LedRgb);
@@ -1053,7 +1071,7 @@ void LcdMenu::setPrevActive()
 {
     _activeMenuIndex = adjustWrap(_activeMenuIndex, -1, 0, _numMenuItems - 1);
 
-    #if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                         \
+    #if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                       \
         || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
     // Rotary page-by-page navigation mode: do not paint the top menu bar here.
     return;
@@ -1063,7 +1081,7 @@ void LcdMenu::setPrevActive()
     updateDisplay();
 
     // Clear submenu line, in case new menu doesn't print anything.
-    #if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                         \
+    #if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                       \
         || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
     setCursor(0, 1);
     printMenu("");
@@ -1081,7 +1099,7 @@ void LcdMenu::setNextActive()
 {
     _activeMenuIndex = adjustWrap(_activeMenuIndex, 1, 0, _numMenuItems - 1);
 
-    #if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                         \
+    #if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                       \
         || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
     // Rotary page-by-page navigation mode: do not paint the top menu bar here.
     return;
@@ -1091,7 +1109,7 @@ void LcdMenu::setNextActive()
     updateDisplay();
 
     // Clear submenu line, in case new menu doesn't print anything.
-    #if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                         \
+    #if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                       \
         || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
     setCursor(0, 1);
     printMenu("");
@@ -1199,7 +1217,7 @@ void LcdMenu::printChar(char ch)
     }
 
     _lcd.tx += 1;
-    #elif DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                       \
+    #elif DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                     \
         || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
     uint16_t x = (uint16_t) (_activeCol * 6);
     uint16_t y = (uint16_t) (_activeRow * 12 + 10);
@@ -1223,11 +1241,20 @@ void LcdMenu::printChar(char ch)
         uint16_t codepoint = (uint8_t) ch;
         switch (ch)
         {
-            case '@': codepoint = 176; break;  // degree symbol
-            case '&': codepoint = '*'; break;  // tracking marker fallback
-            case '`': codepoint = 'x'; break;  // no-tracking marker fallback
-            case '~': codepoint = 'v'; break;  // down arrow fallback
-            default: break;
+            case '@':
+                codepoint = 176;
+                break;  // degree symbol
+            case '&':
+                codepoint = '*';
+                break;  // tracking marker fallback
+            case '`':
+                codepoint = 'x';
+                break;  // no-tracking marker fallback
+            case '~':
+                codepoint = 'v';
+                break;  // down arrow fallback
+            default:
+                break;
         }
         _lcd.setFont(u8g2_font_6x12_tf);
         _lcd.drawGlyph(x, y, codepoint);
@@ -1261,14 +1288,14 @@ void LcdMenu::printChar(char ch)
 // Print a character at a specific position
 void LcdMenu::printAt(int col, int row, char ch)
 {
-    #if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                         \
+    #if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                       \
         || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
     setCursor(col, row);
     #else
     _lcd.setCursor(col, _charHeightRows * row);
     #endif
     printChar(ch);
-    #if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                         \
+    #if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                       \
         || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
     _lcd.sendBuffer();
     #endif
@@ -1276,7 +1303,7 @@ void LcdMenu::printAt(int col, int row, char ch)
 
 void LcdMenu::drawConfigLogoLarge()
 {
-    #if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                         \
+    #if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                       \
         || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
     // Reserve rows 1..4 (y=12..63) for the large icon while browsing top-level pages.
     _lcd.setDrawColor(0);
@@ -1294,7 +1321,7 @@ void LcdMenu::drawConfigLogoLarge()
 
 void LcdMenu::clearConfigLogoLarge()
 {
-    #if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                         \
+    #if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                       \
         || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
     // Clear rows 1..4 where the large top-level Configuration logo is drawn.
     _lcd.setDrawColor(0);
@@ -1331,8 +1358,8 @@ void LcdMenu::printMenu(String line)
     {
         _lastDisplay[_activeRow] = visibleLine;
 
-        #if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                     \
-            || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
+    #if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                       \
+        || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
         int pixelY = _activeRow * 12;
         _lcd.setDrawColor(0);
         _lcd.drawBox(0, pixelY, _columns * 6, 12);
@@ -1358,7 +1385,7 @@ void LcdMenu::printMenu(String line)
         // Keep cursor bookkeeping predictable for callers.
         _activeCol = startCol;
         _lcd.sendBuffer();
-        #else
+    #else
         int spaces = _columns - visibleLine.length();
         _lcd.setCursor(_activeCol, _charHeightRows * _activeRow);
         for (char i : visibleLine)
@@ -1372,7 +1399,7 @@ void LcdMenu::printMenu(String line)
             _lcd.print(" ");
             spaces--;
         }
-        #endif
+    #endif
     }
 }
 
@@ -1384,8 +1411,8 @@ void LcdMenu::invalidateCachedDisplayRow(byte row)
     }
 }
 
-    #if DISPLAY_TYPE != DISPLAY_TYPE_LCD_JOY_I2C_SSD1306 && DISPLAY_TYPE != DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567                             \
-        && DISPLAY_TYPE != DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701 && DISPLAY_TYPE != DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920                      \
+    #if DISPLAY_TYPE != DISPLAY_TYPE_LCD_JOY_I2C_SSD1306 && DISPLAY_TYPE != DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567                           \
+        && DISPLAY_TYPE != DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701 && DISPLAY_TYPE != DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920                    \
         && DISPLAY_TYPE != DISPLAY_TYPE_MINI12864_V2
 
 // The right arrow bitmap

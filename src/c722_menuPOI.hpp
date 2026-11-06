@@ -51,7 +51,7 @@ int parkPOI    = sizeof(pointOfInterest) / sizeof(pointOfInterest[0]) - 1;
 int unparkPOI  = sizeof(pointOfInterest) / sizeof(pointOfInterest[0]) - 2;
 byte homePOI   = sizeof(pointOfInterest) / sizeof(pointOfInterest[0]) - 3;
 
-    #if USES_ROTARY_ENCODER == 1
+        #if USES_ROTARY_ENCODER == 1
 static int poiCursor    = 0;
 static int poiScrollTop = 0;
 
@@ -78,17 +78,17 @@ static inline void syncPoiScroll()
         poiScrollTop = poiCursor - visibleRows + 1;
     }
 }
-    #endif
+        #endif
 
 bool processPOIKeys()
 {
     lcdButton_t key;
     bool waitForRelease = false;
 
-    #if USES_ROTARY_ENCODER == 1
+        #if USES_ROTARY_ENCODER == 1
     if (lcdButtons.keyChanged(&key))
     {
-        waitForRelease = true;
+        waitForRelease      = true;
         const int exitIndex = getPoiExitIndex();
         if (key == btnLEFT)
         {
@@ -137,7 +137,7 @@ bool processPOIKeys()
             }
         }
     }
-    #else
+        #else
     if (lcdButtons.keyChanged(&key))
     {
         waitForRelease = true;
@@ -194,14 +194,14 @@ bool processPOIKeys()
                 break;
         }
     }
-    #endif
+        #endif
 
     return waitForRelease;
 }
 
 void printPOISubmenu()
 {
-    #if USES_ROTARY_ENCODER == 1
+        #if USES_ROTARY_ENCODER == 1
     const int visibleRows = 4;
     const int exitIndex   = getPoiExitIndex();
     syncPoiScroll();
@@ -209,7 +209,7 @@ void printPOISubmenu()
     for (int row = 0; row < visibleRows; row++)
     {
         const int lineIndex = poiScrollTop + row;
-        String line = "";
+        String line         = "";
         if (lineIndex < exitIndex)
         {
             line = String((lineIndex == poiCursor) ? ">" : " ") + String(getPoiLabel(lineIndex));
@@ -221,12 +221,12 @@ void printPOISubmenu()
         lcdMenu.setCursor(0, static_cast<byte>(1 + row));
         lcdMenu.printMenu(line);
     }
-    #else
+        #else
     if (mount.isSlewingIdle())
     {
         lcdMenu.printMenu(pointOfInterest[currentPOI].pDisplay);
     }
-    #endif
+        #endif
 }
     #endif
 #endif

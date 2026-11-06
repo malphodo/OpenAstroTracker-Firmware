@@ -27,7 +27,7 @@ int gpsBufPos = 0;
 long lastGPSUpdate = 0;
 bool gpsAqcuisitionComplete(int &indicator)
 {
-#if USE_GPS_I2C_ADAFRUIT == 1
+    #if USE_GPS_I2C_ADAFRUIT == 1
     for (int chunk = 0; chunk < 4; chunk++)
     {
         const uint8_t toRead = 32;
@@ -41,9 +41,9 @@ bool gpsAqcuisitionComplete(int &indicator)
         {
             const int gpsChar = Wire.read();
             gpsDiagBytesRead++;
-            gpsDiagLastByte = gpsChar;
+            gpsDiagLastByte                        = gpsChar;
             gpsDiagHexWindow[gpsDiagHexWriteIndex] = static_cast<uint8_t>(gpsChar & 0xFF);
-            gpsDiagHexWriteIndex                    = (gpsDiagHexWriteIndex + 1) % GPS_DIAG_HEX_WINDOW;
+            gpsDiagHexWriteIndex                   = (gpsDiagHexWriteIndex + 1) % GPS_DIAG_HEX_WINDOW;
             if (gpsDiagHexCount < GPS_DIAG_HEX_WINDOW)
             {
                 gpsDiagHexCount++;
@@ -87,25 +87,25 @@ bool gpsAqcuisitionComplete(int &indicator)
         }
     }
     return false;
-#else
+    #else
     while (GPS_SERIAL_PORT.available())
     {
         int gpsChar = GPS_SERIAL_PORT.read();
         gpsDiagBytesRead++;
-        gpsDiagLastByte = gpsChar;
+        gpsDiagLastByte                        = gpsChar;
         gpsDiagHexWindow[gpsDiagHexWriteIndex] = static_cast<uint8_t>(gpsChar & 0xFF);
-        gpsDiagHexWriteIndex                    = (gpsDiagHexWriteIndex + 1) % GPS_DIAG_HEX_WINDOW;
+        gpsDiagHexWriteIndex                   = (gpsDiagHexWriteIndex + 1) % GPS_DIAG_HEX_WINDOW;
         if (gpsDiagHexCount < GPS_DIAG_HEX_WINDOW)
         {
             gpsDiagHexCount++;
         }
 
-    #if DEBUG_LEVEL & DEBUG_GPS
+        #if DEBUG_LEVEL & DEBUG_GPS
         if ((gpsBufPos < 254) && (gpsChar > 31))
         {
             gpsBuf[gpsBufPos++] = gpsChar;
         }
-    #endif
+        #endif
         if (gpsChar == 36)
         {
             // $ (ASCII 36) marks start of message, so we switch indicator every message
@@ -119,11 +119,11 @@ bool gpsAqcuisitionComplete(int &indicator)
         {
             gpsDiagSentences++;
             gpsDiagLastSentenceMs = millis();
-    #if DEBUG_LEVEL & DEBUG_GPS
+        #if DEBUG_LEVEL & DEBUG_GPS
             gpsBuf[gpsBufPos++] = 0;
             LOG(DEBUG_GPS, "[GPS]: Sentence: [%s]", gpsBuf);
             gpsBufPos = 0;
-    #endif
+        #endif
 
             LOG(DEBUG_GPS,
                 "[GPS]: Encoded. %l sats, Location is%svalid, age is %lms",
@@ -152,7 +152,7 @@ bool gpsAqcuisitionComplete(int &indicator)
         }
     }
     return false;
-#endif
+    #endif
 }
 
 String getGPSDebugSnapshot(unsigned long pollMs = 300)
@@ -233,9 +233,9 @@ bool processHAKeys()
         if (gpsAqcuisitionComplete(indicator))
         {
             LOG(DEBUG_INFO, "[HA]: GPS acquired");
-#if (USE_GPS_I2C_ADAFRUIT == 0) && (BOARD != BOARD_LPC1769_SKR_V14_TURBO)  // LPC176x HardwareSerial has no end()
+        #if (USE_GPS_I2C_ADAFRUIT == 0) && (BOARD != BOARD_LPC1769_SKR_V14_TURBO)  // LPC176x HardwareSerial has no end()
             GPS_SERIAL_PORT.end();
-#endif
+        #endif
             haState = SHOWING_HA_SYNC;
         #if SUPPORT_GUIDED_STARTUP == 1
             if (startupState == StartupWaitForHACompletion)
@@ -257,11 +257,11 @@ bool processHAKeys()
             if (key == btnSELECT)
             {
                 haState = STARTING_GPS;
-#if USE_GPS_I2C_ADAFRUIT == 0
+        #if USE_GPS_I2C_ADAFRUIT == 0
                 GPS_SERIAL_PORT.begin(GPS_BAUD_RATE);
-#endif
+        #endif
             }
-#if USES_ROTARY_ENCODER == 1
+        #if USES_ROTARY_ENCODER == 1
             else if (key == btnLEFT)
             {
                 haState = SHOWING_HA_EXIT;
@@ -270,21 +270,21 @@ bool processHAKeys()
             {
                 haState = SHOWING_HA_SET;
             }
-#else
+        #else
             else if ((key == btnUP) || (key == btnDOWN))
             {
                 haState = SHOWING_HA_SET;
             }
-#endif
+        #endif
         }
         else if (haState == SHOWING_HA_SET)
         {
             if (key == btnSELECT)
             {
-                haState = ENTER_HA_MANUALLY;
+                haState      = ENTER_HA_MANUALLY;
                 haGpsEditing = false;
             }
-#if USES_ROTARY_ENCODER == 1
+        #if USES_ROTARY_ENCODER == 1
             else if (key == btnLEFT)
             {
                 haState = SHOWING_HA_SYNC;
@@ -293,12 +293,12 @@ bool processHAKeys()
             {
                 haState = SHOWING_HA_EXIT;
             }
-#else
+        #else
             else if ((key == btnUP) || (key == btnDOWN))
             {
                 haState = SHOWING_HA_SYNC;
             }
-#endif
+        #endif
         }
         else if (haState == SHOWING_HA_EXIT)
         {
@@ -317,7 +317,7 @@ bool processHAKeys()
         }
         else if (haState == ENTER_HA_MANUALLY)
         {
-#if USES_ROTARY_ENCODER == 1
+        #if USES_ROTARY_ENCODER == 1
             if (key == btnSELECT)
             {
                 if (!haGpsEditing)
@@ -330,15 +330,15 @@ bool processHAKeys()
                     EEPROMStore::storeHATime(mount.HA());
                     lcdMenu.printMenu("Stored.");
                     mount.delay(500);
-                    haState       = SHOWING_HA_SET;
-                    haGpsEditing  = false;
-        #if SUPPORT_GUIDED_STARTUP == 1
+                    haState      = SHOWING_HA_SET;
+                    haGpsEditing = false;
+            #if SUPPORT_GUIDED_STARTUP == 1
                     if (startupState == StartupWaitForHACompletion)
                     {
                         startupState = StartupHAConfirmed;
                         inStartup    = true;
                     }
-        #endif
+            #endif
                 }
             }
             else if (!haGpsEditing && ((key == btnLEFT) || (key == btnRIGHT)))
@@ -356,7 +356,7 @@ bool processHAKeys()
                     ha.addMinutes(delta);
                 mount.setHA(ha);
             }
-#else
+        #else
             if (key == btnSELECT)
             {
                 DayTime ha(mount.HA());
@@ -364,13 +364,13 @@ bool processHAKeys()
                 lcdMenu.printMenu("Stored.");
                 mount.delay(500);
                 haState = SHOWING_HA_SET;
-        #if SUPPORT_GUIDED_STARTUP == 1
+            #if SUPPORT_GUIDED_STARTUP == 1
                 if (startupState == StartupWaitForHACompletion)
                 {
                     startupState = StartupHAConfirmed;
                     inStartup    = true;
                 }
-        #endif
+            #endif
             }
             else if (key == btnUP)
             {
@@ -394,7 +394,7 @@ bool processHAKeys()
             {
                 HAselect = adjustWrap(HAselect, 1, 0, 1);
             }
-#endif
+        #endif
         }
 
         if (key == btnRIGHT)
@@ -403,26 +403,26 @@ bool processHAKeys()
             if (haState == STARTING_GPS)
             {
                 LOG(DEBUG_INFO, "[HA]: In GPS Start mode, switching to manual");
-#if (USE_GPS_I2C_ADAFRUIT == 0) && (BOARD != BOARD_LPC1769_SKR_V14_TURBO)  // LPC176x HardwareSerial has no end()
+        #if (USE_GPS_I2C_ADAFRUIT == 0) && (BOARD != BOARD_LPC1769_SKR_V14_TURBO)  // LPC176x HardwareSerial has no end()
                 GPS_SERIAL_PORT.end();
-#endif
+        #endif
                 haState = SHOWING_HA_SYNC;
             }
-#if USES_ROTARY_ENCODER == 0
-        #if SUPPORT_GUIDED_STARTUP == 1
+        #if USES_ROTARY_ENCODER == 0
+            #if SUPPORT_GUIDED_STARTUP == 1
             else if (startupState == StartupWaitForHACompletion)
             {
                 LOG(DEBUG_INFO, "[HA]: In Startup, not in GPS Start mode, leaving");
                 startupState = StartupHAConfirmed;
                 inStartup    = true;
             }
-        #endif
+            #endif
             else
             {
                 LOG(DEBUG_INFO, "[HA]: leaving HA");
                 lcdMenu.setNextActive();
             }
-#endif
+        #endif
         }
     }
 

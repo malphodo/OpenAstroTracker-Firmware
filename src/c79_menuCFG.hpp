@@ -7,35 +7,35 @@
 
 enum cfgItem_t
 {
-    CfgItemJogSens = 0,
-    CfgItemLanguage = 1,
-    CfgItemLedMode = 2,
-    CfgItemGyro = 3,
-    CfgItemAutoPa = 4,
-    CfgItemAutoHome = 5,
-    CfgItemGPS = 6,
+    CfgItemJogSens   = 0,
+    CfgItemLanguage  = 1,
+    CfgItemLedMode   = 2,
+    CfgItemGyro      = 3,
+    CfgItemAutoPa    = 4,
+    CfgItemAutoHome  = 5,
+    CfgItemGPS       = 6,
     CfgItemStartSong = 7,
-    CfgItemExit = 8,
+    CfgItemExit      = 8,
 };
 
 enum cfgLedMode_t : uint8_t
 {
     CfgLedModeAstro = 0,
-    CfgLedModeGold = 1,
-    CfgLedModeDay = 2,
+    CfgLedModeGold  = 1,
+    CfgLedModeDay   = 2,
 };
 
-static cfgItem_t cfgItem  = CfgItemJogSens;
-static bool cfgEditing    = false;
-static byte cfgScrollTop  = 0;
+static cfgItem_t cfgItem = CfgItemJogSens;
+static bool cfgEditing   = false;
+static byte cfgScrollTop = 0;
 
 // Feature toggles - will be loaded from EEPROM after it's initialized
-static bool cfgGyroEnabled = false;
-static bool cfgAutoPaEnabled = false;
-static bool cfgAutoHomeEnabled = false;
-static bool cfgGpsEnabled = false;
+static bool cfgGyroEnabled      = false;
+static bool cfgAutoPaEnabled    = false;
+static bool cfgAutoHomeEnabled  = false;
+static bool cfgGpsEnabled       = false;
 static bool cfgStartSongEnabled = true;
-static uint8_t cfgLedMode = CfgLedModeDay;
+static uint8_t cfgLedMode       = CfgLedModeDay;
 
 static uint8_t toMini12864Mode(uint8_t cfgMode)
 {
@@ -64,17 +64,17 @@ static uint8_t fromMini12864Mode(uint8_t miniMode)
 // Initialize config settings from EEPROM
 static void initializeConfigSettings()
 {
-    cfgGyroEnabled = EEPROMStore::getGyroEnabled();
-    cfgAutoPaEnabled = EEPROMStore::getAutoPaEnabled();
-    cfgAutoHomeEnabled = EEPROMStore::getAutoHomeEnabled();
-    cfgGpsEnabled = EEPROMStore::getGpsEnabled();
+    cfgGyroEnabled      = EEPROMStore::getGyroEnabled();
+    cfgAutoPaEnabled    = EEPROMStore::getAutoPaEnabled();
+    cfgAutoHomeEnabled  = EEPROMStore::getAutoHomeEnabled();
+    cfgGpsEnabled       = EEPROMStore::getGpsEnabled();
     cfgStartSongEnabled = EEPROMStore::getBootSongEnabled();
-    cfgLedMode = fromMini12864Mode(lcdMenu.getMini12864BacklightMode());
+    cfgLedMode          = fromMini12864Mode(lcdMenu.getMini12864BacklightMode());
 }
 
 static void playExitBeep()
 {
-#if defined(LCD12864_BEEPER_PIN) && (LCD12864_BEEPER_PIN != U8X8_PIN_NONE)
+    #if defined(LCD12864_BEEPER_PIN) && (LCD12864_BEEPER_PIN != U8X8_PIN_NONE)
     pinMode(LCD12864_BEEPER_PIN, OUTPUT);
     for (int i = 0; i < 60; i++)
     {
@@ -83,7 +83,7 @@ static void playExitBeep()
         digitalWrite(LCD12864_BEEPER_PIN, LOW);
         delayMicroseconds(260);
     }
-#endif
+    #endif
 }
 
 static void resetConfigUiStateOnExit()
@@ -109,15 +109,15 @@ bool processConfigKeys()
     bool waitForRelease = false;
 
     // Guard: reset state when entering CFG for the first time (or re-entering).
-    static bool cfgNeedsReset = true;
-    static unsigned long lastCfgEventMs = 0;
+    static bool cfgNeedsReset                       = true;
+    static unsigned long lastCfgEventMs             = 0;
     static const unsigned long CFG_EVENT_HOLDOFF_MS = 150UL;
     if (cfgNeedsReset)
     {
         cfgItem        = CfgItemJogSens;
         cfgEditing     = false;
         cfgScrollTop   = 0;
-        lastCfgEventMs = millis();   // block events for 150 ms after entry
+        lastCfgEventMs = millis();  // block events for 150 ms after entry
         cfgNeedsReset  = false;
     }
 
@@ -125,7 +125,7 @@ bool processConfigKeys()
     {
         waitForRelease = true;
 
-#if USES_ROTARY_ENCODER == 1
+    #if USES_ROTARY_ENCODER == 1
         const unsigned long cfgNow = millis();
         if (!cfgEditing)
         {
@@ -166,9 +166,9 @@ bool processConfigKeys()
                     // display section in THIS same frame already renders the title
                     // without '*'.  The requestBackToTop handler will fire later in
                     // the same frame and arm the SELECT hold-off guards.
-                    topLevelMenuNav = true;
+                    topLevelMenuNav  = true;
                     requestBackToTop = true;
-                    cfgNeedsReset = true;   // reset state for next entry
+                    cfgNeedsReset    = true;  // reset state for next entry
                 }
                 else
                 {
@@ -302,7 +302,7 @@ bool processConfigKeys()
                 }
             }
         }
-#else
+    #else
         if (!cfgEditing)
         {
             if (key == btnUP)
@@ -400,7 +400,7 @@ bool processConfigKeys()
                 }
             }
         }
-#endif
+    #endif
     }
 
     return waitForRelease;
@@ -420,7 +420,10 @@ static void formatCfgLine(cfgItem_t item, char *out, size_t outLen)
             snprintf(out, outLen, "%cLang:%s%s", cur, LANGUAGE_NAMES[currentLanguage], editing ? "*" : "");
             break;
         case CfgItemLedMode:
-            snprintf(out, outLen, "%cLed:%s%s", cur,
+            snprintf(out,
+                     outLen,
+                     "%cLed:%s%s",
+                     cur,
                      (cfgLedMode == CfgLedModeAstro) ? "Astro" : ((cfgLedMode == CfgLedModeGold) ? "Gold" : "Day"),
                      editing ? "*" : "");
             break;
@@ -448,8 +451,8 @@ static void formatCfgLine(cfgItem_t item, char *out, size_t outLen)
 void printConfigSubmenu()
 {
     const byte visibleRows = 4;
-    const int  maxItem     = static_cast<int>(CfgItemExit);
-    const int  curIdx      = static_cast<int>(cfgItem);
+    const int maxItem      = static_cast<int>(CfgItemExit);
+    const int curIdx       = static_cast<int>(cfgItem);
 
     // Keep selected item inside the visible window.
     if (curIdx < static_cast<int>(cfgScrollTop))

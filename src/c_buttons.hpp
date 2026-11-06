@@ -92,7 +92,7 @@ void loop()
     if (!inSerialControl && okToUpdateMenu && !inStartup && !mount.isSlewingRAorDEC())
     {
     #if USES_ROTARY_ENCODER == 1
-        // Page-by-page rotary mode does not use the top menu bar.
+            // Page-by-page rotary mode does not use the top menu bar.
     #else
         // Main menu display
         lcdMenu.updateDisplay();
@@ -103,7 +103,7 @@ void loop()
     if ((mount.isBootComplete()) && (now - lastTrackingStatusPrint > 200))
     {
     #if USES_ROTARY_ENCODER == 1
-        // Keep row 0 free from top-bar artifacts in rotary page mode.
+            // Keep row 0 free from top-bar artifacts in rotary page mode.
     #else
         lcdMenu.printAt(15, 0, mount.isSlewingTRK() ? '&' : '`');
     #endif
@@ -135,51 +135,51 @@ void loop()
     else
     #endif
     {
-        bool waitForButtonRelease = false;
+        bool waitForButtonRelease  = false;
         bool pageNavigatedByRotary = false;
-        bool valueEditingActive = false;
+        bool valueEditingActive    = false;
     #if USES_ROTARY_ENCODER == 1
         static bool configTopLogoRendered = false;
-        static bool infoTopLogoRendered = false;
-        static bool raTopLogoRendered = false;
-        static bool decTopLogoRendered = false;
-        static bool haTopLogoRendered = false;
-        static bool homeTopLogoRendered = false;
-        static bool calTopLogoRendered = false;
-        static bool ctrlTopLogoRendered = false;
-        static bool poiTopLogoRendered = false;
-        static bool focTopLogoRendered = false;
+        static bool infoTopLogoRendered   = false;
+        static bool raTopLogoRendered     = false;
+        static bool decTopLogoRendered    = false;
+        static bool haTopLogoRendered     = false;
+        static bool homeTopLogoRendered   = false;
+        static bool calTopLogoRendered    = false;
+        static bool ctrlTopLogoRendered   = false;
+        static bool poiTopLogoRendered    = false;
+        static bool focTopLogoRendered    = false;
     #endif
 
     #if USES_ROTARY_ENCODER == 1
         auto resetRotaryEditModes = []() {
             raEditing  = false;
             decEditing = false;
-    #if USE_GPS == 1
+        #if USE_GPS == 1
             haGpsEditing = false;
-    #else
+        #else
             haEditing = false;
-    #endif
+        #endif
             cfgEditing = false;
             lcdMenu.setMini12864EditBlinkActive(false);
-    #if (FOCUS_STEPPER_TYPE != STEPPER_TYPE_NONE)
+        #if (FOCUS_STEPPER_TYPE != STEPPER_TYPE_NONE)
             if (focState == FOCUS_ADJUSTMENT)
             {
                 focState = HIGHLIGHT_FOCUS_ADJUSTMENT;
             }
-    #endif
+        #endif
         };
     #endif
     #if USES_ROTARY_ENCODER == 1
         valueEditingActive = cfgEditing || raEditing || decEditing;
-    #if (FOCUS_STEPPER_TYPE != STEPPER_TYPE_NONE)
+        #if (FOCUS_STEPPER_TYPE != STEPPER_TYPE_NONE)
         valueEditingActive = valueEditingActive || (focState == FOCUS_ADJUSTMENT);
-    #endif
-    #if USE_GPS == 1
+        #endif
+        #if USE_GPS == 1
         valueEditingActive = valueEditingActive || haGpsEditing;
-    #else
+        #else
         valueEditingActive = valueEditingActive || haEditing;
-    #endif
+        #endif
     #endif
 
     // Handle the keys
@@ -200,7 +200,7 @@ void loop()
             // Minimum interval between top-level page-change events.
             // Prevents encoder bounces from firing a forward then a backward event
             // in rapid succession (screen flashes and returns to previous page).
-            static unsigned long lastTopNavEventMs = 0;
+            static unsigned long lastTopNavEventMs        = 0;
             static const unsigned long TOP_NAV_HOLDOFF_MS = 150UL;
             // Set to true when a sub-page exits via SELECT.
             // Blocks top-level SELECT entry until the button is physically released,
@@ -210,7 +210,7 @@ void loop()
             // Absolute time-based holdoff: prevents re-entering any sub-menu for
             // SUB_EXIT_SELECT_HOLDOFF_MS after any requestBackToTop exit, regardless
             // of button debounce state or keyChanged edge-detection race conditions.
-            static unsigned long lastSubMenuExitMs = 0;
+            static unsigned long lastSubMenuExitMs                = 0;
             static const unsigned long SUB_EXIT_SELECT_HOLDOFF_MS = 500UL;
 
             // Poll physical state: if we are waiting for release, check each frame.
@@ -218,7 +218,7 @@ void loop()
             {
                 // Button has been physically released; arm bounce holdoff from this moment.
                 topLevelWaitForSelectRelease = false;
-                lastTopNavEventMs = millis();
+                lastTopNavEventMs            = millis();
             }
 
             // IMPORTANT: only consume keyChanged() at this level while browsing top-level pages.
@@ -240,7 +240,7 @@ void loop()
                         }
                         lastTopNavEventMs = navNow;
                     }
-                    waitForButtonRelease = true;
+                    waitForButtonRelease  = true;
                     pageNavigatedByRotary = true;
                 }
                 else if (rotaryEvent == btnSELECT)
@@ -251,12 +251,11 @@ void loop()
                     //  3. At least SUB_EXIT_SELECT_HOLDOFF_MS has passed since last sub-menu exit
                     //     (absolute time guard — immune to all button debounce race conditions)
                     const unsigned long navNow = millis();
-                    if (!topLevelWaitForSelectRelease
-                        && (navNow - lastTopNavEventMs >= TOP_NAV_HOLDOFF_MS)
+                    if (!topLevelWaitForSelectRelease && (navNow - lastTopNavEventMs >= TOP_NAV_HOLDOFF_MS)
                         && (navNow - lastSubMenuExitMs >= SUB_EXIT_SELECT_HOLDOFF_MS))
                     {
-                        topLevelMenuNav = false;
-                        waitForButtonRelease = true;
+                        topLevelMenuNav       = false;
+                        waitForButtonRelease  = true;
                         pageNavigatedByRotary = true;
                         resetRotaryEditModes();
                         lastTopNavEventMs = navNow;
@@ -271,55 +270,55 @@ void loop()
     #endif
             if (!pageNavigatedByRotary)
             {
-            switch (lcdMenu.getActive())
-            {
-                case RA_Menu:
-                    waitForButtonRelease = processRAKeys();
-                    break;
-                case DEC_Menu:
-                    waitForButtonRelease = processDECKeys();
-                    break;
+                switch (lcdMenu.getActive())
+                {
+                    case RA_Menu:
+                        waitForButtonRelease = processRAKeys();
+                        break;
+                    case DEC_Menu:
+                        waitForButtonRelease = processDECKeys();
+                        break;
     #if SUPPORT_POINTS_OF_INTEREST == 1
-                case POI_Menu:
-                    waitForButtonRelease = processPOIKeys();
-                    break;
+                    case POI_Menu:
+                        waitForButtonRelease = processPOIKeys();
+                        break;
     #else
-                case Home_Menu:
-                    waitForButtonRelease = processHomeKeys();
-                    break;
+                    case Home_Menu:
+                        waitForButtonRelease = processHomeKeys();
+                        break;
     #endif
 
-                case HA_Menu:
-                    waitForButtonRelease = processHAKeys();
-                    break;
+                    case HA_Menu:
+                        waitForButtonRelease = processHAKeys();
+                        break;
 
     #if SUPPORT_CALIBRATION == 1
-                case Calibration_Menu:
-                    waitForButtonRelease = processCalibrationKeys();
-                    break;
+                    case Calibration_Menu:
+                        waitForButtonRelease = processCalibrationKeys();
+                        break;
     #endif
 
     #if FOCUS_STEPPER_TYPE != STEPPER_TYPE_NONE
-                case Focuser_Menu:
-                    waitForButtonRelease = processFocuserKeys();
-                    break;
+                    case Focuser_Menu:
+                        waitForButtonRelease = processFocuserKeys();
+                        break;
     #endif
 
     #if SUPPORT_MANUAL_CONTROL == 1
-                case Control_Menu:
-                    waitForButtonRelease = processControlKeys();
-                    break;
+                    case Control_Menu:
+                        waitForButtonRelease = processControlKeys();
+                        break;
     #endif
 
     #if SUPPORT_INFO_DISPLAY == 1
-                case Status_Menu:
-                    waitForButtonRelease = processStatusKeys();
-                    break;
+                    case Status_Menu:
+                        waitForButtonRelease = processStatusKeys();
+                        break;
     #endif
-                case Config_Menu:
-                    waitForButtonRelease = processConfigKeys();
-                    break;
-            }
+                    case Config_Menu:
+                        waitForButtonRelease = processConfigKeys();
+                        break;
+                }
             }
 
     #if USES_ROTARY_ENCODER == 1
@@ -332,8 +331,8 @@ void loop()
                 // This is the correct fix for the '*' persistence bug: a time-based holdoff
                 // fails when the user holds the button longer than the holdoff duration.
                 topLevelWaitForSelectRelease = (lcdButtons.currentState() == btnSELECT);
-                lastTopNavEventMs = millis();
-                lastSubMenuExitMs = millis();  // arme le holdoff 500 ms — garde absolue
+                lastTopNavEventMs            = millis();
+                lastSubMenuExitMs            = millis();  // arme le holdoff 500 ms — garde absolue
                 resetRotaryEditModes();
                 // Force title row repaint (rotary "in page" suffix '*') — printMenu skips when
                 // _lastDisplay matches even if pixels were out of sync (e.g. after CFG exit).
@@ -385,8 +384,7 @@ void loop()
         else
     #endif
         {
-            if (!inSerialControl
-                )
+            if (!inSerialControl)
             {
                 const int activeMenu = lcdMenu.getActive();
     #if USES_ROTARY_ENCODER == 1
@@ -400,45 +398,45 @@ void loop()
                 {
                     pageTitle = TR_DEC;
                 }
-    #if SUPPORT_POINTS_OF_INTEREST == 1
+        #if SUPPORT_POINTS_OF_INTEREST == 1
                 else if (activeMenu == POI_Menu)
                 {
                     pageTitle = TR_GO;
                 }
-    #else
+        #else
                 else if (activeMenu == Home_Menu)
                 {
                     pageTitle = TR_HOME;
                 }
-    #endif
+        #endif
                 else if (activeMenu == HA_Menu)
                 {
                     pageTitle = TR_HA;
                 }
-    #if SUPPORT_MANUAL_CONTROL == 1
+        #if SUPPORT_MANUAL_CONTROL == 1
                 else if (activeMenu == Control_Menu)
                 {
                     pageTitle = TR_CTRL;
                 }
-    #endif
-    #if SUPPORT_CALIBRATION == 1
+        #endif
+        #if SUPPORT_CALIBRATION == 1
                 else if (activeMenu == Calibration_Menu)
                 {
                     pageTitle = TR_CAL;
                 }
-    #endif
-    #if (FOCUS_STEPPER_TYPE != STEPPER_TYPE_NONE)
+        #endif
+        #if (FOCUS_STEPPER_TYPE != STEPPER_TYPE_NONE)
                 else if (activeMenu == Focuser_Menu)
                 {
                     pageTitle = TR_FOC;
                 }
-    #endif
-    #if SUPPORT_INFO_DISPLAY == 1
+        #endif
+        #if SUPPORT_INFO_DISPLAY == 1
                 else if (activeMenu == Status_Menu)
                 {
                     pageTitle = TR_INFO;
                 }
-    #endif
+        #endif
                 else if (activeMenu == Config_Menu)
                 {
                     pageTitle = TR_CONFIG;
@@ -446,21 +444,23 @@ void loop()
                 lcdMenu.setCursor(0, 0);
                 // Keep the config icon only in top-level navigation. In page mode, reserve
                 // the full title width so the trailing '*' always remains visible.
-                const char *pageIcon = (topLevelMenuNav && activeMenu == Config_Menu) ? "} " : (topLevelMenuNav && activeMenu == Status_Menu) ? "i " : "";
+                const char *pageIcon = (topLevelMenuNav && activeMenu == Config_Menu)   ? "} "
+                                       : (topLevelMenuNav && activeMenu == Status_Menu) ? "i "
+                                                                                        : "";
                 lcdMenu.printMenu(String(pageIcon) + pageTitle + (topLevelMenuNav ? "" : "*"));
                 lcdMenu.setCursor(0, 1);
 
-    #if SUPPORT_INFO_DISPLAY == 1
+        #if SUPPORT_INFO_DISPLAY == 1
                 // INFO, CFG, RA, DEC, FOC and GO submenus use multiple rows; clear leftovers only for single-row pages.
                 if (activeMenu != Status_Menu && activeMenu != Config_Menu && activeMenu != RA_Menu && activeMenu != DEC_Menu
-    #if (FOCUS_STEPPER_TYPE != STEPPER_TYPE_NONE)
+            #if (FOCUS_STEPPER_TYPE != STEPPER_TYPE_NONE)
                     && activeMenu != Focuser_Menu
-    #endif
-    #if SUPPORT_POINTS_OF_INTEREST == 1
+            #endif
+            #if SUPPORT_POINTS_OF_INTEREST == 1
                     && activeMenu != POI_Menu
-    #else
+            #else
                     && activeMenu != Home_Menu
-    #endif
+            #endif
                 )
                 {
                     lcdMenu.setCursor(0, 2);
@@ -471,9 +471,9 @@ void loop()
                     lcdMenu.printMenu("");
                     lcdMenu.setCursor(0, 1);
                 }
-    #endif
+        #endif
 
-    #if USES_ROTARY_ENCODER == 1
+        #if USES_ROTARY_ENCODER == 1
                 if (configTopLogoRendered && !(topLevelMenuNav && activeMenu == Config_Menu))
                 {
                     // Leaving Configuration top-level: clear stale logo pixels once.
@@ -685,7 +685,7 @@ void loop()
                     ctrlTopLogoRendered   = false;
                     poiTopLogoRendered    = false;
                 }
-    #endif
+        #endif
     #endif
     #if USES_ROTARY_ENCODER == 1
                 // In top-level nav mode the sub-menu renderers must not run:
@@ -694,62 +694,62 @@ void loop()
                 if (!topLevelMenuNav)
                 {
     #endif
-                // For some strange reason, a switch statement here causes a crash and reboot....
-                if (activeMenu == RA_Menu)
-                {
-                    printRASubmenu();
-                }
-                else if (activeMenu == DEC_Menu)
-                {
-                    printDECSubmenu();
-                }
+                    // For some strange reason, a switch statement here causes a crash and reboot....
+                    if (activeMenu == RA_Menu)
+                    {
+                        printRASubmenu();
+                    }
+                    else if (activeMenu == DEC_Menu)
+                    {
+                        printDECSubmenu();
+                    }
     #if SUPPORT_POINTS_OF_INTEREST == 1
-                else if (activeMenu == POI_Menu)
-                {
-                    printPOISubmenu();
-                }
+                    else if (activeMenu == POI_Menu)
+                    {
+                        printPOISubmenu();
+                    }
     #else
                 else if (activeMenu == Home_Menu)
                 {
                     printHomeSubmenu();
                 }
     #endif
-                else if (activeMenu == HA_Menu)
-                {
-                    printHASubmenu();
-                }
+                    else if (activeMenu == HA_Menu)
+                    {
+                        printHASubmenu();
+                    }
     #if SUPPORT_MANUAL_CONTROL == 1
-                else if (activeMenu == Control_Menu)
-                {
-                    printControlSubmenu();
-                }
+                    else if (activeMenu == Control_Menu)
+                    {
+                        printControlSubmenu();
+                    }
     #endif
     #if SUPPORT_CALIBRATION == 1
-                else if (activeMenu == Calibration_Menu)
-                {
-                    printCalibrationSubmenu();
-                }
+                    else if (activeMenu == Calibration_Menu)
+                    {
+                        printCalibrationSubmenu();
+                    }
     #endif
 
     #if (FOCUS_STEPPER_TYPE != STEPPER_TYPE_NONE)
-                else if (activeMenu == Focuser_Menu)
-                {
-                    printFocusSubmenu();
-                }
+                    else if (activeMenu == Focuser_Menu)
+                    {
+                        printFocusSubmenu();
+                    }
     #endif
 
     #if SUPPORT_INFO_DISPLAY == 1
-                else if (activeMenu == Status_Menu)
-                {
-                    printStatusSubmenu();
-                }
+                    else if (activeMenu == Status_Menu)
+                    {
+                        printStatusSubmenu();
+                    }
     #endif
-                else if (activeMenu == Config_Menu)
-                {
-                    printConfigSubmenu();
-                }
+                    else if (activeMenu == Config_Menu)
+                    {
+                        printConfigSubmenu();
+                    }
     #if USES_ROTARY_ENCODER == 1
-                } // !topLevelMenuNav
+                }  // !topLevelMenuNav
     #endif
             }
         }

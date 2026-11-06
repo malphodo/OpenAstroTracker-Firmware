@@ -8,16 +8,22 @@
 
 typedef uint8_t byte;
 
-#ifndef PROGMEM
-    #define PROGMEM
-#endif
+    #ifndef PROGMEM
+        #define PROGMEM
+    #endif
 
 class String
 {
   public:
-    String() {}
-    String(const char *) {}
-    String(const String &) {}
+    String()
+    {
+    }
+    String(const char *)
+    {
+    }
+    String(const String &)
+    {
+    }
     String &operator=(const char *)
     {
         return *this;
@@ -30,7 +36,9 @@ class String
     {
         return 0u;
     }
-    void toUpperCase() {}
+    void toUpperCase()
+    {
+    }
 };
 
 inline unsigned long millis()

@@ -8,24 +8,24 @@
 
 LcdButtons::LcdButtons(byte pin, LcdMenu *lcdMenu)
 {
-    _lcdMenu       = lcdMenu;
-    _analogPin     = pin;
-    _lastKeyChange = 0;
-    _encoderEdgeMs = 0;
+    _lcdMenu            = lcdMenu;
+    _analogPin          = pin;
+    _lastKeyChange      = 0;
+    _encoderEdgeMs      = 0;
     _encoderBtnChangeMs = 0;
 
     _newKey     = btnNONE;
     _lastNewKey = btnNONE;
 
-    _currentKey = btnNONE;
-    _lastKey    = btnNONE;
-    _encoderPrevAB = 0;
-    _encoderAcc = 0;
-    _encoderRawA = false;
-    _encoderRawB = false;
-    _encoderStableA = false;
-    _encoderStableB = false;
-    _encoderBtnRaw = false;
+    _currentKey       = btnNONE;
+    _lastKey          = btnNONE;
+    _encoderPrevAB    = 0;
+    _encoderAcc       = 0;
+    _encoderRawA      = false;
+    _encoderRawB      = false;
+    _encoderStableA   = false;
+    _encoderStableB   = false;
+    _encoderBtnRaw    = false;
     _encoderBtnStable = false;
 
     #if DISPLAY_TYPE == DISPLAY_TYPE_LCD_JOY_I2C_SSD1306
@@ -33,40 +33,40 @@ LcdButtons::LcdButtons(byte pin, LcdMenu *lcdMenu)
     pinMode(LCD_KEY_SENSE_X_PIN, INPUT);
     pinMode(LCD_KEY_SENSE_Y_PIN, INPUT);
     pinMode(LCD_KEY_SENSE_PUSH_PIN, INPUT);
-    #elif DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                      \
+    #elif DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                     \
         || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
     pinMode(LCD12864_ENCODER_A_PIN, INPUT_PULLUP);
     pinMode(LCD12864_ENCODER_B_PIN, INPUT_PULLUP);
     pinMode(LCD12864_ENCODER_BTN_PIN, INPUT_PULLUP);
-    _encoderRawA = (digitalRead(LCD12864_ENCODER_A_PIN) == LOW);
-    _encoderRawB = (digitalRead(LCD12864_ENCODER_B_PIN) == LOW);
-    _encoderStableA = _encoderRawA;
-    _encoderStableB = _encoderRawB;
-    _encoderPrevAB = ((_encoderStableA ? 1 : 0) << 1) | (_encoderStableB ? 1 : 0);
-    _encoderBtnRaw = (digitalRead(LCD12864_ENCODER_BTN_PIN) == LOW);
+    _encoderRawA      = (digitalRead(LCD12864_ENCODER_A_PIN) == LOW);
+    _encoderRawB      = (digitalRead(LCD12864_ENCODER_B_PIN) == LOW);
+    _encoderStableA   = _encoderRawA;
+    _encoderStableB   = _encoderRawB;
+    _encoderPrevAB    = ((_encoderStableA ? 1 : 0) << 1) | (_encoderStableB ? 1 : 0);
+    _encoderBtnRaw    = (digitalRead(LCD12864_ENCODER_BTN_PIN) == LOW);
     _encoderBtnStable = _encoderBtnRaw;
     #endif
 }
 
 LcdButtons::LcdButtons(LcdMenu *lcdMenu)
 {
-    _lcdMenu       = lcdMenu;
-    _lastKeyChange = 0;
-    _encoderEdgeMs = 0;
+    _lcdMenu            = lcdMenu;
+    _lastKeyChange      = 0;
+    _encoderEdgeMs      = 0;
     _encoderBtnChangeMs = 0;
 
     _newKey     = btnNONE;
     _lastNewKey = btnINVALID;
 
-    _currentKey = btnNONE;
-    _lastKey    = btnINVALID;
-    _encoderPrevAB = 0;
-    _encoderAcc = 0;
-    _encoderRawA = false;
-    _encoderRawB = false;
-    _encoderStableA = false;
-    _encoderStableB = false;
-    _encoderBtnRaw = false;
+    _currentKey       = btnNONE;
+    _lastKey          = btnINVALID;
+    _encoderPrevAB    = 0;
+    _encoderAcc       = 0;
+    _encoderRawA      = false;
+    _encoderRawB      = false;
+    _encoderStableA   = false;
+    _encoderStableB   = false;
+    _encoderBtnRaw    = false;
     _encoderBtnStable = false;
 }
 
@@ -88,7 +88,7 @@ int LcdButtons::currentAnalogState()
     return 0;  // No analog value for these displays
     #elif DISPLAY_TYPE == DISPLAY_TYPE_LCD_JOY_I2C_SSD1306
     return analogRead(LCD_KEY_SENSE_Y_PIN);
-    #elif DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                      \
+    #elif DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                     \
         || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
     return 0;
     #else
@@ -135,21 +135,21 @@ void LcdButtons::checkKey()
         _currentKey = btnUP;
     if (push < MIDSCALE)
         _currentKey = btnSELECT;  // Active low
-        #elif DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                  \
+        #elif DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                 \
             || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
     static const unsigned long ENCODER_DEBOUNCE_MS = 5;
-    static const unsigned long BUTTON_DEBOUNCE_MS = 20;
-    static const int8_t QUADRATURE_TABLE[16] = {0, -1, 1, 0, 1, 0, 0, -1, -1, 0, 0, 1, 0, 1, -1, 0};
+    static const unsigned long BUTTON_DEBOUNCE_MS  = 20;
+    static const int8_t QUADRATURE_TABLE[16]       = {0, -1, 1, 0, 1, 0, 0, -1, -1, 0, 0, 1, 0, 1, -1, 0};
 
     const unsigned long now = millis();
-    const bool rawA = (digitalRead(LCD12864_ENCODER_A_PIN) == LOW);
-    const bool rawB = (digitalRead(LCD12864_ENCODER_B_PIN) == LOW);
-    const bool rawBtn = (digitalRead(LCD12864_ENCODER_BTN_PIN) == LOW);
+    const bool rawA         = (digitalRead(LCD12864_ENCODER_A_PIN) == LOW);
+    const bool rawB         = (digitalRead(LCD12864_ENCODER_B_PIN) == LOW);
+    const bool rawBtn       = (digitalRead(LCD12864_ENCODER_BTN_PIN) == LOW);
 
     if ((rawA != _encoderRawA) || (rawB != _encoderRawB))
     {
-        _encoderRawA = rawA;
-        _encoderRawB = rawB;
+        _encoderRawA   = rawA;
+        _encoderRawB   = rawB;
         _encoderEdgeMs = now;
     }
     if ((now - _encoderEdgeMs) >= ENCODER_DEBOUNCE_MS)
@@ -160,7 +160,7 @@ void LcdButtons::checkKey()
 
     if (rawBtn != _encoderBtnRaw)
     {
-        _encoderBtnRaw = rawBtn;
+        _encoderBtnRaw      = rawBtn;
         _encoderBtnChangeMs = now;
     }
     if ((now - _encoderBtnChangeMs) >= BUTTON_DEBOUNCE_MS)
@@ -169,14 +169,16 @@ void LcdButtons::checkKey()
     }
 
     lcdButton_t encoderEvent = btnNONE;
-    int steps = static_cast<int>(rotaryMolSens);
-    if (steps < JOGSENS_MIN) steps = JOGSENS_MIN;
-    if (steps > JOGSENS_MAX) steps = JOGSENS_MAX;
+    int steps                = static_cast<int>(rotaryMolSens);
+    if (steps < JOGSENS_MIN)
+        steps = JOGSENS_MIN;
+    if (steps > JOGSENS_MAX)
+        steps = JOGSENS_MAX;
     // Inverted scale: level 1 = least sensitive (slow), level 8 = most sensitive (fast).
     const int8_t stepsPerEvent = static_cast<int8_t>(JOGSENS_MAX + JOGSENS_MIN - steps);
-    const uint8_t ab = ((_encoderStableA ? 1 : 0) << 1) | (_encoderStableB ? 1 : 0);
-    const uint8_t transition = (_encoderPrevAB << 2) | ab;
-    const int8_t step = QUADRATURE_TABLE[transition];
+    const uint8_t ab           = ((_encoderStableA ? 1 : 0) << 1) | (_encoderStableB ? 1 : 0);
+    const uint8_t transition   = (_encoderPrevAB << 2) | ab;
+    const int8_t step          = QUADRATURE_TABLE[transition];
     if (step != 0)
     {
         // If direction reverses, discard the accumulator: a bounce in the opposite
@@ -190,12 +192,12 @@ void LcdButtons::checkKey()
         if (_encoderAcc >= stepsPerEvent)
         {
             encoderEvent = btnLEFT;
-            _encoderAcc = 0;
+            _encoderAcc  = 0;
         }
         else if (_encoderAcc <= -stepsPerEvent)
         {
             encoderEvent = btnRIGHT;
-            _encoderAcc = 0;
+            _encoderAcc  = 0;
         }
         // Only advance the quadrature state on valid transitions.
         // Updating on invalid (bounce) transitions corrupts the direction tracking.
@@ -211,8 +213,8 @@ void LcdButtons::checkKey()
     // For rotary encoder events, LEFT/RIGHT are short pulses by design.
     // Do not run them through the generic 5ms "stable key" filter below,
     // otherwise pulses can be dropped and menu navigation appears frozen.
-    _newKey = _currentKey;
-    _lastKey = _currentKey;
+    _newKey        = _currentKey;
+    _lastKey       = _currentKey;
     _lastKeyChange = now;
     return;
         #else

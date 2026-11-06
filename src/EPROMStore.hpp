@@ -268,15 +268,15 @@ class EEPROMStore
         _ALT_NORM_STEPS_DEGREE_ADDR_1,
         _ALT_NORM_STEPS_DEGREE_ADDR_2,
         _ALT_NORM_STEPS_DEGREE_ADDR_3,  // Int32
-        JOG_SENS_ADDR = 74,  // Uint8, 1..8
-        LANGUAGE_ADDR = 75,  // Uint8, 0..4 (Language enum)
-        GYRO_ENABLED_ADDR = 76,  // Uint8, bool
-        AUTOPA_ENABLED_ADDR = 77,  // Uint8, bool
-        AUTOHOME_ENABLED_ADDR = 78,  // Uint8, bool
-        GPS_ENABLED_ADDR       = 79,  // Uint8, bool
-        BOOT_SONG_ENABLED_ADDR = 80,  // Uint8, bool
-        EXTENDED2_MAGIC_ADDR   = 81,  // Uint8, EXTENDED2_MAGIC_VALUE when the byte below is valid
-        EXTENDED2_FLAGS_ADDR   = 82,  // Uint8, ExtendedItemFlag bits 16..23
+        JOG_SENS_ADDR          = 74,    // Uint8, 1..8
+        LANGUAGE_ADDR          = 75,    // Uint8, 0..4 (Language enum)
+        GYRO_ENABLED_ADDR      = 76,    // Uint8, bool
+        AUTOPA_ENABLED_ADDR    = 77,    // Uint8, bool
+        AUTOHOME_ENABLED_ADDR  = 78,    // Uint8, bool
+        GPS_ENABLED_ADDR       = 79,    // Uint8, bool
+        BOOT_SONG_ENABLED_ADDR = 80,    // Uint8, bool
+        EXTENDED2_MAGIC_ADDR   = 81,    // Uint8, EXTENDED2_MAGIC_VALUE when the byte below is valid
+        EXTENDED2_FLAGS_ADDR   = 82,    // Uint8, ExtendedItemFlag bits 16..23
         STORE_SIZE             = 83
     };
 

@@ -45,8 +45,8 @@ LcdButtons lcdButtons(LCD_KEY_SENSE_PIN, &lcdMenu);
 #endif
 
 #if DISPLAY_TYPE == DISPLAY_TYPE_LCD_KEYPAD_I2C_MCP23017 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_KEYPAD_I2C_MCP23008                           \
-    || DISPLAY_TYPE == DISPLAY_TYPE_LCD_JOY_I2C_SSD1306 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567                             \
-    || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920                         \
+    || DISPLAY_TYPE == DISPLAY_TYPE_LCD_JOY_I2C_SSD1306 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567                            \
+    || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920                        \
     || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
 LcdButtons lcdButtons(&lcdMenu);
 #endif
@@ -189,18 +189,22 @@ static void playBootBeep()
     pinMode(LCD12864_BEEPER_PIN, OUTPUT);
     // Rhythmic boot fanfare: C5-C5-C5 (staccato) — E5-G5 (crescendo) — C6 (triumphant)
     // halfUs = 1000000 / (2 * freq).  cycles = ms * 500 / halfUs.
-    struct Note { uint16_t halfUs; uint16_t ms; uint8_t pauseMs; };
+    struct Note {
+        uint16_t halfUs;
+        uint16_t ms;
+        uint8_t pauseMs;
+    };
     const Note melody[] = {
-        { 956,  80, 15},  // C5 — ta
-        { 956,  80, 15},  // C5 — ta
-        { 956,  80, 35},  // C5 — ta  (pause plus longue avant envolée)
-        { 759, 150, 15},  // E5 — mi
-        { 637, 150, 15},  // G5 — sol
-        { 478, 380,  0},  // C6 — DO! (note finale triumphante)
+        {956, 80, 15},   // C5 — ta
+        {956, 80, 15},   // C5 — ta
+        {956, 80, 35},   // C5 — ta  (pause plus longue avant envolée)
+        {759, 150, 15},  // E5 — mi
+        {637, 150, 15},  // G5 — sol
+        {478, 380, 0},   // C6 — DO! (note finale triumphante)
     };
     for (uint8_t n = 0; n < 6; n++)
     {
-        uint16_t cycles = (uint32_t)melody[n].ms * 500UL / melody[n].halfUs;
+        uint16_t cycles = (uint32_t) melody[n].ms * 500UL / melody[n].halfUs;
         for (uint16_t i = 0; i < cycles; i++)
         {
             digitalWrite(LCD12864_BEEPER_PIN, HIGH);
@@ -502,8 +506,8 @@ void setup()
 #endif
     // end microstepping -------------------
 
-#if ((defined(USE_HALL_SENSOR_RA_AUTOHOME) && (USE_HALL_SENSOR_RA_AUTOHOME == 1) && defined(RA_HOMING_SENSOR_PIN)) ||                               \
-    (defined(USE_HALL_SENSOR_DEC_AUTOHOME) && (USE_HALL_SENSOR_DEC_AUTOHOME == 1) && defined(DEC_HOMING_SENSOR_PIN)))
+#if ((defined(USE_HALL_SENSOR_RA_AUTOHOME) && (USE_HALL_SENSOR_RA_AUTOHOME == 1) && defined(RA_HOMING_SENSOR_PIN))                         \
+     || (defined(USE_HALL_SENSOR_DEC_AUTOHOME) && (USE_HALL_SENSOR_DEC_AUTOHOME == 1) && defined(DEC_HOMING_SENSOR_PIN)))
     int homingLine = addConsoleText(F("Init Hall homing pins..."));
     #if defined(USE_HALL_SENSOR_RA_AUTOHOME) && (USE_HALL_SENSOR_RA_AUTOHOME == 1) && defined(RA_HOMING_SENSOR_PIN)
     pinMode(RA_HOMING_SENSOR_PIN, RA_HOMING_SENSOR_INPUT_MODE);
@@ -533,10 +537,17 @@ void setup()
 #if DISPLAY_TYPE != DISPLAY_TYPE_NONE
     LOG(DEBUG_ANY, "[SYSTEM]: Get LCD ready...");
     int lcdLine = addConsoleText(F("Init LCD..."));
-    #if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                          \
+    #if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                       \
         || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
-    LOG(DEBUG_ANY, "[SYSTEM]: EXP display pins SCK=%d MOSI=%d CS=%d BTN_A=%d BTN_B=%d BTN_BTN=%d FLIP=%d", LCD12864_SCK_PIN,
-        LCD12864_MOSI_PIN, LCD12864_CS_PIN, LCD12864_ENCODER_A_PIN, LCD12864_ENCODER_B_PIN, LCD12864_ENCODER_BTN_PIN, DISPLAY_FLIP_180);
+    LOG(DEBUG_ANY,
+        "[SYSTEM]: EXP display pins SCK=%d MOSI=%d CS=%d BTN_A=%d BTN_B=%d BTN_BTN=%d FLIP=%d",
+        LCD12864_SCK_PIN,
+        LCD12864_MOSI_PIN,
+        LCD12864_CS_PIN,
+        LCD12864_ENCODER_A_PIN,
+        LCD12864_ENCODER_B_PIN,
+        LCD12864_ENCODER_BTN_PIN,
+        DISPLAY_FLIP_180);
         #if defined(LCD12864_DC_PIN)
     LOG(DEBUG_ANY, "[SYSTEM]: EXP display DC=%d", LCD12864_DC_PIN);
         #endif
@@ -613,9 +624,9 @@ void setup()
     lcdMenu.addItem(TR_FOC, Focuser_Menu);
     #endif
 
-#if SUPPORT_INFO_DISPLAY == 1
+    #if SUPPORT_INFO_DISPLAY == 1
     lcdMenu.addItem(TR_INFO, Status_Menu);
-#endif
+    #endif
     lcdMenu.addItem(TR_CONFIG, Config_Menu);
     updateConsoleText(lcdLine, F("Init LCD... OK"));
 

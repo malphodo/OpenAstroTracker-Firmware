@@ -129,18 +129,18 @@ void processSerialData()
     for (;;)
     {
         bool readOk = false;
-    #if defined(BOARD) && (BOARD == BOARD_LPC1769_SKR_V14_TURBO)
+        #if defined(BOARD) && (BOARD == BOARD_LPC1769_SKR_V14_TURBO)
         // PC control path is USB CDC only on SKR (see setup: UART0 not started in release builds).
         if (UsbSerial.available() > 0)
         {
             readOk = (UsbSerial.readBytes((buffer + index), 1) == 1);
         }
-    #else
+        #else
         if (Serial.available() > 0)
         {
             readOk = (Serial.readBytes((buffer + index), 1) == 1);
         }
-    #endif
+        #endif
 
         if (!readOk)
         {
@@ -150,17 +150,17 @@ void processSerialData()
         if (buffer[index] == 0x06)
         {
             LOG(DEBUG_SERIAL, "[SERIAL]: Received: ACK request, replying P");
-    #if defined(BOARD) && (BOARD == BOARD_LPC1769_SKR_V14_TURBO)
+        #if defined(BOARD) && (BOARD == BOARD_LPC1769_SKR_V14_TURBO)
             // SKR: commands travel on USB CDC, debug output on UART0, so always reply.
             ensureUsbSerialReady();
             UsbSerial.print('P');
-    #else
-                // When not debugging, print the result to the serial port .
-                // When debugging, only print the result to Serial if we're on seperate ports.
-        #if (DEBUG_LEVEL == DEBUG_NONE) || (DEBUG_SEPARATE_SERIAL == 1)
+        #else
+                    // When not debugging, print the result to the serial port .
+                    // When debugging, only print the result to Serial if we're on seperate ports.
+            #if (DEBUG_LEVEL == DEBUG_NONE) || (DEBUG_SEPARATE_SERIAL == 1)
             Serial.print('P');
+            #endif
         #endif
-    #endif
             index = 0;
         }
         else if (buffer[index] == '#')
@@ -174,16 +174,16 @@ void processSerialData()
             if (retVal[0] != '\0')
             {
                 LOG(DEBUG_SERIAL, "[SERIAL]: RepliedWith:  [%s]", retVal);
-    #if defined(BOARD) && (BOARD == BOARD_LPC1769_SKR_V14_TURBO)
+        #if defined(BOARD) && (BOARD == BOARD_LPC1769_SKR_V14_TURBO)
                 ensureUsbSerialReady();
                 UsbSerial.print(retVal);
-    #else
-                    // When not debugging, print the result to the serial port .
-                    // When debugging, only print the result to Serial if we're on seperate ports.
-        #if (DEBUG_LEVEL == DEBUG_NONE) || (DEBUG_SEPARATE_SERIAL == 1)
+        #else
+                        // When not debugging, print the result to the serial port .
+                        // When debugging, only print the result to Serial if we're on seperate ports.
+            #if (DEBUG_LEVEL == DEBUG_NONE) || (DEBUG_SEPARATE_SERIAL == 1)
                 Serial.print(retVal);
+            #endif
         #endif
-    #endif
             }
             // Wait for next command
             index = 0;

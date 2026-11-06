@@ -29,17 +29,17 @@ PUSH_NO_WARNINGS
     #if USE_GPS_I2C_ADAFRUIT == 1
         #include <Wire.h>
     #else
-    #if defined(GPS_USE_SOFTWARE_SERIAL) && (GPS_USE_SOFTWARE_SERIAL == 1)
-        #include <SoftwareSerial.h>
-    #endif
+        #if defined(GPS_USE_SOFTWARE_SERIAL) && (GPS_USE_SOFTWARE_SERIAL == 1)
+            #include <SoftwareSerial.h>
+        #endif
     #endif
     #include <TinyGPS++.h>
 POP_NO_WARNINGS
 
     #if USE_GPS_I2C_ADAFRUIT == 0
-    #if defined(GPS_USE_SOFTWARE_SERIAL) && (GPS_USE_SOFTWARE_SERIAL == 1)
+        #if defined(GPS_USE_SOFTWARE_SERIAL) && (GPS_USE_SOFTWARE_SERIAL == 1)
 SoftwareSerial gpsSerial(GPS_SERIAL_RX_PIN, GPS_SERIAL_TX_PIN);  // RX, TX
-    #endif
+        #endif
     #endif
 TinyGPSPlus gps;
 #endif
@@ -102,7 +102,7 @@ TinyGPSPlus gps;
 
 // Mini12864 / graphic displays use a rotary encoder: navigation is rotate to cycle,
 // click to enter/edit. Keypad displays keep their original directional-key workflow.
-#if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                            \
+#if DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7567 || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_UC1701                           \
     || DISPLAY_TYPE == DISPLAY_TYPE_LCD_GRAPHIC_U8G2_ST7920 || DISPLAY_TYPE == DISPLAY_TYPE_MINI12864_V2
     #define USES_ROTARY_ENCODER 1
 #else
