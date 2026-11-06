@@ -407,6 +407,7 @@ void logv(int levelFlags, String input, ...)
         va_list argp;
         va_start(argp, input);
     #if BUFFER_LOGS == true
+        (void) delta;  // Only printed by the unbuffered path
         addToLogBuffer(formatArg(input.c_str(), argp));
     #else
         // Compose the whole line and write it with a single print() call.

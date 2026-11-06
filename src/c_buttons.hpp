@@ -85,7 +85,67 @@ void loop()
 
     // Give the mount a time slice to do its thing...
     mount.loop();
-    lcdMenu.tickMini12864Effects(millis());
+
+    #if defined(AZ_LIMIT_PIN) && (AZ_STEPPER_TYPE != STEPPER_TYPE_NONE)
+    // Hardware travel limit for the AZ Auto PA axis.
+    // X-STOP header (AZ_LIMIT_PIN) is wired to a HW-477 Hall effect sensor (NPN / active LOW).
+    // When a magnet is detected the DO pin is pulled LOW; the AZ axis is stopped immediately.
+    // Movement is allowed again as soon as the magnet moves away (pin returns HIGH).
+    if ((digitalRead(AZ_LIMIT_PIN) == LOW) && mount.isAxisRunning(AZIMUTH_STEPS))
+    {
+        mount.stopSlewing(AZIMUTH_STEPS);
+    }
+    #endif
+
+    // Throttle NeoPixel effects: writeMini12864RgbChain() disables interrupts for ~180us
+    // (3 LEDs x 3 bytes x 8 bits x ~2.5us). Calling it every loop iteration (~5-10kHz)
+    // starves the LPC1769 USB CDC IRQ, fills the TX FIFO and blocks UsbSerial.print(),
+    // causing a hard board freeze when any serial client (OATControl) opens COM3.
+    // Limit to 50Hz max so interrupts are disabled <1% of the time.
+    {
+        static unsigned long lastEffectsMs = 0;
+        const unsigned long nowEffects     = millis();
+        if (nowEffects - lastEffectsMs >= 20UL)
+        {
+            lcdMenu.tickMini12864Effects(nowEffects);
+
+    #if USE_GPS == 1
+            // GPS no-fix indicator: LED 1 blinks white at 1 Hz until a location fix is
+            // acquired. Background GPS poll ensures gpsLocationSynced is set regardless of
+            // which menu is active (not just when inside the HA menu). Once confirmed,
+            // LED 1 is restored to the active backlight preset.
+            {
+                static bool gpsFixAcquired = false;
+                // Minimum blink duration at startup: ignore any fix acquired before this
+                // many ms have elapsed. Ensures the LED is visible even with a hot fix.
+                static const unsigned long GPS_MIN_BLINK_MS = 5000UL;
+                if (!gpsFixAcquired)
+                {
+                    if (!gpsLocationSynced)
+                    {
+                        // Background drain: parse available GPS bytes even outside the HA
+                        // menu. gpsAqcuisitionComplete() sets gpsLocationSynced = true when
+                        // a valid fix with age < 30 s is found, then returns true.
+                        int bgIndicator = 0;
+                        gpsAqcuisitionComplete(bgIndicator);
+                    }
+                    if (gpsLocationSynced && (nowEffects >= GPS_MIN_BLINK_MS))
+                    {
+                        lcdMenu.applyMini12864BacklightMode(lcdMenu.getMini12864BacklightMode());
+                        gpsFixAcquired = true;
+                    }
+                    else
+                    {
+                        const bool ledOn = ((nowEffects / 500UL) & 1UL) == 0UL;
+                        lcdMenu.setMini12864RgbLed(1, ledOn ? 255 : 0, ledOn ? 255 : 0, ledOn ? 255 : 0);
+                    }
+                }
+            }
+    #endif
+
+            lastEffectsMs = nowEffects;
+        }
+    }
 
     // Update the LCD display
     unsigned long now = millis();

@@ -42,6 +42,10 @@ SoftwareSerial gpsSerial(GPS_SERIAL_RX_PIN, GPS_SERIAL_TX_PIN);  // RX, TX
         #endif
     #endif
 TinyGPSPlus gps;
+// One-way latch: set true when gpsAqcuisitionComplete() succeeds. Never resets
+// to false within a session, unlike gps.location.isValid() which can toggle on
+// void NMEA sentences. Used by the GPS no-fix LED blink indicator.
+bool gpsLocationSynced = false;
 #endif
 
 ////////////////////////////////////

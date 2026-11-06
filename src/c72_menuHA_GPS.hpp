@@ -81,6 +81,7 @@ bool gpsAqcuisitionComplete(int &indicator)
                     mount.setLatitude(gps.location.lat());
                     mount.setLongitude(gps.location.lng());
                     mount.delay(500);
+                    gpsLocationSynced = true;  // One-way latch: stops GPS no-fix LED blink
                     return true;
                 }
             }
@@ -146,6 +147,7 @@ bool gpsAqcuisitionComplete(int &indicator)
                 mount.setLongitude(gps.location.lng());
 
                 mount.delay(500);
+                gpsLocationSynced = true;  // One-way latch: stops GPS no-fix LED blink
 
                 return true;
             }

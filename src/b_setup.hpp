@@ -452,6 +452,12 @@ void setup()
             #endif
         #endif
     #endif
+    #if defined(AZ_LIMIT_PIN)
+    // AZ travel limit via HW-477 Hall sensor (NPN / active LOW). External pull-up on SKR
+    // X-STOP header holds DO HIGH; magnet pulls DO LOW. INPUT_PULLUP adds internal reinforcement.
+    pinMode(AZ_LIMIT_PIN, INPUT_PULLUP);
+    LOG(DEBUG_ANY, "[SYSTEM]: AZ limit pin %d configured INPUT_PULLUP (HW-477 active LOW)", AZ_LIMIT_PIN);
+    #endif
     updateConsoleText(azLine, F("Init AZ axis... OK"));
 #endif
 

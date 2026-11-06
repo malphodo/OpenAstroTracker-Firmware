@@ -18,6 +18,10 @@ Changes carried by this fork on top of the official releases listed further down
 - Fixed page-title marker rendering on long labels: the trailing '*' now appears reliably in selected-page mode and no longer remains stuck after exit.
 - Added a large INFO page logo below the title on Mini12864/U8g2 displays, matching the Configuration page visual behavior.
 - Fixed a top-level carousel transition bug where moving from INFO to Configuration could make the Configuration large logo flash and disappear.
+- Added AZ hardware travel limit support via HW-477 Hall effect sensor (NPN/active-LOW) on AZ_LIMIT_PIN (X-STOP header); AZ axis stops immediately when magnet is detected.
+- Throttled Mini12864 NeoPixel RGB effects to 50 Hz (was every loop ~5-10 kHz) to prevent LPC1769 USB CDC IRQ starvation that caused board freeze when OATControl opened COM3.
+- Added GPS no-fix LED blink indicator on Mini12864 LED 1: blinks white at 1 Hz until a GPS location fix is confirmed, then restores the active backlight preset. Background GPS polling now occurs regardless of which menu is active.
+- Added `gpsLocationSynced` one-way latch to reliably track first GPS fix without toggling on void NMEA sentences.
 
 ### Fork release 1 (was tagged V1.13.20 in this fork, unrelated to the official v1.13.20)
 - Added robust Mini12864 V2/V3 support on SKR 1.4 Turbo with controller selection (ST7565/ST7567/UC1701), dedicated EXP pin mapping, and improved validation.
