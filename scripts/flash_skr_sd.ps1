@@ -6,7 +6,7 @@
 #   .\scripts\flash_skr_sd.ps1 -Drive "G:"
 #
 param(
-    [string]$Drive = $(if ($env:SKR_SD_DRIVE) { $env:SKR_SD_DRIVE } else { "F:" })
+    [string]$Drive = $(if ($env:SKR_SD_DRIVE) { $env:SKR_SD_DRIVE } else { "I:" })
 )
 
 $ErrorActionPreference = "Stop"

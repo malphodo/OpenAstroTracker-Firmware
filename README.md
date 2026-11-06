@@ -79,6 +79,20 @@ For the `skr14turbo` environment, USB serial visibility and motor movement depen
 - If the COM port does not appear in Windows, first verify USB data cable and jumper position before debugging firmware.
 - A small idle motor pulse/noise with one jumper position and no motion with another usually indicates a power-path issue, not a Meade protocol issue.
 
+### SKR 1.4 Turbo flashing from the SD card
+
+`pio run -e skr14turbo` copies the new firmware to the board's SD card at the end of every build
+(`scripts/pio_flash_skr_sd.py`): it removes `FIRMWARE.CUR` and writes `FIRMWARE.BIN`. Put the card back
+in the SKR and power-cycle it; the bootloader flashes the firmware and renames the file to `FIRMWARE.CUR`.
+
+The card is found automatically, in this order:
+
+1. the drive given by the `SKR_SD_DRIVE` environment variable (e.g. `G:`), if set;
+2. the drive holding `FIRMWARE.CUR` or `FIRMWARE.BIN`;
+3. `I:` by default.
+
+Set `SKR_AUTO_FLASH=0` to disable the copy, or run `pio run -e skr14turbo -t flash_sd` to copy on demand.
+
 ### SKR 1.4 Turbo GPS over I2C (Adafruit-style)
 
 The `skr14turbo` profile now supports an I2C GPS transport path intended for Adafruit-style GPS devices exposing NMEA data over I2C.
