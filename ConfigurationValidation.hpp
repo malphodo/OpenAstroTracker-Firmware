@@ -17,7 +17,7 @@
 #endif
 
 // Platform
-#if defined(ESP32) || defined(__AVR_ATmega2560__) || (BOARD == BOARD_LPC1769_SKR_V14_TURBO)
+#if defined(ESP32) || defined(__AVR_ATmega2560__) || defined(ARDUINO_ARCH_RP2040) || (BOARD == BOARD_LPC1769_SKR_V14_TURBO)
 // Valid platform
 #else
     #error Unsupported platform configuration. Use at own risk.
@@ -35,6 +35,8 @@
     && ((DISPLAY_TYPE == DISPLAY_TYPE_NONE) || (DISPLAY_TYPE == DISPLAY_TYPE_LCD_KEYPAD) || (DISPLAY_TYPE_LCD_KEYPAD_I2C_MCP23008)         \
         || (DISPLAY_TYPE_LCD_KEYPAD_I2C_MCP23017))
 // Valid display for ATmega
+#elif defined(ARDUINO_ARCH_RP2040) && (DISPLAY_TYPE == DISPLAY_TYPE_NONE)
+// Valid display for RP2040
 #else
     #error Unsupported display configuration. Use at own risk.
 #endif
@@ -86,7 +88,7 @@
     #else
         #error Defined an AZ driver, but no AZ stepper.
     #endif
-#elif defined(__AVR_ATmega2560__) || (BOARD == BOARD_LPC1769_SKR_V14_TURBO)
+#elif defined(__AVR_ATmega2560__) || defined(ARDUINO_ARCH_RP2040) || (BOARD == BOARD_LPC1769_SKR_V14_TURBO)
     // Azimuth configuration
     #if (AZ_DRIVER_TYPE == DRIVER_TYPE_TMC2209_UART)
         #ifndef AZ_DRIVER_ADDRESS
@@ -107,7 +109,7 @@
     #else
         #error Defined an ALT driver, but no ALT stepper.
     #endif
-#elif defined(__AVR_ATmega2560__) || (BOARD == BOARD_LPC1769_SKR_V14_TURBO)
+#elif defined(__AVR_ATmega2560__) || defined(ARDUINO_ARCH_RP2040) || (BOARD == BOARD_LPC1769_SKR_V14_TURBO)
     // Altitude configuration
     #if (ALT_DRIVER_TYPE == DRIVER_TYPE_TMC2209_UART)
         #ifndef ALT_DRIVER_ADDRESS
@@ -171,10 +173,21 @@
 // External sensors
 #if (USE_GPS == 0)
 // Baseline configuration without GPS is valid
-#elif defined(ESP32) || defined(__AVR_ATmega2560__) || (BOARD == BOARD_LPC1769_SKR_V14_TURBO)
-// GPS is supported on ESP32 and ATmega
+#elif defined(ESP32) || defined(__AVR_ATmega2560__) || defined(ARDUINO_ARCH_RP2040) || (BOARD == BOARD_LPC1769_SKR_V14_TURBO)
+// GPS is supported on ESP32, ATmega, RP2040 and SKR 1.4 Turbo (LPC1769)
 #else
     #error Unsupported GPS configuration. Use at own risk.
+#endif
+
+// RP2040 SKR Pico: info display pin sharing.
+#if defined(ARDUINO_ARCH_RP2040) && (BOARD == BOARD_RP2040_SKR_PICO) && (INFO_DISPLAY_TYPE != INFO_DISPLAY_TYPE_NONE)
+    #if (USE_GPS == 1)
+        #error On the SKR Pico the info display and GPS share GP0/GP1 on the left-side header. Enable only one, or remap the pins explicitly.
+    #endif
+    #if (INFO_DISPLAY_I2C_SDA_PIN == 20) || (INFO_DISPLAY_I2C_SCL_PIN == 21) || (INFO_DISPLAY_I2C_SDA_PIN == 21)                           \
+        || (INFO_DISPLAY_I2C_SCL_PIN == 20)
+        #error GP20/GP21 on the SKR Pico only drive on-board MOSFETs (HB/FAN/Laser power outputs); they are not exposed as GPIO on any connector and cannot be used for I2C. Use GP0/GP1 on the left-side header.
+    #endif
 #endif
 
 #if (USE_GYRO_LEVEL == 0)

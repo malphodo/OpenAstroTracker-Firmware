@@ -143,21 +143,21 @@ This firmware implements the Meade LX200 command style (`:<command>#`) plus Open
 - `:XGUE#` RGB enabled state
 - `:XGUC#` RGB color `R,G,B#`
 - `:XGUR#` RGB enabled and color `enabled,R,G,B#`
-- `:XGUM#` read preset mode
+- `:XGUM#` (or `:XGLM#`) read preset mode
 - `:XSUE0#` / `:XSUE1#` RGB off/on
 - `:XSUCr,g,b#` set RGB color
 - `:XSURnnn#`, `:XSUGnnn#`, `:XSUBnnn#` set R/G/B channels
-- `:XSMn#` set Mini12864 preset mode (`0..4`)
-- `:XSRrrrgggbbb#` set full RGB by triplets
-- `:XSLNrrrgggbbb#` set single LED (`N=1..3`)
+- `:XSUMn#` set Mini12864 preset mode (`0..4`: off, night astro, comfort, day, default)
+- `:XSUSrrrgggbbb#` set full RGB by triplets and switch RGB on (off if all zero)
+- `:XSULNrrrgggbbb#` set single LED (`N=1..3`)
 
 ### Button LED Blink Modes (recent additions)
 
-- `:XSB0#` no button blink mode
-- `:XSB1#` warning mode (button LEDs alternate blue/red)
-- `:XSB2#` edit mode (button LEDs blink red)
-- `:XSE0#` clear forced edit-blink
-- `:XSE1#` force edit-blink
+- `:XSUF0#` no button blink mode
+- `:XSUF1#` warning mode (button LEDs alternate blue/red)
+- `:XSUF2#` edit mode (button LEDs blink red)
+- `:XSUX0#` clear forced edit-blink
+- `:XSUX1#` force edit-blink
 - `:XGUF#` read base button blink mode (`0..2`)
 - `:XGUX#` read forced edit-blink state (`0/1`)
 
@@ -177,4 +177,6 @@ This firmware implements the Meade LX200 command style (`:<command>#`) plus Open
 
 - Some commands are feature-gated by compile-time options (GPS, focuser, RGB, hall sensors, etc.).
 - Unknown/unsupported commands may return empty string, `0#`, or protocol-specific fallback depending on command family.
-- The canonical implementation lives in `src/MeadeCommandProcessor.cpp`.
+- Official commands are parsed by `src/core/meade/` (since v1.14.0); the fork-only commands above live in `src/MeadeForkCommands.cpp` and are tried first.
+- **Renamed in the v1.14.0 merge** because they hijacked official commands (`:XSB` backlash, `:XSM` manual slew, `:XSR` RA steps/deg, `:XSL` ALT steps/deg):
+  `:XSMn#` → `:XSUMn#`, `:XSRrrrgggbbb#` → `:XSUSrrrgggbbb#`, `:XSLNrrrgggbbb#` → `:XSULNrrrgggbbb#`, `:XSBn#` → `:XSUFn#`, `:XSEn#` → `:XSUXn#`.

@@ -2,6 +2,13 @@
 
 #include "MappedDict.hpp"
 
+void setUp(void)
+{
+}
+void tearDown(void)
+{
+}
+
 void test_function_mapped_dict_simple_lookups(void)
 {
     MappedDict<char, int>::DictEntry_t lookupTable[] = {
@@ -37,7 +44,7 @@ void test_function_mapped_dict_bounds(void)
 
 void test_function_mapped_dict_zero_size(void)
 {
-    MappedDict<char, int>::DictEntry_t lookupTable[] = {};
+    MappedDict<char, int>::DictEntry_t lookupTable[] = {{'\0', 0}};
 
     auto idxLookup = MappedDict<char, int>(lookupTable, 0);
     int intIdx;
@@ -87,7 +94,7 @@ void loop()
     delay(500);
 }
 #else
-int main(int argc, char **argv)
+int main()
 {
     process();
     return 0;

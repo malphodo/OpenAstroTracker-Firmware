@@ -27,7 +27,7 @@ const float SteppingStorageNormalized = 25600.0;
 
 #if USE_DUMMY_EEPROM == true
 
-static uint8_t dummyEepromStorage[75];
+static uint8_t dummyEepromStorage[EEPROMStore::ItemAddress::STORE_SIZE];
 
 // Initialize the EEPROM object for ESP boards, setting aside storage
 void EEPROMStore::initialize()
@@ -66,7 +66,7 @@ uint8_t EEPROMStore::read(uint8_t location)
 static constexpr uint32_t LPC_EEPROM_FLASH_BASE = 0x00078000UL;
 static constexpr uint32_t LPC_EEPROM_SECTOR     = 29UL;
 static constexpr uint32_t LPC_EEPROM_WRITE_SIZE = static_cast<uint32_t>(IAP_WRITE_256);
-static_assert(75 <= LPC_EEPROM_WRITE_SIZE, "EEPROM store exceeds LPC emulation page size");
+static_assert(EEPROMStore::ItemAddress::STORE_SIZE <= LPC_EEPROM_WRITE_SIZE, "EEPROM store exceeds LPC emulation page size");
 
 alignas(4) static uint8_t lpcEepromShadow[LPC_EEPROM_WRITE_SIZE];
 
@@ -163,6 +163,41 @@ uint8_t EEPROMStore::read(uint8_t location)
     uint8_t value;
     value = EEPROM.read(location);
     LOG(DEBUG_EEPROM, "[EEPROM]: ESP32: Read %x from %d", value, location);
+    return value;
+}
+
+#elif defined(ARDUINO_ARCH_RP2040)
+
+// Initialize the flash-backed EEPROM emulation provided by the Philhower
+// arduino-pico core. API is identical to the ESP32 path.
+void EEPROMStore::initialize()
+{
+    LOG(DEBUG_EEPROM, "[EEPROM]: RP2040: Startup with %d bytes", STORE_SIZE);
+    EEPROM.begin(STORE_SIZE);
+
+    displayContents();
+}
+
+// Update the given location with the given value
+void EEPROMStore::update(uint8_t location, uint8_t value)
+{
+    LOG(DEBUG_EEPROM, "[EEPROM]: RP2040: Writing %x to %d", value, location);
+    EEPROM.write(location, value);
+}
+
+// Complete the transaction (flush RAM cache to flash)
+void EEPROMStore::commit()
+{
+    LOG(DEBUG_EEPROM, "[EEPROM]: RP2040: Committing");
+    EEPROM.commit();
+}
+
+// Read the value at the given location
+uint8_t EEPROMStore::read(uint8_t location)
+{
+    uint8_t value;
+    value = EEPROM.read(location);
+    LOG(DEBUG_EEPROM, "[EEPROM]: RP2040: Read %x from %d", value, location);
     return value;
 }
 
@@ -354,6 +389,18 @@ bool EEPROMStore::isPresentExtended(ExtendedItemFlag item)
     if (!isPresent(EXTENDED_FLAG))
         return false;  // No extended data present
 
+    if (static_cast<uint32_t>(item) > 0xFFFFUL)
+    {
+        // Item lives in the second extended flags byte
+        if (readUint8(EXTENDED2_MAGIC_ADDR) != EXTENDED2_MAGIC_VALUE)
+            return false;
+        const uint8_t bit    = static_cast<uint8_t>(static_cast<uint32_t>(item) >> 16);
+        const uint8_t flags2 = readUint8(EXTENDED2_FLAGS_ADDR);
+        bool result2         = (flags2 & bit) != 0;
+        LOG(DEBUG_EEPROM, "[EEPROM]: IsExtended2DataPresent. Checking (%x & %x) => %d", flags2, bit, result2);
+        return result2;
+    }
+
     // Have extended data, now see if required item is available
     uint16_t marker = readUint16(EXTENDED_FLAGS_ADDR);
 
@@ -384,6 +431,27 @@ void EEPROMStore::updateFlags(ItemFlag item)
 // Note it is only possible to add items, not to remove them.
 void EEPROMStore::updateFlagsExtended(ExtendedItemFlag item)
 {
+    if (static_cast<uint32_t>(item) > 0xFFFFUL)
+    {
+        // Item lives in the second extended flags byte
+        const bool hadExtended = isPresent(EXTENDED_FLAG);
+        uint16_t extendedFlags = hadExtended ? readUint16(EXTENDED_FLAGS_ADDR) : 0;
+        uint8_t flags2(0);
+        if (hadExtended && (readUint8(EXTENDED2_MAGIC_ADDR) == EXTENDED2_MAGIC_VALUE))
+            flags2 = readUint8(EXTENDED2_FLAGS_ADDR);
+        const uint8_t bit = static_cast<uint8_t>(static_cast<uint32_t>(item) >> 16);
+
+        updateFlags(EXTENDED_FLAG);
+        // Rewrite the 16-bit word so stale bits never become "present" when EXTENDED_FLAG is new
+        updateUint16(EXTENDED_FLAGS_ADDR, extendedFlags);
+        updateUint8(EXTENDED2_FLAGS_ADDR, flags2 | bit);
+        updateUint8(EXTENDED2_MAGIC_ADDR, EXTENDED2_MAGIC_VALUE);
+        // We will not commit until the actual item value has been written
+
+        LOG(DEBUG_EEPROM, "[EEPROM]: Extended2 flags updated from %x to %x", flags2, flags2 | bit);
+        return;
+    }
+
     uint16_t extendedFlags(0);
     // Grab any existing flags, if they're there
     if (isPresent(EXTENDED_FLAG))

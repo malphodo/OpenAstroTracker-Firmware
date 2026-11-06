@@ -19,6 +19,11 @@
   Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA  02110-1301  USA
 */
 
+// Only the LPC1769 (SKR 1.4 Turbo) core needs this String implementation;
+// every other core ships its own and would clash with it.
+#include "../Constants.hpp"
+#if defined(BOARD) && (BOARD == BOARD_LPC1769_SKR_V14_TURBO)
+
 #include "WString.h"
 #include <stdio.h>
 
@@ -793,3 +798,5 @@ double String::toDouble(void) const
   if (buffer) return atof(buffer);
   return 0;
 }
+
+#endif  // BOARD == BOARD_LPC1769_SKR_V14_TURBO

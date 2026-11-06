@@ -3,11 +3,11 @@
 #include "../Configuration.hpp"
 #include "Utility.hpp"
 
-#if DEBUG_LEVEL > 0
+#if DEBUG_LEVEL != 0
     #include <stdarg.h>
 #endif
 
-#if DEBUG_LEVEL > 0
+#if DEBUG_LEVEL != 0
 unsigned long RealTime::_pausedTime   = 0;
 unsigned long RealTime::_suspendStart = 0;
 int RealTime::_suspended              = 0;
@@ -292,7 +292,7 @@ int freeMemory()
 }
 #endif
 
-#if DEBUG_LEVEL > 0
+#if DEBUG_LEVEL != 0
 
 String formatArg(const char *input, va_list args)
 {
@@ -409,18 +409,27 @@ void logv(int levelFlags, String input, ...)
     #if BUFFER_LOGS == true
         addToLogBuffer(formatArg(input.c_str(), argp));
     #else
-        DEBUG_SERIAL_PORT.print("[");
-        DEBUG_SERIAL_PORT.print(static_cast<unsigned long>(now));
-        DEBUG_SERIAL_PORT.print("]{");
-        DEBUG_SERIAL_PORT.print(static_cast<unsigned long>(delta));
-        DEBUG_SERIAL_PORT.print("}ms:");
-        DEBUG_SERIAL_PORT.print(static_cast<long>(freeMemory()));
-        DEBUG_SERIAL_PORT.print("B: ");
-        {
-            const String msg = formatArg(input.c_str(), argp);
-            DEBUG_SERIAL_PORT.println(msg.c_str());
-        }
+        // Compose the whole line and write it with a single print() call.
+        // The arduino-pico USB CDC write path can wedge when many small
+        // writes per line race the TinyUSB FIFO (each write re-enters the
+        // USB mutex); one write per line minimizes the exposure.
+        // Explicit casts keep the String overload resolution unambiguous on LPC1769.
+        String line = "[";
+        line += String(static_cast<unsigned long>(now));
+        line += "]{";
+        line += String(static_cast<unsigned long>(delta));
+        line += "}ms:";
+        line += String(static_cast<long>(freeMemory()));
+        line += "B: ";
+        line += formatArg(input.c_str(), argp);
+        line += "\n";
+        DEBUG_SERIAL_PORT.print(line.c_str());  // c_str(): same call shape as the pre-merge SKR code
+        #if !defined(ARDUINO_ARCH_RP2040)
+        // UART outputs drain from a ring buffer; flush so the tail of the log is not
+        // lost if the firmware crashes right after logging (matters for AVR debugging).
+        // On RP2040 the port is USB CDC, where flush() can stall without a reader.
         DEBUG_SERIAL_PORT.flush();
+        #endif
     #endif
         lastLog = now;
         va_end(argp);

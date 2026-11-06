@@ -150,12 +150,17 @@ void processSerialData()
         if (buffer[index] == 0x06)
         {
             LOG(DEBUG_SERIAL, "[SERIAL]: Received: ACK request, replying P");
-            #if defined(BOARD) && (BOARD == BOARD_LPC1769_SKR_V14_TURBO)
+    #if defined(BOARD) && (BOARD == BOARD_LPC1769_SKR_V14_TURBO)
+            // SKR: commands travel on USB CDC, debug output on UART0, so always reply.
             ensureUsbSerialReady();
             UsbSerial.print('P');
-            #else
+    #else
+                // When not debugging, print the result to the serial port .
+                // When debugging, only print the result to Serial if we're on seperate ports.
+        #if (DEBUG_LEVEL == DEBUG_NONE) || (DEBUG_SEPARATE_SERIAL == 1)
             Serial.print('P');
-            #endif
+        #endif
+    #endif
             index = 0;
         }
         else if (buffer[index] == '#')
@@ -165,16 +170,20 @@ void processSerialData()
             const String inCmd = String(buffer);
             LOG(DEBUG_SERIAL, "[SERIAL]: ReceivedCommand(%d chars): [%s]", inCmd.length(), inCmd.c_str());
 
-            const String retVal = MeadeCommandProcessor::instance()->processCommand(inCmd);
-            if (retVal != "")
+            const char *retVal = MeadeCommandProcessor::instance()->processCommand(inCmd);
+            if (retVal[0] != '\0')
             {
-                LOG(DEBUG_SERIAL, "[SERIAL]: RepliedWith:  [%s]", retVal.c_str());
-                #if defined(BOARD) && (BOARD == BOARD_LPC1769_SKR_V14_TURBO)
+                LOG(DEBUG_SERIAL, "[SERIAL]: RepliedWith:  [%s]", retVal);
+    #if defined(BOARD) && (BOARD == BOARD_LPC1769_SKR_V14_TURBO)
                 ensureUsbSerialReady();
-                UsbSerial.print(retVal.c_str());
-                #else
-                Serial.print(retVal.c_str());
-                #endif
+                UsbSerial.print(retVal);
+    #else
+                    // When not debugging, print the result to the serial port .
+                    // When debugging, only print the result to Serial if we're on seperate ports.
+        #if (DEBUG_LEVEL == DEBUG_NONE) || (DEBUG_SEPARATE_SERIAL == 1)
+                Serial.print(retVal);
+        #endif
+    #endif
             }
             // Wait for next command
             index = 0;

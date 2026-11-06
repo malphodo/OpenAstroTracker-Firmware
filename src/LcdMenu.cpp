@@ -1389,22 +1389,22 @@ void LcdMenu::invalidateCachedDisplayRow(byte row)
         && DISPLAY_TYPE != DISPLAY_TYPE_MINI12864_V2
 
 // The right arrow bitmap
-byte LcdMenu::RightArrowBitmap[8] = {B00000, B01000, B01100, B01110, B01100, B01000, B00000, B00000};
+byte LcdMenu::RightArrowBitmap[8] = {0b00000, 0b01000, 0b01100, 0b01110, 0b01100, 0b01000, 0b00000, 0b00000};
 
 // The left arrow bitmap
-byte LcdMenu::LeftArrowBitmap[8] = {B00000, B00010, B00110, B01110, B00110, B00010, B00000, B00000};
+byte LcdMenu::LeftArrowBitmap[8] = {0b00000, 0b00010, 0b00110, 0b01110, 0b00110, 0b00010, 0b00000, 0b00000};
 
-byte LcdMenu::UpArrowBitmap[8] = {B00100, B01110, B11111, B00100, B00100, B00100, B00100, B00100};
+byte LcdMenu::UpArrowBitmap[8] = {0b00100, 0b01110, 0b11111, 0b00100, 0b00100, 0b00100, 0b00100, 0b00100};
 
-byte LcdMenu::DownArrowBitmap[8] = {B000100, B000100, B000100, B000100, B000100, B011111, B001110, B000100};
+byte LcdMenu::DownArrowBitmap[8] = {0b000100, 0b000100, 0b000100, 0b000100, 0b000100, 0b011111, 0b001110, 0b000100};
 
-byte LcdMenu::DegreesBitmap[8] = {B01100, B10010, B10010, B01100, B00000, B00000, B00000, B00000};
+byte LcdMenu::DegreesBitmap[8] = {0b01100, 0b10010, 0b10010, 0b01100, 0b00000, 0b00000, 0b00000, 0b00000};
 
-byte LcdMenu::MinutesBitmap[8] = {B01000, B01000, B01000, B00000, B00000, B00000, B00000, B00000};
+byte LcdMenu::MinutesBitmap[8] = {0b01000, 0b01000, 0b01000, 0b00000, 0b00000, 0b00000, 0b00000, 0b00000};
 
-byte LcdMenu::TrackingBitmap[8] = {B10111, B00010, B10010, B00010, B10111, B00101, B10110, B00101};
+byte LcdMenu::TrackingBitmap[8] = {0b10111, 0b00010, 0b10010, 0b00010, 0b10111, 0b00101, 0b10110, 0b00101};
 
-byte LcdMenu::NoTrackingBitmap[8] = {B10000, B00000, B10000, B00010, B10000, B00000, B10000, B00000};
+byte LcdMenu::NoTrackingBitmap[8] = {0b10000, 0b00000, 0b10000, 0b00010, 0b10000, 0b00000, 0b10000, 0b00000};
 
     #endif
 
@@ -1529,37 +1529,54 @@ void LcdMenu::drawConfigLogoLarge()
 {
 }
 
-void LcdMenu::drawRaLogoLarge()
+// Headless stubs for the display controls used by the fork serial commands (MeadeForkCommands.cpp).
+void LcdMenu::setBacklightBrightness(int level, bool persist)
 {
 }
 
-void LcdMenu::drawDecLogoLarge()
+int LcdMenu::getBacklightBrightness() const
+{
+    return 0;
+}
+
+void LcdMenu::getBacklightBrightnessRange(int *minPtr, int *maxPtr) const
+{
+    *minPtr = 0;
+    *maxPtr = 0;
+}
+
+void LcdMenu::runVisibilityTestPattern()
 {
 }
 
-void LcdMenu::drawHaLogoLarge()
+bool LcdMenu::setMini12864ButtonBlinkMode(uint8_t mode)
+{
+    return false;
+}
+
+uint8_t LcdMenu::getMini12864ButtonBlinkMode() const
+{
+    return 0;
+}
+
+void LcdMenu::setMini12864EditBlinkActive(bool active)
 {
 }
 
-void LcdMenu::drawHomeLogoLarge()
+bool LcdMenu::isMini12864EditBlinkActive() const
+{
+    return false;
+}
+
+void LcdMenu::setDisplayInverted(bool inverted)
 {
 }
 
-void LcdMenu::drawCalLogoLarge()
+void LcdMenu::setDisplayPower(bool on)
 {
 }
 
-void LcdMenu::drawCtrlLogoLarge()
-{
-}
-
-void LcdMenu::drawPoiLogoLarge()
-{
-}
-
-void LcdMenu::drawFocLogoLarge()
-{
-}
+// draw<Page>LogoLarge() are defined at the top of this file for every display type.
 
 void LcdMenu::clearConfigLogoLarge()
 {

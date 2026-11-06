@@ -23,54 +23,11 @@
 // Celestial        90     60     30      0     -30   -60     -90    -60    -30    0    30   60    90
 //                                    Celestial = -90 + abs(Declination)
 // Declination    -180    -150   -120    -90    -60   -30     0     30    60    90   120   150    180
-Declination::Declination() : DayTime()
-{
-}
 
-Declination::Declination(const Declination &other) : DayTime(other)
-{
-}
+// Pure arithmetic (constructors, set, addDegrees, getTotalDegrees, checkHours)
+// is in core::Declination (src/core/types/Declination.hpp/.cpp).
 
-Declination::Declination(int h, int m, int s) : DayTime(h, m, s)
-{
-}
-
-Declination::Declination(float inDegrees) : DayTime(inDegrees)
-{
-}
-
-void Declination::set(int h, int m, int s)
-{
-    Declination dt(h, m, s);
-    totalSeconds = dt.totalSeconds;
-    checkHours();
-}
-
-void Declination::addDegrees(int deltaDegrees)
-{
-    addHours(deltaDegrees);
-}
-
-float Declination::getTotalDegrees() const
-{
-    return getTotalHours();
-}
-
-void Declination::checkHours()
-{
-    if (totalSeconds > arcSecondsPerHemisphere)
-    {
-        LOG(DEBUG_GENERAL, "[DECLINATION]: CheckHours: Degrees is more than 180, clamping");
-        totalSeconds = arcSecondsPerHemisphere;
-    }
-    if (totalSeconds < -arcSecondsPerHemisphere)
-    {
-        LOG(DEBUG_GENERAL, "[DECLINATION]: CheckHours: Degrees is less than -180, clamping");
-        totalSeconds = -arcSecondsPerHemisphere;
-    }
-}
-
-char achBufDeg[32];
+char achBufDeg[64];
 
 // Convert to a standard string (like 14:45:06), specifying separators if needed
 const char *Declination::ToDisplayString(char sep1, char sep2) const
@@ -84,14 +41,12 @@ const char *Declination::ToString() const
 {
     ToDisplayString('*', ':');
 
-    char *p = achBufDeg + strlen(achBufDeg);
-
-    *p++ = ' ';
-    *p++ = '(';
-    strcpy(p, String(inNorthernHemisphere ? 90 - fabsf(getTotalHours()) : -90 + fabsf(getTotalHours()), 4).c_str());
-    strcat(p, ", ");
-    strcat(p, String(getTotalHours(), 4).c_str());
-    strcat(p, ")");
+    size_t used      = strlen(achBufDeg);
+    size_t remaining = sizeof(achBufDeg) - used;
+    float displayVal = inNorthernHemisphere ? 90 - fabsf(getTotalHours()) : -90 + fabsf(getTotalHours());
+    String valStr    = String(displayVal, 4);
+    String hoursStr  = String(getTotalHours(), 4);
+    snprintf(achBufDeg + used, remaining, " (%s, %s)", valStr.c_str(), hoursStr.c_str());
 
     return achBufDeg;
 }
@@ -102,7 +57,7 @@ Declination Declination::ParseFromMeade(String const &s)
     LOG(DEBUG_MEADE, "[DECLINATION]: Declination.Parse(%s) for %s Hemi", s.c_str(), inNorthernHemisphere ? "N" : "S");
 
     // Use the DayTime code to parse it...
-    DayTime dt = DayTime::ParseFromMeade(s);
+    ::DayTime dt = ::DayTime::ParseFromMeade(s);
     LOG(DEBUG_MEADE, "[DECLINATION]: Declination DayTime is %l secs", dt.getTotalSeconds());
 
     // ...and then correct for hemisphere
@@ -125,7 +80,37 @@ Declination Declination::FromSeconds(long seconds)
 
 const char *Declination::formatString(char *targetBuffer, const char *format, long *) const
 {
-    long secs
-        = inNorthernHemisphere ? (arcSecondsPerHemisphere / 2) - labs(totalSeconds) : -(arcSecondsPerHemisphere / 2) + labs(totalSeconds);
-    return DayTime::formatString(targetBuffer, format, &secs);
+    long secs = core::Declination::axisToCelestialSeconds(totalSeconds, inNorthernHemisphere);
+    return core::DayTime::formatString(targetBuffer, format, &secs);
+}
+
+void Declination::getCelestialDegrees(int &deg, int &min, int &sec) const
+{
+    const long celestialSecs = core::Declination::axisToCelestialSeconds(totalSeconds, inNorthernHemisphere);
+    core::DayTime::splitSeconds(celestialSecs, deg, min, sec);
+}
+
+Declination Declination::fromCelestialDegrees(int deg, int min, int sec)
+{
+    // deg carries the only sign on the wire, so min and sec are unsigned
+    // magnitudes and must move away from zero. joinSeconds is the inverse of the
+    // splitSeconds that getCelestialDegrees uses.
+    // Declinations between -1 and 0 degrees cannot round-trip here: they arrive
+    // as deg == 0, and integer 0 has no sign, so -00*30:00 reads the same as
+    // +00*30:00. That is why the wire boundary uses fromCelestialSeconds
+    // instead -- the sign travels in the total, not in a degrees component.
+    const long wireSecs = core::DayTime::joinSeconds(deg, min, sec);
+    Declination result;
+    result.totalSeconds = core::Declination::celestialToAxisSeconds(wireSecs, inNorthernHemisphere);
+    result.checkHours();
+    return result;
+}
+
+Declination Declination::fromCelestialSeconds(long celestialSeconds)
+{
+    // The sign lives in the total, so there is no zero-degrees blind spot here.
+    Declination result;
+    result.totalSeconds = core::Declination::celestialToAxisSeconds(celestialSeconds, inNorthernHemisphere);
+    result.checkHours();
+    return result;
 }

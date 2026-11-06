@@ -388,9 +388,9 @@ void loop()
             if (!inSerialControl
                 )
             {
+                const int activeMenu = lcdMenu.getActive();
     #if USES_ROTARY_ENCODER == 1
                 // In rotary page mode, show a page title on line 0.
-                const int activeMenu = lcdMenu.getActive();
                 const char *pageTitle = "";
                 if (activeMenu == RA_Menu)
                 {

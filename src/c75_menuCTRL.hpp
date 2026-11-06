@@ -185,6 +185,9 @@ bool processControlKeys()
                 }
             }
             break;
+        #else
+        case HIGHLIGHT_CTRL_EXIT:  // Only reachable with a rotary encoder
+            break;
         #endif
 
         case MANUAL_CONTROL_CONFIRM_HOME:
@@ -272,6 +275,9 @@ void printControlSubmenu()
         #if USES_ROTARY_ENCODER == 1
         case HIGHLIGHT_CTRL_EXIT:
             lcdMenu.printMenu(">Exit");
+            break;
+        #else
+        case HIGHLIGHT_CTRL_EXIT:  // Only reachable with a rotary encoder
             break;
         #endif
         case MANUAL_CONTROL_CONFIRM_HOME:

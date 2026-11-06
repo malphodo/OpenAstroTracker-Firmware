@@ -1,4 +1,14 @@
-**Unreleased - Updates**
+# Changelog
+
+## SKR 1.4 Turbo fork (malphodo)
+
+Changes carried by this fork on top of the official releases listed further down.
+
+### Unreleased (merged onto official v1.14.0)
+- Merged official v1.14.0 (Meade parser refactor, stability, guiding and LST fixes, RP2040 boards).
+- Ported the fork's custom `:X` Meade commands (SKR diagnostics, GPS, Mini12864 LCD/RGB) to the new parser.
+- Fixed AutoHome, GPS and boot-song CFG toggles not being kept across reboots (extended EEPROM flags overflowed 16 bits).
+- Fixed the dummy EEPROM buffer being smaller than the EEPROM store.
 - Added a multilingual menu/title translation layer with persisted language selection in EEPROM.
 - Fixed Mini12864 rotary navigation edge cases, including first-entry page glitches, top-level page browsing, and INFO/CFG exit behavior.
 - Expanded the CFG menu with language, Gyro, AutoPA, AutoHome, and GPS toggles stored in EEPROM.
@@ -9,11 +19,54 @@
 - Added a large INFO page logo below the title on Mini12864/U8g2 displays, matching the Configuration page visual behavior.
 - Fixed a top-level carousel transition bug where moving from INFO to Configuration could make the Configuration large logo flash and disappear.
 
-**V1.13.20 - Updates**
+### Fork release 1 (was tagged V1.13.20 in this fork, unrelated to the official v1.13.20)
 - Added robust Mini12864 V2/V3 support on SKR 1.4 Turbo with controller selection (ST7565/ST7567/UC1701), dedicated EXP pin mapping, and improved validation.
 - Added runtime LCD diagnostics and controls, including display polarity toggle and visibility test command.
 - Added Mini12864 V3 per-LED RGB controls and preset backlight modes for night/day/confort usage via Meade serial commands.
 - Fixed Mini12864 RGB byte-order and command sequencing issues to ensure reliable color application.
+
+---
+
+## [1.14.0](https://github.com/OpenAstroTech/OpenAstroTracker-Firmware/compare/v1.13.22...v1.14.0) (2026-11-05)
+
+
+### Features
+
+* **rp2040:** 5 kHz stepping, hardware info, SSD1306 display, CI coverage + TMC hold-current fix ([#309](https://github.com/OpenAstroTech/OpenAstroTracker-Firmware/issues/309)) ([82b8592](https://github.com/OpenAstroTech/OpenAstroTracker-Firmware/commit/82b859232eca8c0e999dcfd1449656cf02449bb5))
+* **rp2040:** add support for JackW01 and BTT SKR Pico boards ([#298](https://github.com/OpenAstroTech/OpenAstroTracker-Firmware/issues/298)) ([2f77d61](https://github.com/OpenAstroTech/OpenAstroTracker-Firmware/commit/2f77d61fb783f7b1142534da3fbf0d5867171d5e))
+
+
+### Bug Fixes
+
+* AZ ALT drivers staying energized on 0 length moves ([#311](https://github.com/OpenAstroTech/OpenAstroTracker-Firmware/issues/311)) ([42d2982](https://github.com/OpenAstroTech/OpenAstroTracker-Firmware/commit/42d29825285c1be1ff0f180c3afdc10055e0352e))
+* **build:** clear espressif32 8.0.0 -Werror blockers (buffer size, binary literals) ([#319](https://github.com/OpenAstroTech/OpenAstroTracker-Firmware/issues/319)) ([be86480](https://github.com/OpenAstroTech/OpenAstroTracker-Firmware/commit/be86480eec993f0505f6b687db9d0802bba3ffc2))
+* **guiding:** guide pulses dropped during active pulses + display render delaying pulse end ([#313](https://github.com/OpenAstroTech/OpenAstroTracker-Firmware/issues/313)) ([3ad0c21](https://github.com/OpenAstroTech/OpenAstroTracker-Firmware/commit/3ad0c21adb27becca56bda4d51da5998018e1e07))
+* **steppers:** honour negative speed in InterruptAccelStepper::setSpeed ([#318](https://github.com/OpenAstroTech/OpenAstroTracker-Firmware/issues/318)) ([6c41f8d](https://github.com/OpenAstroTech/OpenAstroTracker-Firmware/commit/6c41f8dd15b85d0e203bbfb7101f1da57b895859))
+* use UTC date for LST calculation ([#312](https://github.com/OpenAstroTech/OpenAstroTracker-Firmware/issues/312)) ([034b190](https://github.com/OpenAstroTech/OpenAstroTracker-Firmware/commit/034b1907eae935dd23615e60c4b3e57e96f7c1c8))
+
+## [1.13.22](https://github.com/OpenAstroTech/OpenAstroTracker-Firmware/compare/v1.13.21...v1.13.22) (2026-10-05)
+
+
+### Bug Fixes
+
+* **meade:** accept the unsigned site longitude INDI sends ([#304](https://github.com/OpenAstroTech/OpenAstroTracker-Firmware/issues/304)) ([1c56888](https://github.com/OpenAstroTech/OpenAstroTracker-Firmware/commit/1c568880b97159893c728ab494d20ab7833335a5))
+* **meade:** accept the UTC offset format INDI sends ([#303](https://github.com/OpenAstroTech/OpenAstroTracker-Firmware/issues/303)) ([46289c7](https://github.com/OpenAstroTech/OpenAstroTracker-Firmware/commit/46289c79f0513d5eeb35f66e9659cace09a2b595))
+* **meade:** keep the sign of coordinates whose degrees component is zero ([#305](https://github.com/OpenAstroTech/OpenAstroTracker-Firmware/issues/305)) ([1760a95](https://github.com/OpenAstroTech/OpenAstroTracker-Firmware/commit/1760a950c41fa0c7692a9144759f87fb1041b8c7))
+
+## [1.13.21](https://github.com/OpenAstroTech/OpenAstroTracker-Firmware/compare/v1.13.20...v1.13.21) (2026-09-09)
+
+
+### Bug Fixes
+
+* Increase MeadeResponse capacity from 64 to 128 ([#297](https://github.com/OpenAstroTech/OpenAstroTracker-Firmware/issues/297)) ([7c8ef16](https://github.com/OpenAstroTech/OpenAstroTracker-Firmware/commit/7c8ef16b41bfdb04a1737d2a4b582729d24fda6d))
+* **meade:** build declination from wire components without losing the sign ([#302](https://github.com/OpenAstroTech/OpenAstroTracker-Firmware/issues/302)) ([f0e89ff](https://github.com/OpenAstroTech/OpenAstroTracker-Firmware/commit/f0e89ff8d873c3240b85baa8f50bf770001f33bf))
+* **meade:** restore hemisphere conversion for DEC coordinates ([#300](https://github.com/OpenAstroTech/OpenAstroTracker-Firmware/issues/300)) ([1c85a37](https://github.com/OpenAstroTech/OpenAstroTracker-Firmware/commit/1c85a37c9a9d94c76fec998cb800bc3981740098))
+* **stability:** resolve buffer overflows, EEPROM address collision, ISR races, and memory leaks ([#281](https://github.com/OpenAstroTech/OpenAstroTracker-Firmware/issues/281)) ([4b6ff1a](https://github.com/OpenAstroTech/OpenAstroTracker-Firmware/commit/4b6ff1ac923d1984cd45402f46c176bd294244d7))
+
+**V1.13.20 - Updates**
+- CI adjustments
+- Dependency updates
+- Unit testing improvements
 
 **V1.13.19 - Updates**
 - Support inverting and mirroring InfoDisplays.

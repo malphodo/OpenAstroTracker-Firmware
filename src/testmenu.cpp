@@ -336,9 +336,9 @@ void TestMenu::onCommandReceived(String s)
         s = s.substring(0, s.length() - 1);
     }
 
-    String reply = MeadeCommandProcessor::instance()->processCommand(s);
+    const char *reply = MeadeCommandProcessor::instance()->processCommand(s);
 
-    if (reply.length() > 0)
+    if (reply[0] != '\0')
     {
         Serial.println(F("-- Command Response --------"));
         Serial.println(reply);
@@ -479,7 +479,7 @@ void TestMenu::onKeyPressed(int key)
                     Serial.println(F("Mount reset, EEPROM erased."));
                     _currentMenu->display();
                 }
-                else if (action = F("PassthroughCmd"))
+                else if (action == F("PassthroughCmd"))
                 {
                     Serial.print(F("Enter LX200-OAT command to send to mount: "));
                     TestMenu::setMenuState(testMenuState_t::WAITING_ON_COMMAND);

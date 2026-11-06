@@ -1,0 +1,7 @@
+{
+  "name": "SPI",
+  "version": "0.0.0",
+  "description": "Minimal SPI shim for the LPC1769 (SKR 1.4 Turbo) core only. Every other core uses its framework SPI library.",
+  "platforms": ["nxplpc-arduino-lpc176x"],
+  "frameworks": "arduino"
+}

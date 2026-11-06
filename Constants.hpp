@@ -1,15 +1,16 @@
 #pragma once
 
 /**
- * This file contains constants that SHOULD NOT BE CHANGED by oat users!
- * If you are a developer and want to add new hardware support, add a
- * proper definition here with increased value.
+ * This file contains constants that SHOULD NOT BE CHANGED by OpenAstroTech users!
+ * If you are a developer and want to add new hardware support, add a proper
+ * definition here with an increased value.
  **/
 
 /**
  * Supported boards. The name consists of the platform and the board name (model).
  **/
 // AVR based boards
+#define BOARD_UNKNOWN           0000
 #define BOARD_AVR_MEGA2560      0001
 #define BOARD_AVR_MKS_GEN_L_V21 0002
 #define BOARD_AVR_MKS_GEN_L_V2  0003
@@ -22,6 +23,11 @@
 
 // LPC1769 based boards
 #define BOARD_LPC1769_SKR_V14_TURBO 2001
+// RP2040 based boards (2000-2999)
+//   2101-2199: Pico family + JackW01 printer carrier board
+//   2201-2299: BTT SKR Pico family
+#define BOARD_RP2040_JACKW01  2101
+#define BOARD_RP2040_SKR_PICO 2201
 
 /**
  * Supported keypad/display types. Use one of these values for DISPLAY_TYPE configuration matching your used display and keypad.
@@ -97,6 +103,7 @@
 
 // USB serial port speed according to external controller
 #define SERIAL_BAUDRATE_ASCOM 19200
+#define SERIAL_BAUDRATE_FAST  115200  // For platforms that keep up (RP2040 USB CDC)
 
 // Wifi operating modes (ESP32 only)
 #define WIFI_MODE_INFRASTRUCTURE 0  // Infrastructure Only - OAT connects to an existing Router

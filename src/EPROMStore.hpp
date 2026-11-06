@@ -179,10 +179,16 @@ class EEPROMStore
         LANGUAGE_MARKER_FLAG       = 0x2000,
         GYRO_ENABLED_MARKER_FLAG   = 0x4000,
         AUTOPA_ENABLED_MARKER_FLAG = 0x8000,
-        AUTOHOME_ENABLED_MARKER_FLAG = 0x10000,
-        GPS_ENABLED_MARKER_FLAG    = 0x20000,
+        // The extended flags word is only 16 bits wide, so the following markers
+        // live in a second flags byte (EXTENDED2_FLAGS_ADDR), selected by bits 16..23.
+        AUTOHOME_ENABLED_MARKER_FLAG  = 0x10000,
+        GPS_ENABLED_MARKER_FLAG       = 0x20000,
         BOOT_SONG_ENABLED_MARKER_FLAG = 0x40000,
     };
+
+    // Second extended flags byte is only trusted when its magic byte is present,
+    // so blank (0xFF) or never-written cells are read as "no flags".
+    static constexpr uint8_t EXTENDED2_MAGIC_VALUE = 0xA5;
 
     // These are the offsets to each item stored in the EEPROM
     enum ItemAddress
@@ -203,7 +209,7 @@ class EEPROMStore
         LATITUDE_ADDR               = 12,
         _LATITUDE_ADDR_1            = 13,  // Int16
         LONGITUDE_ADDR              = 14,
-        _LONGITUDE_ADDR_1           = 13,  // Int16
+        _LONGITUDE_ADDR_1           = 15,  // Int16
         LCD_BRIGHTNESS_ADDR         = 16,  // Uint8
         PITCH_OFFSET_ADDR           = 17,
         _PITCH_OFFSET_ADDR_1        = 18,  // Uint16
@@ -269,7 +275,9 @@ class EEPROMStore
         AUTOHOME_ENABLED_ADDR = 78,  // Uint8, bool
         GPS_ENABLED_ADDR       = 79,  // Uint8, bool
         BOOT_SONG_ENABLED_ADDR = 80,  // Uint8, bool
-        STORE_SIZE             = 81
+        EXTENDED2_MAGIC_ADDR   = 81,  // Uint8, EXTENDED2_MAGIC_VALUE when the byte below is valid
+        EXTENDED2_FLAGS_ADDR   = 82,  // Uint8, ExtendedItemFlag bits 16..23
+        STORE_SIZE             = 83
     };
 
     // Helper functions

@@ -36,21 +36,21 @@ using StepperFocusSlew = InterruptAccelStepper<config::Focus::stepper_slew>;
     #else
         #include "AccelStepper.h"
 class AccelStepper;
-using StepperRaSlew    = AccelStepper;
-using StepperRaTrk     = AccelStepper;
-using StepperDecSlew   = AccelStepper;
-using StepperDecTrk    = AccelStepper;
+using StepperRaSlew  = AccelStepper;
+using StepperRaTrk   = AccelStepper;
+using StepperDecSlew = AccelStepper;
+using StepperDecTrk  = AccelStepper;
 
         #if AZ_STEPPER_TYPE != STEPPER_TYPE_NONE
-using StepperAzSlew    = AccelStepper;
+using StepperAzSlew = AccelStepper;
         #endif
 
         #if ALT_STEPPER_TYPE != STEPPER_TYPE_NONE
-using StepperAltSlew   = AccelStepper;
+using StepperAltSlew = AccelStepper;
         #endif
 
         #if ALT_STEPPER_TYPE != STEPPER_TYPE_NONE
-using StepperAltSlew   = AccelStepper;
+using StepperAltSlew = AccelStepper;
         #endif
 
         #if FOCUS_STEPPER_TYPE != STEPPER_TYPE_NONE
@@ -61,21 +61,21 @@ using StepperFocusSlew = AccelStepper;
 #else
     #include "AccelStepper.h"
 class AccelStepper;
-using StepperRaSlew    = AccelStepper;
-using StepperRaTrk     = AccelStepper;
-using StepperDecSlew   = AccelStepper;
-using StepperDecTrk    = AccelStepper;
+using StepperRaSlew  = AccelStepper;
+using StepperRaTrk   = AccelStepper;
+using StepperDecSlew = AccelStepper;
+using StepperDecTrk  = AccelStepper;
 
     #if AZ_STEPPER_TYPE != STEPPER_TYPE_NONE
-using StepperAzSlew    = AccelStepper;
+using StepperAzSlew = AccelStepper;
     #endif
 
     #if ALT_STEPPER_TYPE != STEPPER_TYPE_NONE
-using StepperAltSlew   = AccelStepper;
+using StepperAltSlew = AccelStepper;
     #endif
 
     #if ALT_STEPPER_TYPE != STEPPER_TYPE_NONE
-using StepperAltSlew   = AccelStepper;
+using StepperAltSlew = AccelStepper;
     #endif
 
     #if FOCUS_STEPPER_TYPE != STEPPER_TYPE_NONE
@@ -88,39 +88,39 @@ class TMC2209Stepper;
 class HallSensorHoming;
 class EndSwitch;
 
-#define NORTH          B00000001
-#define EAST           B00000010
-#define SOUTH          B00000100
-#define WEST           B00001000
-#define ALL_DIRECTIONS B00001111
-#define TRACKING       B00010000
-#define FOCUSING       B00100000
+#define NORTH          0b00000001
+#define EAST           0b00000010
+#define SOUTH          0b00000100
+#define WEST           0b00001000
+#define ALL_DIRECTIONS 0b00001111
+#define TRACKING       0b00010000
+#define FOCUSING       0b00100000
 
-#define LCDMENU_STRING     B0001
-#define MEADE_STRING       B0010
-#define PRINT_STRING       B0011
-#define LCD_STRING         B0100
-#define COMPACT_STRING     B0101
-#define FORMAT_STRING_MASK B0111
+#define LCDMENU_STRING     0b0001
+#define MEADE_STRING       0b0010
+#define PRINT_STRING       0b0011
+#define LCD_STRING         0b0100
+#define COMPACT_STRING     0b0101
+#define FORMAT_STRING_MASK 0b0111
 
-#define TARGET_STRING  B01000
-#define CURRENT_STRING B10000
+#define TARGET_STRING  0b01000
+#define CURRENT_STRING 0b10000
 
 //mountstatus
-#define STATUS_PARKED            0B0000000000000000
-#define STATUS_SLEWING           0B0000000000000010
-#define STATUS_SLEWING_TO_TARGET 0B0000000000000100
-#define STATUS_SLEWING_FREE      0B0000000000000010
-#define STATUS_SLEWING_MANUAL    0B0000000100000000
-#define STATUS_TRACKING          0B0000000000001000
-#define STATUS_PARKING           0B0000000000010000
-#define STATUS_PARKING_POS       0B0001000000000000
-#define STATUS_GUIDE_PULSE       0B0000000010000000
-#define STATUS_GUIDE_PULSE_DIR   0B0000000001100000
-#define STATUS_GUIDE_PULSE_RA    0B0000000001000000
-#define STATUS_GUIDE_PULSE_DEC   0B0000000000100000
-#define STATUS_GUIDE_PULSE_MASK  0B0000000011100000
-#define STATUS_FINDING_HOME      0B0010000000000000
+#define STATUS_PARKED            0b0000000000000000
+#define STATUS_SLEWING           0b0000000000000010
+#define STATUS_SLEWING_TO_TARGET 0b0000000000000100
+#define STATUS_SLEWING_FREE      0b0000000000000010
+#define STATUS_SLEWING_MANUAL    0b0000000100000000
+#define STATUS_TRACKING          0b0000000000001000
+#define STATUS_PARKING           0b0000000000010000
+#define STATUS_PARKING_POS       0b0001000000000000
+#define STATUS_GUIDE_PULSE       0b0000000010000000
+#define STATUS_GUIDE_PULSE_DIR   0b0000000001100000
+#define STATUS_GUIDE_PULSE_RA    0b0000000001000000
+#define STATUS_GUIDE_PULSE_DEC   0b0000000000100000
+#define STATUS_GUIDE_PULSE_MASK  0b0000000011100000
+#define STATUS_FINDING_HOME      0b0010000000000000
 
 struct LocalDate {
     int year;
@@ -264,6 +264,9 @@ class Mount
     void setSlewRate(int rate);
     int getSlewRate();
 
+    // Get the number of hours we've been tracking
+    float getTrackedHours() const;
+
     // Set the HA time (HA is derived from LST, the setter calculates and sets LST)
     void setHA(const DayTime &haTime);
     const DayTime HA() const;
@@ -309,6 +312,7 @@ class Mount
     bool isSlewingRAorDEC() const;
     bool isSlewingIdle() const;
     bool isSlewingTRK() const;
+    bool isTracking() const;
     bool isParking() const;
     bool isGuiding() const;
     bool isFindingHome() const;
@@ -392,6 +396,7 @@ class Mount
     // Returns a comma-delimited string with all the mounts' information
     String getStatusString();
 
+    void setStatus(int state);
     void setStatusFlag(int flag);
     void clearStatusFlag(int flag);
 

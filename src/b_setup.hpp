@@ -246,8 +246,32 @@ void setup()
     #else
     Serial.begin(SERIAL_BAUDRATE);
     #endif
-    #if DEBUG_LEVEL > 0 && DEBUG_SEPARATE_SERIAL == 1
+    #if defined(ARDUINO_ARCH_RP2040)
+    // OATControl (and other apps using C# SerialPort) open the port with DTR=false.
+    // The Philhower USB CDC SerialUSB::write() gates TX on tud_cdc_connected() which
+    // requires DTR=true, so all responses are silently dropped for those hosts.
+    // ignoreFlowControl(true) bypasses the DTR check so replies always flow.
+    // Bounded by the core: with no (or a non-DTR) host, writes stop as soon as the
+    // ~257-byte CDC TX FIFO is full (tud_cdc_connected() false breaks the write
+    // loop immediately); a connected host that stops draining is dropped after
+    // 1 second without progress. Headless boots never stall on logging.
+    Serial.ignoreFlowControl(true);
+    #endif
+    #if DEBUG_LEVEL != 0 && DEBUG_SEPARATE_SERIAL == 1
     DEBUG_SERIAL_PORT.begin(DEBUG_SERIAL_BAUDRATE);
+    #endif
+    // RP2040 USB CDC: give a console up to 3 seconds to attach so the boot
+    // log stays visible. Bounded, never infinite: a mount powered externally
+    // in the field must boot with no USB host attached. With no host attached
+    // the CDC TX FIFO holds only ~250 bytes and further writes are dropped, so
+    // a headless debug build simply boots invisibly (reset with the console
+    // open to see the full log). Release builds (DEBUG_LEVEL == 0) skip this
+    // entirely.
+    #if defined(ARDUINO_ARCH_RP2040) && DEBUG_LEVEL != 0
+    uint32_t consoleWaitStart = millis();
+    while (!Serial && (millis() - consoleWaitStart < 3000UL))
+    { /* spin until the console connects or the timeout expires */
+    }
     #endif
 #endif
 
@@ -285,6 +309,10 @@ void setup()
     #if USE_GPS_I2C_ADAFRUIT == 1
     Wire.begin();
     #else
+        #if defined(ARDUINO_ARCH_RP2040) && defined(RP2040_GPS_TX_PIN) && defined(RP2040_GPS_RX_PIN)
+    GPS_SERIAL_PORT.setTX(RP2040_GPS_TX_PIN);
+    GPS_SERIAL_PORT.setRX(RP2040_GPS_RX_PIN);
+        #endif
     GPS_SERIAL_PORT.begin(GPS_BAUD_RATE);
     #endif
     #if (INFO_DISPLAY_TYPE != INFO_DISPLAY_TYPE_NONE)
@@ -305,11 +333,28 @@ void setup()
     updateConsoleText(dewHeaterLine, F("Enable Dew Heater... OK"));
 #endif
 
+#if defined(RP2040_FAN1_PIN)
+    pinMode(RP2040_FAN1_PIN, OUTPUT);
+    analogWrite(RP2040_FAN1_PIN, (RP2040_FAN1_POWER_PERCENT * 255) / 100);
+#endif
+
 #if (USE_RA_END_SWITCH == 1 || USE_DEC_END_SWITCH == 1)
     int endSwitchesLine = addConsoleText(F("Init End Switches..."));
     LOG(DEBUG_ANY, "[SYSTEM]: Init EndSwitches...");
     mount.setupEndSwitches();
     updateConsoleText(endSwitchesLine, F("Init End Switches... OK"));
+#endif
+
+    /////////////////////////////////
+    //   RP2040: UART pin remapping
+    /////////////////////////////////
+    // RP2040_UART1_TX_PIN / RP2040_UART1_RX_PIN are defined in the board's
+    // pins file only for RP2040 targets that use a non-default UART1 mapping.
+#if defined(ARDUINO_ARCH_RP2040) && defined(RP2040_UART1_TX_PIN) && defined(RP2040_UART1_RX_PIN)
+    Serial2.setTX(RP2040_UART1_TX_PIN);
+    Serial2.setRX(RP2040_UART1_RX_PIN);
+    Serial2.setPollingMode(true);  // Must be called before begin(); avoids IRQ/CoreMutex blocking in TMCStepper read path
+    Serial2.begin(115200);         // TMCStepper HW-serial path never calls begin(); must do it here.
 #endif
 
     /////////////////////////////////
@@ -340,8 +385,10 @@ void setup()
     #ifdef RA_SERIAL_PORT
         #ifdef OAE
     RA_SERIAL_PORT.begin(57600, SERIAL_8N1, RA_RX_PIN, RA_TX_PIN);
+        #elif defined(ARDUINO_ARCH_RP2040)
+    RA_SERIAL_PORT.begin(115200);  // TMCStepper requires 115200 baud on RP2040
         #else
-    RA_SERIAL_PORT.begin(57600);   // Start HardwareSerial comms with driver
+    RA_SERIAL_PORT.begin(57600);  // Start HardwareSerial comms with driver
         #endif
     //
     #endif
@@ -373,6 +420,8 @@ void setup()
     #ifdef DEC_SERIAL_PORT
         #ifdef OAE
     DEC_SERIAL_PORT.begin(57600, SERIAL_8N1, DEC_RX_PIN, DEC_TX_PIN);
+        #elif defined(ARDUINO_ARCH_RP2040)
+    DEC_SERIAL_PORT.begin(115200);  // TMCStepper requires 115200 baud on RP2040
         #else
     DEC_SERIAL_PORT.begin(57600);  // Start HardwareSerial comms with driver
         #endif
@@ -387,10 +436,16 @@ void setup()
     pinMode(AZ_EN_PIN, OUTPUT);
     digitalWrite(AZ_EN_PIN, HIGH);  // Logic HIGH to disable the driver initally
     #if AZ_DRIVER_TYPE == DRIVER_TYPE_TMC2209_UART
-    // include TMC2209 UART pins
+        // include TMC2209 UART pins
+        #if defined(AZ_DIAG_PIN)
     pinMode(AZ_DIAG_PIN, INPUT);
+        #endif
         #ifdef AZ_SERIAL_PORT
+            #if defined(ARDUINO_ARCH_RP2040)
+    AZ_SERIAL_PORT.begin(115200);  // TMCStepper requires 115200 baud on RP2040
+            #else
     AZ_SERIAL_PORT.begin(57600);  // Start HardwareSerial comms with driver
+            #endif
         #endif
     #endif
     updateConsoleText(azLine, F("Init AZ axis... OK"));
@@ -402,10 +457,16 @@ void setup()
     pinMode(ALT_EN_PIN, OUTPUT);
     digitalWrite(ALT_EN_PIN, HIGH);  // Logic HIGH to disable the driver initally
     #if ALT_DRIVER_TYPE == DRIVER_TYPE_TMC2209_UART
-    // include TMC2209 UART pins
+        // include TMC2209 UART pins
+        #if defined(ALT_DIAG_PIN)
     pinMode(ALT_DIAG_PIN, INPUT);
+        #endif
         #ifdef ALT_SERIAL_PORT
+            #if defined(ARDUINO_ARCH_RP2040)
+    ALT_SERIAL_PORT.begin(115200);  // TMCStepper requires 115200 baud on RP2040
+            #else
     ALT_SERIAL_PORT.begin(57600);  // Start HardwareSerial comms with driver
+            #endif
         #endif
     #endif
     updateConsoleText(altLine, F("Init ALT axis... OK"));
@@ -420,10 +481,24 @@ void setup()
         // include TMC2209 UART pins
         #ifdef FOCUS_SERIAL_PORT
     LOG(DEBUG_FOCUS, "[FOCUS]: setup(): focus TMC2209U starting comms");
+            #if defined(ARDUINO_ARCH_RP2040)
+    FOCUS_SERIAL_PORT.begin(115200);  // TMCStepper requires 115200 baud on RP2040
+            #else
     FOCUS_SERIAL_PORT.begin(57600);  // Start HardwareSerial comms with driver
+            #endif
         #endif
     #endif
     updateConsoleText(focusLine, F("Init Focuser... OK"));
+#endif
+
+#if defined(RP2040_SHARED_EN_PIN)
+    // On boards where all stepper EN lines share one GPIO (e.g. JackW01 carrier),
+    // the per-axis init sequence leaves that GPIO HIGH (logic disabled) after the
+    // AZ/ALT blocks run.  Force it LOW here so every driver is enabled once all
+    // UART addresses have been configured.  Per-axis power management is handled
+    // via the TMC2209 IHOLD register over UART rather than toggling this pin.
+    pinMode(RP2040_SHARED_EN_PIN, OUTPUT);
+    digitalWrite(RP2040_SHARED_EN_PIN, LOW);
 #endif
     // end microstepping -------------------
 
@@ -687,6 +762,15 @@ void setup()
     #endif
 #endif
 
+#if defined(RP2040_SHARED_EN_PIN)
+    // Re-assert EN LOW after all driver configs.  Each configureXXXdriver() that
+    // fails its UART connection test calls digitalWrite(X_EN_PIN, HIGH) as a
+    // safety measure; on JackW01 all EN lines share one GPIO so all four failures
+    // leave that GPIO HIGH (motors disabled).  Override it here unconditionally so
+    // the motors are always enabled after initialization.
+    digitalWrite(RP2040_SHARED_EN_PIN, LOW);
+#endif
+
     LOG(DEBUG_ANY, "[SYSTEM]: Energize Steppers... OK");
     updateConsoleText(stepperLine, F("Energize Steppers... OK"));
 
@@ -723,8 +807,9 @@ void setup()
 
 #else
     #ifndef NEW_STEPPER_LIB
-    // 2 kHz updates (higher frequency interferes with serial communications and complete messes up OATControl communications)
-    if (!InterruptCallback::setInterval(0.5f, stepperControlTimerCallback, &mount))
+    // Stepper servicing rate: 2 kHz on AVR (higher rates there interfere with serial
+    // communications and mess up OATControl), 5 kHz on RP2040 (see STEPPER_CONTROL_INTERVAL_MS).
+    if (!InterruptCallback::setInterval(STEPPER_CONTROL_INTERVAL_MS, stepperControlTimerCallback, &mount))
     {
         LOG(DEBUG_MOUNT, "[SYSTEM]: CANNOT setup interrupt timer!");
     }
