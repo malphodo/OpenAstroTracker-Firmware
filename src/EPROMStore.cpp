@@ -27,7 +27,7 @@ const float SteppingStorageNormalized = 25600.0;
 
 #if USE_DUMMY_EEPROM == true
 
-static uint8_t dummyEepromStorage[EEPROMStore::ItemAddress::STORE_SIZE];
+static uint8_t dummyEepromStorage[EEPROMStore::STORE_BYTES];
 
 // Initialize the EEPROM object for ESP boards, setting aside storage
 void EEPROMStore::initialize()
@@ -66,7 +66,7 @@ uint8_t EEPROMStore::read(uint8_t location)
 static constexpr uint32_t LPC_EEPROM_FLASH_BASE = 0x00078000UL;
 static constexpr uint32_t LPC_EEPROM_SECTOR     = 29UL;
 static constexpr uint32_t LPC_EEPROM_WRITE_SIZE = static_cast<uint32_t>(IAP_WRITE_256);
-static_assert(EEPROMStore::ItemAddress::STORE_SIZE <= LPC_EEPROM_WRITE_SIZE, "EEPROM store exceeds LPC emulation page size");
+static_assert(EEPROMStore::STORE_BYTES <= LPC_EEPROM_WRITE_SIZE, "EEPROM store exceeds LPC emulation page size");
 
 alignas(4) static uint8_t lpcEepromShadow[LPC_EEPROM_WRITE_SIZE];
 

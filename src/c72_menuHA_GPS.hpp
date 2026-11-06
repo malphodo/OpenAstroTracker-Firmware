@@ -233,7 +233,7 @@ bool processHAKeys()
         if (gpsAqcuisitionComplete(indicator))
         {
             LOG(DEBUG_INFO, "[HA]: GPS acquired");
-#if USE_GPS_I2C_ADAFRUIT == 0
+#if (USE_GPS_I2C_ADAFRUIT == 0) && (BOARD != BOARD_LPC1769_SKR_V14_TURBO)  // LPC176x HardwareSerial has no end()
             GPS_SERIAL_PORT.end();
 #endif
             haState = SHOWING_HA_SYNC;
@@ -403,7 +403,7 @@ bool processHAKeys()
             if (haState == STARTING_GPS)
             {
                 LOG(DEBUG_INFO, "[HA]: In GPS Start mode, switching to manual");
-#if USE_GPS_I2C_ADAFRUIT == 0
+#if (USE_GPS_I2C_ADAFRUIT == 0) && (BOARD != BOARD_LPC1769_SKR_V14_TURBO)  // LPC176x HardwareSerial has no end()
                 GPS_SERIAL_PORT.end();
 #endif
                 haState = SHOWING_HA_SYNC;

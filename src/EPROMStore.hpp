@@ -308,4 +308,8 @@ class EEPROMStore
     static uint8_t read(uint8_t location);
     static void update(uint8_t location, uint8_t value);
     static void commit();
+
+  public:
+    // Number of bytes used by the store (for backends sizing their storage).
+    static constexpr uint8_t STORE_BYTES = ItemAddress::STORE_SIZE;
 };

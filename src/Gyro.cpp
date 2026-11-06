@@ -70,6 +70,7 @@ void Gyro::startup()
     if (!isPresent)
     {
         LOG(DEBUG_INFO, "[GYRO]:: Not found! WHO_AM_I ok=%d val=0x%02X", idReadOk ? 1 : 0, id);
+        (void) idReadOk;  // Only used by the log above
         return;
     }
 
